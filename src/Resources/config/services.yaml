@@ -1,0 +1,5 @@
+services:
+    Anfallnorr\FileManagerSystem\Service\FileManagerService:
+        arguments:
+            $defaultDirectory: '%file_manager_system.default_directory%'
+        public: true

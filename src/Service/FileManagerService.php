@@ -1,0 +1,634 @@
+<?php
+
+/**
+ * Gestionnaire de fichiers pour récupérer les informations des fichiers et dossiers.
+ */
+
+namespace Anfallnorr\FileManagerSystem\Service;
+
+// use Symfony\Component\DependencyInjection\Attribute\AsService;
+use Symfony\Component\Finder\Finder;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
+use Symfony\Component\String\Slugger\AsciiSlugger;
+// use Symfony\Contracts\Translation\TranslatorInterface;
+
+/**
+ *
+ * METHODS :
+ * 	addFile
+ * 	categorizeFiles		static
+ *			@params		array $files, bool $basename = false, bool $path = false
+ *			@return		array
+ *
+ * 	createDir
+ * 	getAlias
+ * 	getContents
+ * 	getDirs
+ * 	getExtByType
+ * 	getExtractedFolder	static
+ *			@params		string $folder
+ *			@return		string
+ *
+ * 	getFiles
+ * 	getFileSize
+ * 	getFilesSize
+ * 	getScanSize
+ * 	getSize
+ * 	getSizeName
+ * 	getSliceDirs
+ * 	move
+ * 	readArchive
+ * 	remove
+ * 	renamer
+ * 	resizeImages
+ * 	resizeLargeImage
+ * 	strReplace
+ * 	upload
+ *
+ *
+ */
+// #[AsService] // Quand on veut forcer une classe spécifique à être un service sans toucher services.yaml
+class FileManagerService
+{
+	const EXTENSIONS = array(
+		'documents' => array('doc','docx','odf','odp','ods','odt','otf','ppt','csv','pps','pptx','xls','xlsx','rtf','txt','pdf'),
+		'images' => array('jpg','jpeg','png','tif','webp','bmp','ico','svg','gif'),
+		'audios' => array('mp3','wav','wave','wma','aac','mid','midi','ogg','aif','aiff'),
+		'videos' => array('mp4','mpg','mpeg','mov','3gp','avi'),
+		/* 'other' => array() */
+	);
+
+    private string $defaultDirectory;
+	private array $mimeTypes;
+	private array $unite;
+
+    public function __construct(string $defaultDirectory)
+    {
+        $this->defaultDirectory = $defaultDirectory;
+		// Initialisation des variables globales
+
+        // Initialisation des types MIME pour différents formats de fichiers
+		$this->mimeTypes = [
+			// Formats graphiques vectoriels et images
+			'ai'   => 'application/postscript', // Adobe Illustrator
+			'eps'  => 'application/postscript', // Encapsulated PostScript
+			'svg'  => 'image/svg+xml',          // SVG
+			'psd'  => 'image/vnd.adobe.photoshop', // Photoshop
+			'indd' => 'application/x-indesign', // InDesign
+			'cdr'  => 'application/coreldraw',  // CorelDRAW (non standard, peut varier)
+			'sketch' => 'application/sketch',   // Sketch (non standard, peut varier)
+			'fig'  => 'application/fig',        // Figma (non standard, peut varier)
+
+			// Formats d'image courants
+			'jpg'  => 'image/jpeg',
+			'jpeg' => 'image/jpeg',
+			'png'  => 'image/png',
+			'gif'  => 'image/gif',
+			'webp' => 'image/webp',
+			'bmp'  => 'image/bmp',
+			'tiff' => 'image/tiff',
+			'ico'  => 'image/x-icon',
+
+			// Formats de développement web
+			'html' => 'text/html',
+			'htm'  => 'text/html',
+			'css'  => 'text/css',
+			'js'   => 'application/javascript',
+			'json' => 'application/json',
+			'xml'  => 'application/xml',
+			'php'  => 'application/x-httpd-php', // PHP
+
+			// Formats texte
+			'txt'  => 'text/plain', // Fichier texte brut
+
+			// Formats de documents
+			'pdf'  => 'application/pdf',
+			'doc'  => 'application/msword',
+			'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+			'xls'  => 'application/vnd.ms-excel',
+			'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+			'ppt'  => 'application/vnd.ms-powerpoint',
+			'pptx' => 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+
+			// Archives
+			'zip'  => 'application/zip',
+			'rar'  => 'application/x-rar-compressed',
+			'tar'  => 'application/x-tar',
+			'gz'   => 'application/gzip',
+			'7z'   => 'application/x-7z-compressed',
+
+			// Formats audio et vidéo
+			'mp3'  => 'audio/mpeg',
+			'wav'  => 'audio/wav',
+			'ogg'  => 'audio/ogg',
+			'mp4'  => 'video/mp4',
+			'avi'  => 'video/x-msvideo',
+			'mov'  => 'video/quicktime',
+			'webm' => 'video/webm',
+		];
+
+        // Unités de mesure pour la taille des fichiers
+        $this->unite = ["Octets", "Ko", "Mo", "Go"];
+    }
+
+	public function getMimeTypes(): array
+	{
+		return $this->mimeTypes;
+	}
+
+	public function getMimeType(string $key): string|array|null
+	{
+		return $this->mimeTypes[$key] ?? null;
+	}
+
+    /* public function getFiles(string $directory = null): array
+    {
+        $directory = $directory ?? $this->defaultDirectory;
+        return scandir($directory);
+    } */
+
+    public function createDir(string $directory = null): array
+    {
+        $directory = $directory ?? $this->defaultDirectory;
+        return scandir($directory);
+    }
+
+    // Ajoutez d'autres méthodes comme move, copy, delete, etc.
+	
+	/**
+	 * Cette fonction prend un tableau de fichiers en entrée et les catégorise selon leur extension.
+	 * Elle retourne un tableau associatif avec les catégories de fichiers, qui contiennent chacune 
+	 * trois tableaux avec les chemins d'accès (src), les noms de fichiers (basename) et les dossiers 
+	 * parent (path).
+	 *
+	 * @param array $files Le tableau des fichiers à catégoriser
+	 * @param bool $basename Un booléen pour spécifier si le tableau doit contenir les noms de fichiers (true) ou non (false)
+	 * @param bool $path Un booléen pour spécifier si le tableau doit contenir les dossiers parent (true) ou non (false)
+	 * @return array Le tableau des catégories de fichiers
+	 */
+	public static function categorizeFiles(array $files, bool $basename = false, bool $path = false): array
+    {
+		/* // Initialisation du tableau des catégories de fichiers avec les tableaux vides pour chaque catégorie
+		$categories = array(
+			'documents' => array(
+				'src' => array(), 'basename' => array(), 'path' => array()
+			),
+			'images' => array(
+				'src' => array(), 'basename' => array(), 'path' => array()
+			),
+			'audios' => array(
+				'src' => array(), 'basename' => array(), 'path' => array()
+			),
+			'videos' => array(
+				'src' => array(), 'basename' => array(), 'path' => array()
+			),
+			'other' => array(
+				'src' => array(), 'basename' => array(), 'path' => array()
+			)
+		);
+		
+		// Boucle sur chaque fichier dans le tableau des fichiers
+		foreach ($files as $file) {
+			// Obtention de l'extension du fichier
+			$extension = pathinfo($file, PATHINFO_EXTENSION);
+			// Variable pour savoir si le fichier est catégorisé
+			$categorized = false;
+			
+			// Boucle sur chaque catégorie de fichiers
+			foreach ($categories as $type => $category) {
+				// Si l'extension du fichier est dans la liste des extensions pour cette catégorie
+				if (in_array($extension, self::getExtByType($type))) {
+					// Ajout du fichier dans la catégorie correspondante
+					$categories[$type]['src'][] = $file;
+					
+					// Ajout du nom de fichier dans la catégorie correspondante si demandé
+					if ($basename) {
+						$categories[$type]['basename'][] = basename($file);
+					}
+					
+					// Ajout du dossier parent dans la catégorie correspondante si demandé
+					if ($path) {
+						$categories[$type]['path'][] = self::getExtractedFolder($file);
+					}
+					
+					// Le fichier est catégorisé, on sort de la boucle
+					$categorized = true;
+					break;
+				}
+			}
+			
+			// Si le fichier n'a pas été catégorisé, on l'ajoute dans la catégorie "other"
+			if (!$categorized) {
+				// Ajout du fichier dans la catégorie "other"
+				$categories['other']['src'][] = $file;
+				
+				// Ajout du nom de fichier dans la catégorie "other" si demandé
+				if ($basename) {
+					$categories['other']['basename'][] = basename($file);
+				}
+				
+				// Ajout du dossier parent dans la catégorie "other" si demandé
+				if ($path) {
+					$categories['other']['path'][] = self::getExtractedFolder($file);
+				}
+			}
+		}
+
+		return $categories; */
+		return ['categorizeFiles'];
+	}
+	
+	/**
+	 * Extrait le dossier parent du fichier à partir d'un chemin complet de fichier.
+     *
+     * Cette fonction prend en entrée un chemin complet de fichier et retourne le dossier parent du fichier.
+     * Elle cherche d'abord le dossier personnel de l'utilisateur, qui se trouve immédiatement après le répertoire "uploads/datas/".
+     * Ensuite, elle extrait tous les dossiers jusqu'à ce qu'elle trouve un nom de fichier (qui contient un point ".").
+     * Elle retourne ensuite tous les dossiers précédant ce fichier.
+     * Si aucun fichier n'est trouvé dans le chemin, la fonction retourne une chaîne vide.
+	 * 
+	 * @param string $folder Le chemin complet du fichier.
+	 * @return string Le dossier parent du fichier.
+	 */
+	public static function getExtractedFolder(string $folder): string
+    {
+		/* $uploads_datas = "datas";
+		$folder_parts = explode("/", $folder);
+		$uploads_datas_index = array_search($uploads_datas, $folder_parts);
+		$personal_folder_index = $uploads_datas_index + 1;
+		
+		$next_is_dir = true;
+		$i = $personal_folder_index + 1;
+		$extracted_folder = "";
+		
+		while ($next_is_dir && $i < count($folder_parts) - 1) {
+			if (!str_contains($folder_parts[$i], ".")) {
+				$extracted_folder .= "/" . $folder_parts[$i];
+			} else {
+				$next_is_dir = false;
+			}
+   
+			$i++;
+		}
+		
+		return $extracted_folder; */
+		return 'getExtractedFolder';
+	}
+	
+	/**
+	 * Récupère les extensions de fichier associées à un type donné.
+	 * 
+	 * @param string $type Le type de fichier pour lequel récupérer les extensions.
+	 * @return array Les extensions de fichier associées au type spécifié, ou un tableau vide si le type n'existe pas.
+	 */
+	public static function getExtByType(string $type): array
+    {
+		/* if (array_key_exists($type, self::EXTENSIONS)) {
+			return self::EXTENSIONS[$type];
+		} */
+		
+		return array();
+	}
+	
+	public function getDirs(string $path = '/', string $excludeDir = "", string|null $depth = '== 0'): array
+	{
+		$realPath = realpath($this->defaultDirectory . '/' . trim($path, '/'));
+		// dd($realPath);
+
+		if (!$realPath || !is_dir($realPath)) {
+			return [];
+		}
+
+		$finder = new Finder();
+		if ($depth) {
+			$finder->depth($depth); // Recherche uniquement les dossiers à la racine
+		}
+		$finder->directories()->in($realPath); // Recherche uniquement les dossiers à la racine
+
+		$directories = [];
+		foreach ($finder as $dir) {
+			$dirPath = $dir->getRealPath();
+
+			if ($excludeDir && str_contains($dirPath, $excludeDir)) {
+				continue;
+			}
+
+			$relative = str_replace($this->defaultDirectory, '', $dirPath);
+
+			$directories[] = [
+				'absolute' => $dirPath,
+				'relative' => $relative,
+				'ltrimed_relative' => ltrim($relative, '/'),
+				'foldername' => $dir->getFilename(),
+			];
+		}
+
+		return $directories;
+	}
+    
+    /**
+     * Récupère des parties spécifiques des répertoires fournis et les concatène si nécessaire.
+     *
+     * @param string|array $dirs Les répertoires en tant que chaîne unique ou tableau de chaînes.
+     * @param int $slice Le point de départ pour extraire les parties du répertoire.
+     * @param bool $implode Détermine si les parties extraites doivent être concaténées en une chaîne.
+     *
+     * @return string|array Les parties extraites des répertoires ou leur concaténation si demandée, ou false si vide.
+     */
+	public static function getSliceDirs(string|array $dirs, int $slice, bool $implode = false): string|array
+    {
+		/* if (is_array($dirs)) {
+			$tree_structure = array();
+			
+			foreach ($dirs as $dir) {
+                // Divise le répertoire en parties en utilisant le séparateur "/" et extrait les parties à partir de l'index $slice
+				$tree_structure[] = array_slice(explode("/", $dir), $slice);
+			}
+		} else {
+			$tree_structure = array_slice(explode("/", $dirs), $slice);
+		}
+		
+        // Si l'option $implode est activée et la structure n'est pas vide
+		if ($implode === true && !empty($tree_structure)) {
+			if (is_array($dirs)) {
+				$tree_structure_imploded = array();
+				
+                // Parcourt chaque structure d'arbre et concatène les parties en utilisant le séparateur "/"
+				foreach ($tree_structure as $implode_structure) {
+					$tree_structure_imploded[] = implode("/", $implode_structure);
+				}
+			} else {
+				$tree_structure_imploded = "/". implode("/", $tree_structure);
+			}
+				
+			return $tree_structure_imploded;
+		}
+		
+        return empty($tree_structure) ? false : $tree_structure; */
+        return 'getSliceDirs';
+    }
+
+	/**
+	 * Récupère la liste des fichiers d'un répertoire donné.
+	 *
+	 * @param string $path Le chemin relatif au projet vers le répertoire à analyser.
+	 *
+	 * @return array|bool Retourne un tableau contenant les informations des fichiers trouvés ou `false` si le dossier est introuvable ou vide.
+	 */
+	public function getFiles(string $path = '/', string|null $depth = '== 0'): array|bool
+	{
+		/* $filter = function (\SplFileInfo $file)
+		{
+			if (strlen($file) > 10) {
+				return false;
+			}
+		}; */
+
+		$realPath = realpath($this->defaultDirectory . '/' . trim($path, '/'));
+		// dd($realPath);
+
+		if (!$realPath || !is_dir($realPath)) {
+			return false;
+		}
+
+		$finder = new Finder();
+		if ($depth) {
+			$finder->depth($depth); // $finder->depth(['== 0']);
+		}
+		$finder->files()->in($realPath);
+		// $finder->files()->in($realPath)->depth('== 0');
+
+		if (!$finder->hasResults()) {
+			return false;
+		}
+
+		$fileList = [];
+
+		foreach ($finder as $file) {
+			$filePath = $file->getRealPath();
+			$imageSize = @getimagesize($filePath); // Évite une erreur si ce n'est pas une image
+
+			// dump($file->getPathInfo());
+			// dd($file);
+
+			$fileList[] = [
+				'absolute' => $filePath,
+				'relative' => str_replace($this->defaultDirectory, '', $filePath), // 'relative' => str_replace($this->defaultDirectory . '/', '', $filePath),
+				'filename' => $file->getFilename(),
+				'filesize' => $this->getSizeName($file->getSize()),
+				'filemtime' => $file->getMTime(),
+				'dimensions' => [
+					'width' => $imageSize[0] ?? null,
+					'height' => $imageSize[1] ?? null
+				],
+				'extension' => $file->getExtension(),
+				'mime' => mime_content_type($file->getPathname()) // 'mime' => $imageSize['mime'] ?? null
+			];
+		}
+
+		return $fileList;
+	}
+    
+    /**
+     * Récupère la taille d'un tableau de fichiers ou d'un seul fichier en octets.
+     *
+     * @param string|array $files chemin absolu
+     * @param int $total_file_size compteur incrémental
+     *
+     * @return int|float
+     */
+    public static function getSize(string|array $files, int $total_file_size = 0): int|float
+    {
+		/* if (is_string($files)) {
+			$total_file_size = $total_file_size + filesize($files);
+		} else {
+			foreach ($files as $size) {
+				$total_file_size = $total_file_size + filesize($size);
+			}
+		} */
+		
+		return $total_file_size;
+	}
+	
+	/**
+     * Renvoie la taille en format lisible d'un fichier en octets, Ko, Mo ou Go.
+     *
+     * @param int|float $size La taille du fichier en octets.
+     *
+     * @return string La taille en format lisible.
+     */
+    public function getSizeName(int|float $size): string
+    {
+        if ($size < 1024) { // Octets
+            return $size . ' ' . $this->unite[0];
+        }
+        else {
+            if ($size < 10485760) { // Ko
+                $ko = round($size / 1024, 2);
+                return $ko . ' ' . $this->unite[1];
+            }
+            else {
+                if ($size < 1073741824) { // Mo
+                    $mo = round($size / (1024 * 1024), 2);
+                    return $mo . ' ' . $this->unite[2];
+                } else { // Go
+                    $go = round($size / (1024 * 1024 * 1024), 2);
+                    return $go . ' ' . $this->unite[3];
+                }
+            }
+        }
+    }
+
+	public function upload(UploadedFile|array $files, string $folder, bool $return = false): array|bool
+	{
+		// dump($folder);
+		// dump($myFolder);
+		// dd($files);
+		$slugger = new AsciiSlugger();
+		$uploadedFiles = [];
+
+		// Vérifier si $files est un tableau (upload multiple) ou un seul fichier
+		$files = is_array($files) ? $files : [$files];
+
+		foreach ($files as $file) {
+			$filename = $slugger->slug($file->getClientOriginalName())->lower();
+			$filename = str_replace('-' . $file->getClientOriginalExtension(), '.' . $file->getClientOriginalExtension(), $filename);
+			
+			$imageSize = @getimagesize($folder . '/' . $filename); // Évite une erreur si ce n'est pas une image
+			
+			$output = [
+				'absolute' => $folder . '/' . $filename,
+				'relative' => str_replace($this->defaultDirectory, '', $folder . '/' . $filename),
+				'filename' => $filename,
+				'filesize' => $this->getSizeName($file->getSize()),
+				'filemtime' => date("d/m/Y", $file->getMTime()),
+				'dimensions' => [
+					'width' => $imageSize[0] ?? null,
+					'height' => $imageSize[1] ?? null
+				],
+				'extension' => $file->getExtension(),
+				'mime' => mime_content_type($file->getPathname())
+			];
+			// dd($file);
+			// dd($filename);
+			$file->move($folder, $filename);
+			// dd($file);
+			
+
+			$uploadedFiles[] = $output;
+		}
+
+		// return count($uploadedFiles) === 1 ? $uploadedFiles[0] : $uploadedFiles;
+		return ($return) ? $uploadedFiles : true;
+	}
+	
+    /**
+     * Redimensionne des images spécifiées dans le répertoire source et les enregistre dans le répertoire cible.
+     *
+     * @param array $files Liste des noms de fichiers image à redimensionner.
+     * @param string $source_dir Répertoire source contenant les images à redimensionner.
+     * @param string $target_dir Répertoire cible où les images redimensionnées seront enregistrées.
+     * @param int $width Largeur souhaitée pour les images redimensionnées.
+     * @param int $quality Qualité de l'image redimensionnée (uniquement pour JPEG/PNG).
+     *
+     * @return bool Indique si le redimensionnement s'est effectué avec succès.
+     *
+     * @throws \Exception En cas d'erreur lors du traitement des images.
+     */
+	public static function resizeImages(array $files, string $source_dir, string $target_dir, int $width, int $quality = 100): array|bool
+	{
+		/* if ($width <= 0 || $quality <= 0 || $quality > 100) {
+			throw new \InvalidArgumentException("Les valeurs de largeur et de qualité doivent être valides.");
+		}
+
+		$errors = [];
+		$processed = [];
+
+		foreach ($files as $file) {
+			try {
+				$image_path = $source_dir . '/' . $file;
+
+				if (!file_exists($image_path)) {
+					throw new \Exception("Le fichier image n'existe pas : " . $file);
+				}
+
+				$info = getimagesize($image_path);
+				if (!$info) {
+					throw new \Exception("Le fichier image est corrompu ou n'est pas une image : " . $file);
+				}
+
+				$mime = $info['mime'];
+				$type = strtolower(substr($mime, strpos($mime, '/') + 1));
+
+				// if (!in_array($type, ['jpeg', 'jpg', 'png'])) {
+				if (!in_array($type, ['jpeg', 'jpg', 'png', 'webp'])) {
+					throw new \Exception("Le format de fichier image n'est pas supporté : " . $file);
+				}
+
+				$old_width = $info[0];
+				$old_height = $info[1];
+
+				$ratio = $width / $old_width;
+				$new_width = $width;
+				$new_height = intval($ratio * $old_height);
+
+				if ($old_width > 9000 || $old_height > 9000) {
+					throw new \Exception("Le fichier image est trop grand : " . $old_width . "x" . $old_height);
+				}
+
+				switch ($type) {
+					case 'jpg':
+					case 'jpeg':
+						$source = imagecreatefromjpeg($image_path);
+						break;
+					case 'webp':
+						$source = imagecreatefromwebp($image_path);
+						break;
+					case 'png':
+						$source = imagecreatefrompng($image_path);
+						imagealphablending($source, false);
+						imagesavealpha($source, true);
+						break;
+				}
+				
+				$output_image = imagecreatetruecolor($new_width, $new_height);
+				if ($type === 'png') {
+					imagealphablending($output_image, false);
+					imagesavealpha($output_image, true);
+				}
+
+				if (imagecopyresampled($output_image, $source, 0, 0, 0, 0, $new_width, $new_height, $old_width, $old_height)) {
+					// if (!is_dir($target_dir)) {
+					// 	mkdir($target_dir, 0777, true);
+					// }
+
+					switch ($type) {
+						case 'jpg':
+						case 'jpeg':
+							imagejpeg($output_image, $target_dir . '/' . $file, $quality);
+							break;
+						case 'webp':
+							imagewebp($output_image, $target_dir . '/' . $file, $quality);
+							break;
+						case 'png':
+							imagepng($output_image, $target_dir . '/' . $file, (int)((9 - ($quality / 100) * 9)));
+							break;
+					}
+				} else {
+					throw new \Exception("Impossible de redimensionner l'image : " . $file);
+				}
+
+				imagedestroy($source);
+				imagedestroy($output_image);
+
+				$processed[] = $file;
+			} catch (\Exception $e) {
+				$errors[] = $e->getMessage();
+			}
+		}
+
+		// return ['success' => $processed, 'errors' => $errors];
+		return true; */
+		return ['resizeImages'];
+	}
+}

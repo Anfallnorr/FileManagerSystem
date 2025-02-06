@@ -1,0 +1,31 @@
+{
+    "name": "anfallnorr/file-manager-system",
+    "description": "A Symfony bundle for file management (move, copy, delete, resize, etc.).",
+    "type": "symfony-bundle",
+    "authors": [
+        {
+            "name": "Js info",
+            "email": "contact@js-info.fr"
+        }
+    ],
+    "require": {
+        "php": ">=8.2",
+        "symfony/framework-bundle": "7.2.*",
+        "symfony/flex": "^2.4.7",
+        "symfony/http-foundation": "^7.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "Anfallnorr\\FileManagerSystem\\": "src/"
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true,
+	"repositories": [
+		{
+			"type": "vcs",
+			"url": "https://github.com/Anfallnorr/FileManagerSystem.git"
+		}
+	],
+    "license": "MIT"
+}
