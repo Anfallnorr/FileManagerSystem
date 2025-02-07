@@ -2,6 +2,7 @@
 
 namespace Anfallnorr\FileManagerSystem;
 
+// use Anfallnorr\FileManagerSystem\DependencyInjection\FileManagerSystemExtension;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 
 final class FileManagerSystem extends Bundle
