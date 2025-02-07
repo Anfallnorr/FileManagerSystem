@@ -12,7 +12,7 @@ class Configuration implements ConfigurationInterface
         $treeBuilder = new TreeBuilder('file_manager_system');
         $treeBuilder->getRootNode()
             ->children()
-                ->scalarNode('default_directory')->defaultValue('/path/to/default')->end()
+                ->scalarNode('default_directory')->defaultValue('/public/uploads')->end()
             ->end();
         return $treeBuilder;
     }
