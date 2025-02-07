@@ -19,7 +19,8 @@ class FileManagerSystemExtension extends Extension
 		// Enregistre la valeur de `default_directory` en tant que paramètre de service
         $container->setParameter('file_manager_system.default_directory', $config['default_directory']);
 
-        $loader = new YamlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
+        // $loader = new YamlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
+        $loader = new YamlFileLoader($container, new FileLocator(__DIR__.'/../../config'));
         $loader->load('services.yaml');
     }
 }
