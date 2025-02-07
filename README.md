@@ -7,6 +7,12 @@ composer require anfallnorr/file-manager-system
 
 ## Usage
 
+### Add to /config/bundles.php
+
+```bash
+Anfallnorr\FileManagerSystem\FileManagerSystem::class => ['all' => true],
+```
+
 ```bash
 use Anfallnorr\FileManagerSystem\Service\FileManagerService;
-$fms = new FileManagerService($this->getParameter('kernel.project_dir'));
+$fms = new FileManagerService();
