@@ -15,39 +15,9 @@ use Symfony\Component\String\Slugger\AsciiSlugger;
 /**
  *
  * METHODS :
- * 	addFile
- * 	categorizeFiles		static
- *			@params		array $files, bool $basename = false, bool $path = false
- *			@return		array
- *
- * 	createDir
- * 	getAlias
- * 	getContents
- * 	getDirs
- * 	getExtByType
- * 	getExtractedFolder	static
- *			@params		string $folder
- *			@return		string
- *
- * 	getFiles
- * 	getFileSize
- * 	getFilesSize
- * 	getScanSize
- * 	getSize
- * 	getSizeName
- * 	getSliceDirs
- * 	move
- * 	readArchive
- * 	remove
- * 	renamer
- * 	resizeImages
- * 	resizeLargeImage
- * 	strReplace
- * 	upload
- *
  *
  */
-// #[AsService] // Quand on veut forcer une classe spécifique à être un service sans toucher services.yaml
+
 class FileManagerService
 {
 	const EXTENSIONS = array(
@@ -58,13 +28,17 @@ class FileManagerService
 		/* 'other' => array() */
 	);
 
-    private string $defaultDirectory;
+    /* private string $defaultDirectory; */
 	private array $mimeTypes;
 	private array $unite;
 
-    public function __construct(string $defaultDirectory)
+    public function __construct(
+		private string $defaultDirectory,
+		private Filesystem $filesystem/*  = new Filesystem */,
+		private AsciiSlugger $slugger/*  = new AsciiSlugger */
+	)
     {
-        $this->defaultDirectory = $defaultDirectory;
+        /* $this->defaultDirectory = $defaultDirectory; */
 		// Initialisation des variables globales
 
         // Initialisation des types MIME pour différents formats de fichiers
