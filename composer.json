@@ -4,7 +4,7 @@
     "type": "symfony-bundle",
     "authors": [
         {
-            "name": "Js info",
+            "name": "Js info (Julien Senechal)",
             "email": "contact@js-info.fr"
         }
     ],
@@ -16,7 +16,15 @@
     },
     "autoload": {
         "psr-4": {
-            "Anfallnorr\\FileManagerSystem\\": "src/"
+            "Anfallnorr\\FileManagerSystem\\": "src"
+        }
+    },
+    "extra": {
+        "symfony": {
+            "allow-contrib": true,
+            "bundles": {
+                "Anfallnorr\\FileManagerSystem\\FileManagerSystem": ["all"]
+            }
         }
     },
     "minimum-stability": "stable",
