@@ -30,6 +30,7 @@ final class FileManagerSystem extends AbstractBundle
 
 		// you can also add or replace parameters and services
 		$container->parameters()
+			->set('file_manager_system.kernel_directory', $projectDir)
 			->set('file_manager_system.default_directory', $projectDir . $config['default_directory'])
 		;
 
