@@ -2,16 +2,41 @@
 
 namespace Anfallnorr\FileManagerSystem;
 
-// use Anfallnorr\FileManagerSystem\DependencyInjection\FileManagerSystemExtension;
-use Symfony\Component\HttpKernel\Bundle\Bundle;
+use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
+use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\HttpKernel\Bundle\AbstractBundle;
+use Symfony\Component\String\Slugger\AsciiSlugger;
 
-final class FileManagerSystem extends Bundle
+final class FileManagerSystem extends AbstractBundle
 {
-    // Vous pouvez personnaliser ici des comportements spécifiques du bundle.
-    /* public function getContainerExtension(): ?FileManagerSystemExtension
+    public function configure(DefinitionConfigurator $definition): void
     {
-        return new FileManagerSystemExtension();
-    } */
+        $definition->rootNode()
+            ->children()
+                ->scalarNode('default_directory')->defaultValue('/public/uploads')->end()
+            ->end()
+        ;
+    }
+
+	public function loadExtension(array $config, ContainerConfigurator $container, ContainerBuilder $builder): void
+	{
+		// Récupérer le chemin du projet
+		$projectDir = $builder->getParameter('kernel.project_dir');
+
+		// load an XML, PHP or YAML file
+		$container->import('../config/services.yaml');
+
+		// you can also add or replace parameters and services
+		$container->parameters()
+			->set('file_manager_system.default_directory', $projectDir . $config['default_directory'])
+		;
+
+		// Ajouter les services Filesystem et AsciiSlugger
+		// $builder->register(Filesystem::class)->setAutowired(true)->setPublic(true);
+		// $builder->register(AsciiSlugger::class)->setAutowired(true)->setPublic(true);
+	}
     
     public function getPath(): string
     {
