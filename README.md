@@ -17,10 +17,10 @@ Anfallnorr\FileManagerSystem\FileManagerSystem::class => ['all' => true],
 
 #### Init
 
-```bash
+```php
 use Anfallnorr\FileManagerSystem\Service\FileManagerService;
 ```
-```bash
+```php
 public function __construct(
     private FileManagerService $fileManagerService
 ) {}
