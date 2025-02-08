@@ -34,8 +34,8 @@ dd($fmService->getDefaultDirectory());
 dd($fmService->setDefaultDirectory('/var/www/uploads')->getDefaultDirectory());
 dd($fmService->getMimeTypes());
 dd($fmService->getMimeType('docx'));
-dd($fmService->createSlug('Hello World !'));
+dd($fmService->createSlug('Hello World !')); // hello-world
 
-$fmService->createDir('toto');
+$fmService->createDir('Hello World !'); // create hello-world directory in default directory path
 $fmService->createFile('index.html', 'Hello World! I\'m Js info');
 ```
