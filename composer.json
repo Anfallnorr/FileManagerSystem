@@ -9,14 +9,14 @@
         }
     ],
     "require": {
-        "php": ">=8.2",
+        "php": ">=8.3",
         "symfony/framework-bundle": "7.2.*",
         "symfony/flex": "^2.4.7",
         "symfony/http-foundation": "^7.2"
     },
     "autoload": {
         "psr-4": {
-            "Anfallnorr\\FileManagerSystem\\": "src"
+            "Anfallnorr\\FileManagerSystem\\": "src/"
         }
     },
     "extra": {
