@@ -142,9 +142,9 @@ class FileManagerService
         return $this->slugger->slug($text)->lower();
     }
 
-    public function createFile(string $path, string $content = '<!DOCTYPE html><html lang="en"><body style="background: #ffffff;"></body></html>'): void
+    public function createFile(string $file, string $content = '<!DOCTYPE html><html lang="en"><body style="background: #ffffff;"></body></html>'): void
     {
-        $this->filesystem->dumpFile($path, $content);
+        $this->filesystem->dumpFile($this->getDefaultDirectory() . '/' . $file, $content);
     }
 
     public function createDir(string $directory): void
