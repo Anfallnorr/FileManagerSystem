@@ -13,6 +13,28 @@ composer require anfallnorr/file-manager-system
 Anfallnorr\FileManagerSystem\FileManagerSystem::class => ['all' => true],
 ```
 
+### In controller
+
+#### Init
+
 ```bash
 use Anfallnorr\FileManagerSystem\Service\FileManagerService;
-$fms = new FileManagerService();
+```
+```bash
+public function __construct(
+    private FileManagerService $fileManagerService
+) {}
+```
+```bash
+$fmService = $this->fileManagerService;
+
+dd($fmService);
+
+dd($fmService->getMimeTypes());
+
+dd($fmService->getMimeType('docx'));
+
+dd($fmService->createSlug('Hello World !'));
+
+dd($fmService->createFile($fmService->getDefaultDirectory() . '/index.html', 'Hello World! I\'m Js info'));
+```
