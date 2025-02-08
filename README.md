@@ -25,7 +25,7 @@ public function __construct(
     private FileManagerService $fileManagerService
 ) {}
 ```
-```bash
+```php
 $fmService = $this->fileManagerService;
 
 dd($fmService);
