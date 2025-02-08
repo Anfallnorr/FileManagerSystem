@@ -36,7 +36,7 @@ class FileManagerService
 		'audios' => array('mp3','wav','wave','wma','aac','mid','midi','ogg','aif','aiff'),
 		'videos' => array('mp4','mpg','mpeg','mov','3gp','avi')
 	);
-
+	
 	private array $mimeTypes;
 	private array $unite;
 
@@ -144,12 +144,16 @@ class FileManagerService
 
     public function createFile(string $file, string $content = '<!DOCTYPE html><html lang="en"><body style="background: #ffffff;"></body></html>'): void
     {
-        $this->filesystem->dumpFile($this->getDefaultDirectory() . '/' . $file, $content);
+		$filename = pathinfo($file, PATHINFO_FILENAME);
+		$extension = pathinfo($file, PATHINFO_EXTENSION);
+
+        $this->filesystem->dumpFile($this->getDefaultDirectory() . '/' . $this->createSlug($filename) . '.' . $extension, $content);
     }
 
     public function createDir(string $directory): void
     {
-        $this->filesystem->mkdir($this->getDefaultDirectory() . '/' . $directory);
+		// $directories = explode('/', $directory);
+        $this->filesystem->mkdir($this->getDefaultDirectory() . '/' . $this->createSlug($directory));
     }
 	
 	/**
