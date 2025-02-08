@@ -29,8 +29,13 @@ public function __construct(
 $fmService = $this->fileManagerService;
 
 dd($fmService);
+
+dd($fmService->getDefaultDirectory());
+dd($fmService->setDefaultDirectory('/var/www/uploads')->getDefaultDirectory());
 dd($fmService->getMimeTypes());
 dd($fmService->getMimeType('docx'));
 dd($fmService->createSlug('Hello World !'));
-dd($fmService->createFile($fmService->getDefaultDirectory() . '/index.html', 'Hello World! I\'m Js info'));
+
+$fmService->createDir('toto');
+$fmService->createFile('index.html', 'Hello World! I\'m Js info');
 ```
