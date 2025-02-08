@@ -15,7 +15,17 @@ use Symfony\Component\String\Slugger\AsciiSlugger;
 /**
  *
  * METHODS :
- *
+ * @method public getMimeTypes(): array
+ * @method public getMimeType(@var string $key): string|array|null
+ * @method public createSlug(@var string $text): string
+ * @method public createFile(@var string $path, @var string $content = '<!DOCTYPE...'): @return void
+ * @method public getDirs(@var string $path = '/', @var string $excludeDir = "", @var string|null $depth = '== 0'): @return array
+ * @method public getSliceDirs(@var string|array $dirs, @var int $slice, @var bool $implode = false): @return string|array
+ * @method public getFiles(@var string $path = '/', @var string|null $depth = '== 0'): @return array|bool
+ * @method public getSize(@var string|array $files, @var int $totalFileSize = 0): @return int|float
+ * @method public getSizeName(@var int|float $size): @return string
+ * @method public upload(@var UploadedFile|array $files, @var string $folder, @var bool $return = false): @return array|bool
+ * @method public resizeImages(@var array $files, @var string $sourceDir, @var string $targetDir, @var int $width, @var int $quality = 100): @return array|bool
  */
 
 class FileManagerService
@@ -24,22 +34,21 @@ class FileManagerService
 		'documents' => array('doc','docx','odf','odp','ods','odt','otf','ppt','csv','pps','pptx','xls','xlsx','rtf','txt','pdf'),
 		'images' => array('jpg','jpeg','png','tif','webp','bmp','ico','svg','gif'),
 		'audios' => array('mp3','wav','wave','wma','aac','mid','midi','ogg','aif','aiff'),
-		'videos' => array('mp4','mpg','mpeg','mov','3gp','avi'),
-		/* 'other' => array() */
+		'videos' => array('mp4','mpg','mpeg','mov','3gp','avi')
 	);
 
-    /* private string $defaultDirectory; */
 	private array $mimeTypes;
 	private array $unite;
 
     public function __construct(
+		private string $kernelDirectory,
 		private string $defaultDirectory,
-		private Filesystem $filesystem/*  = new Filesystem */,
-		private AsciiSlugger $slugger/*  = new AsciiSlugger */
+		private Filesystem $filesystem,
+		private AsciiSlugger $slugger
 	)
     {
-        /* $this->defaultDirectory = $defaultDirectory; */
-		// Initialisation des variables globales
+        // Unités de mesure pour la taille des fichiers
+        $this->unite = ['o' => "Octets", 'ko' => "Ko", 'mo' => "Mo", 'go' => "Go"];
 
         // Initialisation des types MIME pour différents formats de fichiers
 		$this->mimeTypes = [
@@ -100,10 +109,23 @@ class FileManagerService
 			'mov'  => 'video/quicktime',
 			'webm' => 'video/webm',
 		];
-
-        // Unités de mesure pour la taille des fichiers
-        $this->unite = ["Octets", "Ko", "Mo", "Go"];
     }
+
+	private function getKernelDirectory(): string
+	{
+		return $this->kernelDirectory;
+	}
+
+	public function getDefaultDirectory(): string
+	{
+		return $this->defaultDirectory;
+	}
+
+	public function setDefaultDirectory(string $directory): static
+	{
+        $this->defaultDirectory = $this->getKernelDirectory() . $directory;
+        return $this;
+	}
 
 	public function getMimeTypes(): array
 	{
@@ -115,19 +137,20 @@ class FileManagerService
 		return $this->mimeTypes[$key] ?? null;
 	}
 
-    /* public function getFiles(string $directory = null): array
+    public function createSlug(string $text): string
     {
-        $directory = $directory ?? $this->defaultDirectory;
-        return scandir($directory);
-    } */
-
-    public function createDir(string|null $directory = null): array
-    {
-        $directory = $directory ?? $this->defaultDirectory;
-        return scandir($directory);
+        return $this->slugger->slug($text)->lower();
     }
 
-    // Ajoutez d'autres méthodes comme move, copy, delete, etc.
+    public function createFile(string $path, string $content = '<!DOCTYPE html><html lang="en"><body style="background: #ffffff;"></body></html>'): void
+    {
+        $this->filesystem->dumpFile($path, $content);
+    }
+
+    public function createDir(string $directory): void
+    {
+        $this->filesystem->mkdir($this->getDefaultDirectory() . '/' . $directory);
+    }
 	
 	/**
 	 * Cette fonction prend un tableau de fichiers en entrée et les catégorise selon leur extension.
@@ -407,21 +430,21 @@ class FileManagerService
      * Récupère la taille d'un tableau de fichiers ou d'un seul fichier en octets.
      *
      * @param string|array $files chemin absolu
-     * @param int $total_file_size compteur incrémental
+     * @param int $totalFileSize compteur incrémental
      *
      * @return int|float
      */
-    public static function getSize(string|array $files, int $total_file_size = 0): int|float
+    public static function getSize(string|array $files, int $totalFileSize = 0): int|float
     {
 		/* if (is_string($files)) {
-			$total_file_size = $total_file_size + filesize($files);
+			$totalFileSize = $totalFileSize + filesize($files);
 		} else {
 			foreach ($files as $size) {
-				$total_file_size = $total_file_size + filesize($size);
+				$totalFileSize = $totalFileSize + filesize($size);
 			}
 		} */
 		
-		return $total_file_size;
+		return $totalFileSize;
 	}
 	
 	/**
@@ -434,20 +457,20 @@ class FileManagerService
     public function getSizeName(int|float $size): string
     {
         if ($size < 1024) { // Octets
-            return $size . ' ' . $this->unite[0];
+            return $size . ' ' . $this->unite['o'];
         }
         else {
             if ($size < 10485760) { // Ko
                 $ko = round($size / 1024, 2);
-                return $ko . ' ' . $this->unite[1];
+                return $ko . ' ' . $this->unite['ko'];
             }
             else {
                 if ($size < 1073741824) { // Mo
                     $mo = round($size / (1024 * 1024), 2);
-                    return $mo . ' ' . $this->unite[2];
+                    return $mo . ' ' . $this->unite['mo'];
                 } else { // Go
                     $go = round($size / (1024 * 1024 * 1024), 2);
-                    return $go . ' ' . $this->unite[3];
+                    return $go . ' ' . $this->unite['go'];
                 }
             }
         }
@@ -500,16 +523,16 @@ class FileManagerService
      * Redimensionne des images spécifiées dans le répertoire source et les enregistre dans le répertoire cible.
      *
      * @param array $files Liste des noms de fichiers image à redimensionner.
-     * @param string $source_dir Répertoire source contenant les images à redimensionner.
-     * @param string $target_dir Répertoire cible où les images redimensionnées seront enregistrées.
+     * @param string $sourceDir Répertoire source contenant les images à redimensionner.
+     * @param string $targetDir Répertoire cible où les images redimensionnées seront enregistrées.
      * @param int $width Largeur souhaitée pour les images redimensionnées.
      * @param int $quality Qualité de l'image redimensionnée (uniquement pour JPEG/PNG).
      *
-     * @return bool Indique si le redimensionnement s'est effectué avec succès.
-     *
      * @throws \Exception En cas d'erreur lors du traitement des images.
+     *
+     * @return bool Indique si le redimensionnement s'est effectué avec succès.
      */
-	public static function resizeImages(array $files, string $source_dir, string $target_dir, int $width, int $quality = 100): array|bool
+	public static function resizeImages(array $files, string $sourceDir, string $targetDir, int $width, int $quality = 100): array|bool
 	{
 		/* if ($width <= 0 || $quality <= 0 || $quality > 100) {
 			throw new \InvalidArgumentException("Les valeurs de largeur et de qualité doivent être valides.");
@@ -520,7 +543,7 @@ class FileManagerService
 
 		foreach ($files as $file) {
 			try {
-				$image_path = $source_dir . '/' . $file;
+				$image_path = $sourceDir . '/' . $file;
 
 				if (!file_exists($image_path)) {
 					throw new \Exception("Le fichier image n'existe pas : " . $file);
@@ -572,20 +595,20 @@ class FileManagerService
 				}
 
 				if (imagecopyresampled($output_image, $source, 0, 0, 0, 0, $new_width, $new_height, $old_width, $old_height)) {
-					// if (!is_dir($target_dir)) {
-					// 	mkdir($target_dir, 0777, true);
+					// if (!is_dir($targetDir)) {
+					// 	mkdir($targetDir, 0777, true);
 					// }
 
 					switch ($type) {
 						case 'jpg':
 						case 'jpeg':
-							imagejpeg($output_image, $target_dir . '/' . $file, $quality);
+							imagejpeg($output_image, $targetDir . '/' . $file, $quality);
 							break;
 						case 'webp':
-							imagewebp($output_image, $target_dir . '/' . $file, $quality);
+							imagewebp($output_image, $targetDir . '/' . $file, $quality);
 							break;
 						case 'png':
-							imagepng($output_image, $target_dir . '/' . $file, (int)((9 - ($quality / 100) * 9)));
+							imagepng($output_image, $targetDir . '/' . $file, (int)((9 - ($quality / 100) * 9)));
 							break;
 					}
 				} else {
