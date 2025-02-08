@@ -5,9 +5,9 @@ namespace Anfallnorr\FileManagerSystem;
 use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
-use Symfony\Component\Filesystem\Filesystem;
+// use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpKernel\Bundle\AbstractBundle;
-use Symfony\Component\String\Slugger\AsciiSlugger;
+// use Symfony\Component\String\Slugger\AsciiSlugger;
 
 final class FileManagerSystem extends AbstractBundle
 {
@@ -38,7 +38,7 @@ final class FileManagerSystem extends AbstractBundle
 		// $builder->register(Filesystem::class)->setAutowired(true)->setPublic(true);
 		// $builder->register(AsciiSlugger::class)->setAutowired(true)->setPublic(true);
 	}
-    
+
     public function getPath(): string
     {
         return \dirname(__DIR__);
