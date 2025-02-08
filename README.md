@@ -31,7 +31,7 @@ $fmService = $this->fileManagerService;
 dd($fmService);
 
 dd($fmService->getDefaultDirectory());
-dd($fmService->setDefaultDirectory('/var/www/uploads')->getDefaultDirectory());
+dd($fmService->setDefaultDirectory('/var/www/uploads')->getDefaultDirectory()); // /path/to/folder/var/www/uploads
 dd($fmService->getMimeTypes());
 dd($fmService->getMimeType('docx'));
 dd($fmService->createSlug('Hello World !')); // hello-world
