@@ -121,7 +121,7 @@ class FileManagerService
         return scandir($directory);
     } */
 
-    public function createDir(string $directory = null): array
+    public function createDir(string|null $directory = null): array
     {
         $directory = $directory ?? $this->defaultDirectory;
         return scandir($directory);
