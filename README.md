@@ -37,5 +37,5 @@ dd($fmService->getMimeType('docx'));
 dd($fmService->createSlug('Hello World !')); // hello-world
 
 $fmService->createDir('Hello World !'); // create hello-world directory in default directory path
-$fmService->createFile('index.html', 'Hello World! I\'m Js info');
+$fmService->createFile('Hello World.html', 'Hello World! I\'m Js info'); // create hello-world.html file in default directory path
 ```
