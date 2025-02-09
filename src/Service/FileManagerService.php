@@ -482,44 +482,44 @@ class FileManagerService
 
 	public function upload(UploadedFile|array $files, string $folder, bool $return = false): array|bool
 	{
-		// dump($folder);
-		// dump($myFolder);
-		// dd($files);
-		$slugger = new AsciiSlugger();
 		$uploadedFiles = [];
 
 		// Vérifier si $files est un tableau (upload multiple) ou un seul fichier
 		$files = is_array($files) ? $files : [$files];
 
 		foreach ($files as $file) {
-			$filename = $slugger->slug($file->getClientOriginalName())->lower();
+			$filename = $this->createSlug($file->getClientOriginalName());
 			$filename = str_replace('-' . $file->getClientOriginalExtension(), '.' . $file->getClientOriginalExtension(), $filename);
 			
-			$imageSize = @getimagesize($folder . '/' . $filename); // Évite une erreur si ce n'est pas une image
-			
+			// $imageSize = @getimagesize($folder . '/' . $filename); // Évite une erreur si ce n'est pas une image
 			$output = [
 				'absolute' => $folder . '/' . $filename,
-				'relative' => str_replace($this->defaultDirectory, '', $folder . '/' . $filename),
+				'relative' => str_replace($this->getKernelDirectory(), '', $folder . '/' . $filename),
 				'filename' => $filename,
 				'filesize' => $this->getSizeName($file->getSize()),
 				'filemtime' => date("d/m/Y", $file->getMTime()),
-				'dimensions' => [
+				/* 'dimensions' => [
 					'width' => $imageSize[0] ?? null,
 					'height' => $imageSize[1] ?? null
-				],
-				'extension' => $file->getExtension(),
+				], */
+				'extension' => (!empty($file->getExtension())) ? $file->getExtension() : pathinfo($filename, PATHINFO_EXTENSION),
 				'mime' => mime_content_type($file->getPathname())
 			];
-			// dd($file);
-			// dd($filename);
-			$file->move($folder, $filename);
-			// dd($file);
 			
+			// $file->move($folder, $filename);
+			if (!$file->move($folder, $filename)) {
+				throw new \Exception("A problem occurred while uploading this file: " . $filename);
+			}
+			
+			$imageSize = @getimagesize($folder . '/' . $filename); // Évite une erreur si ce n'est pas une image
+			$output['dimensions'] = [
+				'width' => $imageSize[0] ?? null,
+				'height' => $imageSize[1] ?? null
+			];
 
 			$uploadedFiles[] = $output;
 		}
 
-		// return count($uploadedFiles) === 1 ? $uploadedFiles[0] : $uploadedFiles;
 		return ($return) ? $uploadedFiles : true;
 	}
 	
