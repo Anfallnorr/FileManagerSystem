@@ -1,4 +1,9 @@
 services:
+
+    _defaults:
+        autowire: true      # Automatically injects dependencies in your services.
+        autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+
     Anfallnorr\FileManagerSystem\Service\FileManagerService:
         arguments:
             $kernelDirectory: '%file_manager_system.kernel_directory%'
