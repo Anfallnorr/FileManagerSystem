@@ -62,6 +62,8 @@ public function __construct(
 ) {}
 ```
 ```php
+# /src/ControllerHomeController.php
+
 #[Route('/', name: 'app_home')]
 public function index(Request $request): Response
 {
