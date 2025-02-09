@@ -1,2 +1,9 @@
 file_manager:
     error: "An error occurred while processing the file."
+    select_a_file: "Select a file"
+    send: "Send"
+    folder_created_successfully: "Folder created successfully."
+    the_folder_already_exists: "The folder `%foldername%` already exists"
+    file_uploaded_successfully: "File uploaded successfully."
+    error_while_uploading: "Error while uploading. Message: %message%"
+    
