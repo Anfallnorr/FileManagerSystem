@@ -62,7 +62,7 @@ public function __construct(
 ) {}
 ```
 ```php
-# /src/ControllerHomeController.php
+# /src/Controller/HomeController.php
 
 #[Route('/', name: 'app_home')]
 public function index(Request $request): Response
