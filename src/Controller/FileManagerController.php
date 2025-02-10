@@ -8,10 +8,10 @@ use Anfallnorr\FileManagerSystem\Form\RenameFileType;
 use Anfallnorr\FileManagerSystem\Form\UploadFileType;
 use Anfallnorr\FileManagerSystem\Service\FileManagerService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\File\Exception\FileException;
+use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 class FileManagerController extends AbstractController
@@ -35,7 +35,6 @@ class FileManagerController extends AbstractController
 		$createFolderForm->handleRequest($request);
 		
 		if ($createFolderForm->isSubmitted() && $createFolderForm->isValid()) {
-
 			$folderName = $createFolderForm->get('folderName')->getData();
 
 			if (!$fmService->exists($folderName)) {
