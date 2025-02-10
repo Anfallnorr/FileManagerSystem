@@ -1,25 +1,32 @@
 # FileManagerSystem
-A Symfony bundle for file management (move, copy, delete, resize, etc.).
+[//]: # (FileManagerSystem est un bundle Symfony permettant de gérer facilement les fichiers et répertoires : création, suppression, déplacement, redimensionnement d'images, gestion des MIME types, etc.)
+FileManagerSystem is a Symfony bundle to easily manage files and directories: creation, deletion, moving, resizing images, managing MIME types, etc.
+
+## Installation
 
 ```sh
+# Install FileManagerSystem via Composer
 composer require anfallnorr/file-manager-system
+```
+
+## Configuration
+
+### Add to /config/bundles.php
+
+Register the bundle in config/bundles.php
+
+```php
+# config/bundles.php
+return [
+    ...
+    Anfallnorr\FileManagerSystem\FileManagerSystem::class => ['all' => true],
+];
 ```
 
 ## Usage
 
-### Add to /config/bundles.php
+### Initialize in a Controller
 
-```bash
-Anfallnorr\FileManagerSystem\FileManagerSystem::class => ['all' => true],
-```
-
-### In controller
-
-#### Init
-
-```php
-use Anfallnorr\FileManagerSystem\Service\FileManagerService;
-```
 ```php
 public function __construct(
     private FileManagerService $fileManagerService
@@ -27,37 +34,39 @@ public function __construct(
 ```
 ```php
 $fmService = $this->fileManagerService;
-
-dd($fmService);
-
-dd($fmService->getDefaultDirectory());
-dd($fmService->setDefaultDirectory('/var/www/uploads')->getDefaultDirectory()); // /path/to/folder/var/www/uploads
-dd($fmService->getMimeTypes());
-dd($fmService->getMimeType('docx'));
-dd($fmService->createSlug('Hello World !')); // hello-world
-
-$fmService->createDir('Hello World !'); // create hello-world directory in default directory path
-$fmService->createFile('Hello World.html', 'Hello World! I\'m Js info'); // create hello-world.html file in default directory path
 ```
 
-#### Optionnal
+### Examples
+
+```php
+// Get the default upload directory path
+$defaultDirectory = $fmService->getDefaultDirectory(); // /path/to/folder/public/uploads
+
+// Change the default upload directory
+$directory = $fmService->setDefaultDirectory('/var/www/uploads')->getDefaultDirectory(); // /path/to/folder/var/www/uploads
+
+// Retrieve available MIME types
+$mimeTypes = $fmService->getMimeTypes(); // array
+
+// Get the MIME type of a specific extension
+$mimeType = $fmService->getMimeType('pdf'); // application/pdf
+
+// Create a URL-friendly slug from a string
+$string = $fmService->createSlug('Hello World !'); // hello-world
+
+// Create a directory named "hello-world" inside the default directory
+$fmService->createDir('Hello World !');
+
+// Create a file named "hello-world.html" inside the default directory with content
+$fmService->createFile('Hello World.html', 'Hello World! I\'m Js info');
+```
+
+### Optional Configuration
+
+If you are using Twig, add Bootstrap form themes in config/packages/twig.yaml
 
 ```yaml
 # app/config/packages/twig.yaml
 twig:
     form_themes: ['bootstrap_5_layout.html.twig']
-```
-
-#### Your controller
-
-```php
-use Anfallnorr\FileManagerSystem\Form\CreateFolderType;
-use Anfallnorr\FileManagerSystem\Form\UploadFileType;
-use Anfallnorr\FileManagerSystem\Service\FileManagerService;
-use Symfony\Component\HttpFoundation\File\Exception\FileException;
-```
-```php
-public function __construct(
-    private FileManagerService $fileManagerService
-) {}
 ```
