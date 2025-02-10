@@ -22,7 +22,7 @@ final class FileManagerSystem extends AbstractBundle
 
 	public function loadExtension(array $config, ContainerConfigurator $container, ContainerBuilder $builder): void
 	{
-		// Récupérer le chemin du projet
+		// Get the project path
 		$projectDir = $builder->getParameter('kernel.project_dir');
 
 		// load an XML, PHP or YAML file
@@ -34,7 +34,7 @@ final class FileManagerSystem extends AbstractBundle
 			->set('file_manager_system.default_directory', $projectDir . $config['default_directory'])
 		;
 
-		// Ajouter les services Filesystem et AsciiSlugger
+		// Add Filesystem and AsciiSlugger services
 		// $builder->register(Filesystem::class)->setAutowired(true)->setPublic(true);
 		// $builder->register(AsciiSlugger::class)->setAutowired(true)->setPublic(true);
 	}
