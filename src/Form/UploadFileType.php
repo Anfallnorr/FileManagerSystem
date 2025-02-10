@@ -15,19 +15,19 @@ class UploadFileType extends AbstractType
 	public function __construct(
 		private TranslatorInterface $translator
 	) {}
-
-    public function buildForm(FormBuilderInterface $builder, array $options)
-    {
-        $builder
-            ->add('file', FileType::class, [
+	
+	public function buildForm(FormBuilderInterface $builder, array $options)
+	{
+		$builder
+			->add('file', FileType::class, [
 				'label' => new TranslatableMessage('file_manager.select_a_file'),
 				'mapped' => false,
 				'multiple' => true,
 				'required' => true,
-                /* 'row_attr' => [
+				/* 'row_attr' => [
 					'class' => 'hidden'
 				], */
-                'attr' => [
+				'attr' => [
 					'class' => 'dropzone-field',
 					'placeholder' => new TranslatableMessage('file_manager.drag_and_drop_or_browse', [], 'forms'),
 					'data-user' => $options['user'],
@@ -40,20 +40,20 @@ class UploadFileType extends AbstractType
 					'data-max-files' => 50,
 					'data-param-name' => 'file_path'
 				],
-            ])
-            ->add('submit', SubmitType::class, [
+			])
+			->add('submit', SubmitType::class, [
 				'label' => new TranslatableMessage('file_manager.send')
-            ]);
-    }
+			]);
+	}
 
     public function configureOptions(OptionsResolver $resolver)
     {
         // $resolver->setDefaults([]);
         $resolver->setDefaults([
             // 'data_class' => null,
-            'user' => null, // Permet de passer la route pour l'upload
-            'route' => null, // Permet de passer la route pour l'upload
-            'current_folder' => null, // Permet de passer la route courante pour l'upload
+            'user' => null, // User parameter for route: userId
+            'route' => null, // Route to the dropzone form
+            'current_folder' => null,
 		]);
     }
 }
