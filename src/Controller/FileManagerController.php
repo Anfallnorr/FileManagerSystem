@@ -21,9 +21,15 @@ class FileManagerController extends AbstractController
 		private TranslatorInterface $translator
 	) {}
 
-	#[Route('/file-manager', name: 'file_manager')]
-	public function index(Request $request): Response
-	{
+    #[Route('/', name: 'app_index')]
+    public function index()
+    {
+		return $this->redirectToRoute('app_home');
+	}
+
+    #[Route('/home/{folder}', name: 'app_home', defaults: ['folder' => ''], requirements: ['folder' => '.+'])]
+    public function home(Request $request, string $folder): Response
+    {
 		$fmService = $this->fileManagerService;
 		$fmService->setDefaultDirectory('/var/uploads'); // Example for personnal folder space: '/var/uploads/' . $his->getUser()->getId()
 		// $directories = $fmService->getDirs();
