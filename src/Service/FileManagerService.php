@@ -300,7 +300,7 @@ class FileManagerService
 	
 	public function getDirs(string $path = '/', string $excludeDir = "", string|null $depth = '== 0'): array
 	{
-		$realPath = realpath($this->defaultDirectory . '/' . trim($path, '/'));
+		$realPath = realpath($this->getDefaultDirectory() . '/' . trim($path, '/'));
 		// dd($realPath);
 
 		if (!$realPath || !is_dir($realPath)) {
@@ -321,7 +321,7 @@ class FileManagerService
 				continue;
 			}
 
-			$relative = str_replace($this->defaultDirectory, '', $dirPath);
+			$relative = str_replace($this->getDefaultDirectory(), '', $dirPath);
 
 			$directories[] = [
 				'absolute' => $dirPath,
@@ -392,7 +392,7 @@ class FileManagerService
 			}
 		}; */
 
-		$realPath = realpath($this->defaultDirectory . '/' . trim($path, '/'));
+		$realPath = realpath($this->getDefaultDirectory() . '/' . trim($path, '/'));
 		// dd($realPath);
 
 		if (!$realPath || !is_dir($realPath)) {
@@ -421,7 +421,7 @@ class FileManagerService
 			$fileList[] = $this->getFileInfo($file);
 			/* $fileList[] = [
 				'absolute' => $filePath,
-				'relative' => str_replace($this->defaultDirectory, '', $filePath), // 'relative' => str_replace($this->defaultDirectory . '/', '', $filePath),
+				'relative' => str_replace($this->getDefaultDirectory(), '', $filePath), // 'relative' => str_replace($this->getDefaultDirectory() . '/', '', $filePath),
 				'filename' => $file->getFilename(),
 				'filesize' => $this->getSizeName($file->getSize()),
 				'filemtime' => $file->getMTime(),
@@ -444,7 +444,7 @@ class FileManagerService
 
 		return [
 			'absolute' => $filePath,
-			'relative' => str_replace($this->getDefaultDirectory(), '', $filePath), // 'relative' => str_replace($this->defaultDirectory . '/', '', $filePath),
+			'relative' => str_replace($this->getDefaultDirectory(), '', $filePath), // 'relative' => str_replace($this->getDefaultDirectory() . '/', '', $filePath),
 			'filename' => $file->getFilename(),
 			'filesize' => $this->getSizeName($file->getSize()),
 			'filemtime' => $file->getMTime(),
