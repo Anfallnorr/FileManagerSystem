@@ -6,6 +6,7 @@
 
 namespace Anfallnorr\FileManagerSystem\Service;
 
+use SplFileInfo;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
@@ -135,6 +136,12 @@ class FileManagerService
 	public function getMimeType(string $key): string|array|null
 	{
 		return $this->mimeTypes[$key] ?? null;
+	}
+
+	public function exists(string $filename): bool
+	{
+		$exist = $this->getDefaultDirectory() . '/' . $this->createSlug($filename);
+		return $this->filesystem->exists($exist);
 	}
 
     public function createSlug(string $text): string
@@ -302,7 +309,7 @@ class FileManagerService
 
 		$finder = new Finder();
 		if ($depth) {
-			$finder->depth($depth); // Recherche uniquement les dossiers à la racine
+			$finder->depth($depth); // Recherche uniquement les dossiers à la profondeur donnée $depth
 		}
 		$finder->directories()->in($realPath); // Recherche uniquement les dossiers à la racine
 
@@ -396,9 +403,8 @@ class FileManagerService
 		if ($depth) {
 			$finder->depth($depth); // $finder->depth(['== 0']);
 		}
-		$finder->files()->in($realPath);
-		// $finder->files()->in($realPath)->depth('== 0');
-
+		$finder->files()->in($realPath); // $finder->files()->in($realPath)->depth('== 0');
+		
 		if (!$finder->hasResults()) {
 			return false;
 		}
@@ -406,13 +412,14 @@ class FileManagerService
 		$fileList = [];
 
 		foreach ($finder as $file) {
-			$filePath = $file->getRealPath();
-			$imageSize = @getimagesize($filePath); // Évite une erreur si ce n'est pas une image
+			/* $filePath = $file->getRealPath();
+			$imageSize = @getimagesize($filePath); // Évite une erreur si ce n'est pas une image */
 
 			// dump($file->getPathInfo());
 			// dd($file);
 
-			$fileList[] = [
+			$fileList[] = $this->getFileInfo($file);
+			/* $fileList[] = [
 				'absolute' => $filePath,
 				'relative' => str_replace($this->defaultDirectory, '', $filePath), // 'relative' => str_replace($this->defaultDirectory . '/', '', $filePath),
 				'filename' => $file->getFilename(),
@@ -424,10 +431,30 @@ class FileManagerService
 				],
 				'extension' => $file->getExtension(),
 				'mime' => mime_content_type($file->getPathname()) // 'mime' => $imageSize['mime'] ?? null
-			];
+			]; */
 		}
 
 		return $fileList;
+	}
+
+	private function getFileInfo(SplFileInfo $file): array
+	{
+		$filePath = $file->getRealPath();
+		$imageSize = @getimagesize($filePath); // Évite une erreur si ce n'est pas une image
+
+		return [
+			'absolute' => $filePath,
+			'relative' => str_replace($this->getDefaultDirectory(), '', $filePath), // 'relative' => str_replace($this->defaultDirectory . '/', '', $filePath),
+			'filename' => $file->getFilename(),
+			'filesize' => $this->getSizeName($file->getSize()),
+			'filemtime' => $file->getMTime(),
+			'dimensions' => [
+				'width' => $imageSize[0] ?? null,
+				'height' => $imageSize[1] ?? null
+			],
+			'extension' => $file->getExtension(),
+			'mime' => mime_content_type($file->getPathname()) // 'mime' => $imageSize['mime'] ?? null
+		];
 	}
     
     /**
