@@ -4,8 +4,9 @@ FileManagerSystem is a Symfony bundle to easily manage files and directories: cr
 
 ## Installation
 
+Install FileManagerSystem via Composer
+
 ```sh
-# Install FileManagerSystem via Composer
 composer require anfallnorr/file-manager-system
 ```
 
