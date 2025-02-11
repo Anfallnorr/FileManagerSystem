@@ -22,7 +22,9 @@ class FileManagerController extends AbstractController
 	public function __construct(
 		private FileManagerService $fileManagerService,
 		private TranslatorInterface $translator
-	) {}
+	) {
+		$fileManagerService->setDefaultDirectory('/var/uploads');
+	}
 
     #[Route('/', name: 'app_index')]
     public function index()
@@ -154,6 +156,78 @@ class FileManagerController extends AbstractController
 		// Retourne le fichier en tant que réponse
 		return new BinaryFileResponse($filePath, 200, [
 			'Content-Disposition' => ResponseHeaderBag::DISPOSITION_INLINE, // Online display (for images)
+		]);
+	}
+
+	#[Route('/file/delete/{filename}/{folder}', name: 'app_delete_file', defaults: ['folder' => ''], methods: ['DELETE'], requirements: ['folder' => '.+'])]
+	public function deleteFile(string $filename, string $folder): Response
+	{
+		dd($filename);
+		// File directory
+		$fmService = $this->fileManagerService;
+		
+		// Chemin complet du fichier demandé
+		if (!empty($folder)) {
+			$filePath = $folder . '/' . $filename;
+		} else {
+			$filePath = $filename;
+		}
+
+		// dump($filename);
+		// dump($folder);
+		// dd($filePath);
+
+		if ($fmService->exists($filePath)) {
+			dd($filePath);
+			$fmService->remove($filePath);
+
+			$this->addFlash(
+				'success',
+				$this->translator->trans('file_manager.file_successfully_deleted')
+			);
+		} else {
+			$this->addFlash(
+				'danger',
+				$this->translator->trans('file_manager.failed_to_delete_file')
+			);
+		}
+
+
+		return $this->redirectToRoute('app_home', [
+			'folder' => $folder
+		]);
+	}
+
+	#[Route('/folder/delete/{dirname}/{folder}', name: 'app_delete_folder', defaults: ['folder' => ''], methods: ['DELETE'], requirements: ['folder' => '.+'])]
+	public function deleteFolder(string $folder, string $dirname): Response
+	{
+		// File directory
+		$fmService = $this->fileManagerService;
+
+		// Chemin complet du fichier demandé
+		if (!empty($folder)) {
+			$filePath = $folder . '/' . $dirname;
+		} else {
+			$filePath = $dirname;
+		}
+		
+		if ($fmService->exists($filePath)) {
+			$fmService->remove($filePath);
+
+			$this->addFlash(
+				'success',
+				$this->translator->trans('file_manager.folder_successfully_deleted')
+			);
+		} else {
+			$this->addFlash(
+				'danger',
+				$this->translator->trans('file_manager.failed_to_delete_folder')
+			);
+		}
+
+
+		return $this->redirectToRoute('app_home', [
+			'folder' => $folder
 		]);
 	}
 }
