@@ -301,7 +301,6 @@ class FileManagerService
 	public function getDirs(string $path = '/', string $excludeDir = "", string|null $depth = '== 0'): array
 	{
 		$realPath = realpath($this->getDefaultDirectory() . '/' . trim($path, '/'));
-		// dd($realPath);
 
 		if (!$realPath || !is_dir($realPath)) {
 			return [];
@@ -309,9 +308,9 @@ class FileManagerService
 
 		$finder = new Finder();
 		if ($depth) {
-			$finder->depth($depth); // Recherche uniquement les dossiers à la profondeur donnée $depth
+			$finder->depth($depth); // Search only folders at the given depth $depth
 		}
-		$finder->directories()->in($realPath); // Recherche uniquement les dossiers à la racine
+		$finder->directories()->in($realPath); // Search only folders at the root
 
 		$directories = [];
 		foreach ($finder as $dir) {
@@ -385,15 +384,7 @@ class FileManagerService
 	 */
 	public function getFiles(string $path = '/', string|null $depth = '== 0'): array|bool
 	{
-		/* $filter = function (\SplFileInfo $file)
-		{
-			if (strlen($file) > 10) {
-				return false;
-			}
-		}; */
-
 		$realPath = realpath($this->getDefaultDirectory() . '/' . trim($path, '/'));
-		// dd($realPath);
 
 		if (!$realPath || !is_dir($realPath)) {
 			return false;
@@ -412,26 +403,7 @@ class FileManagerService
 		$fileList = [];
 
 		foreach ($finder as $file) {
-			/* $filePath = $file->getRealPath();
-			$imageSize = @getimagesize($filePath); // Évite une erreur si ce n'est pas une image */
-
-			// dump($file->getPathInfo());
-			// dd($file);
-
 			$fileList[] = $this->getFileInfo($file);
-			/* $fileList[] = [
-				'absolute' => $filePath,
-				'relative' => str_replace($this->getDefaultDirectory(), '', $filePath), // 'relative' => str_replace($this->getDefaultDirectory() . '/', '', $filePath),
-				'filename' => $file->getFilename(),
-				'filesize' => $this->getSizeName($file->getSize()),
-				'filemtime' => $file->getMTime(),
-				'dimensions' => [
-					'width' => $imageSize[0] ?? null,
-					'height' => $imageSize[1] ?? null
-				],
-				'extension' => $file->getExtension(),
-				'mime' => mime_content_type($file->getPathname()) // 'mime' => $imageSize['mime'] ?? null
-			]; */
 		}
 
 		return $fileList;
@@ -440,7 +412,7 @@ class FileManagerService
 	private function getFileInfo(SplFileInfo $file): array
 	{
 		$filePath = $file->getRealPath();
-		$imageSize = @getimagesize($filePath); // Évite une erreur si ce n'est pas une image
+		$imageSize = @getimagesize($filePath); // Avoid error if it is not an image
 
 		return [
 			'absolute' => $filePath,
@@ -511,34 +483,28 @@ class FileManagerService
 	{
 		$uploadedFiles = [];
 
-		// Vérifier si $files est un tableau (upload multiple) ou un seul fichier
+		// Check if $files is an array (multiple upload) or a single file
 		$files = is_array($files) ? $files : [$files];
 
 		foreach ($files as $file) {
 			$filename = $this->createSlug($file->getClientOriginalName());
 			$filename = str_replace('-' . $file->getClientOriginalExtension(), '.' . $file->getClientOriginalExtension(), $filename);
 			
-			// $imageSize = @getimagesize($folder . '/' . $filename); // Évite une erreur si ce n'est pas une image
 			$output = [
 				'absolute' => $folder . '/' . $filename,
 				'relative' => str_replace($this->getKernelDirectory(), '', $folder . '/' . $filename),
 				'filename' => $filename,
 				'filesize' => $this->getSizeName($file->getSize()),
 				'filemtime' => date("d/m/Y", $file->getMTime()),
-				/* 'dimensions' => [
-					'width' => $imageSize[0] ?? null,
-					'height' => $imageSize[1] ?? null
-				], */
 				'extension' => (!empty($file->getExtension())) ? $file->getExtension() : pathinfo($filename, PATHINFO_EXTENSION),
 				'mime' => mime_content_type($file->getPathname())
 			];
 			
-			// $file->move($folder, $filename);
 			if (!$file->move($folder, $filename)) {
 				throw new \Exception("A problem occurred while uploading this file: " . $filename);
 			}
 			
-			$imageSize = @getimagesize($folder . '/' . $filename); // Évite une erreur si ce n'est pas une image
+			$imageSize = @getimagesize($folder . '/' . $filename); // Avoid error if it is not an image
 			$output['dimensions'] = [
 				'width' => $imageSize[0] ?? null,
 				'height' => $imageSize[1] ?? null
