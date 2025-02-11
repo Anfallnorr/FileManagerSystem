@@ -27,60 +27,59 @@ final class FileManagerController extends AbstractController
 	) {
 		$fileManagerService->setDefaultDirectory('/var/uploads');
 	}
-	
+
 	#[Route('/', name: 'app_index')]
 	public function index()
 	{
-		return $this->redirectToRoute('app_home');
+		return $this->redirectToRoute('app_file_manager');
 	}
-	
-	#[Route('/home/{folder}', name: 'app_home', defaults: ['folder' => ''], methods: ['POST', 'GET'], requirements: ['folder' => '.+'])]
+
+	#[Route('/home/{folder}', name: 'app_file_manager', defaults: ['folder' => ''], methods: ['POST', 'GET'], requirements: ['folder' => '.+'])]
 	public function home(Request $request, string $folder): Response
 	{
 		$breadcrumb = explode('/', $folder);
 		// $fmService = $this->fileManagerService;
-		
+
 		// $fmService = new FileManagerService($this->getParameter('file_manager_system.kernel_directory'), $this->getParameter('file_manager_system.default_directory'), new Filesystem(), new AsciiSlugger());
 		// $fmService = new FileManagerService($this->getParameter('kernel.project_dir'), $this->getParameter('kernel.project_dir') . '/var/www/uploads', new Filesystem(), new AsciiSlugger());
-	
+
 		/* $defaultDirectory = $fmService->getDefaultDirectory(); // /path/to/folder/public/uploads
 		$directory = $fmService->setDefaultDirectory('/var/www/uploads')->getDefaultDirectory(); // /path/to/folder/var/www/uploads
 		$mimeTypes = $fmService->getMimeTypes(); // array
 		$mimeType = $fmService->getMimeType('pdf'); // application/pdf
 		$string = $fmService->createSlug('Hello World !'); // hello-world
-	
+
 		$fmService->createDir('Hello World !'); // create hello-world directory in default directory path
 		$fmService->createFile('Hello World.html', 'Hello World! I\'m Js info'); // create hello-world.html file in default directory path */
-		
+
 		if (!empty($folder)) {
 			$this->fileManagerService->setDefaultDirectory('/var/uploads/' . $folder); // Example for personnal folder space: '/var/uploads/' . $his->getUser()->getId()
 		}
-	
-	
+
 		// Check if path is a valid folder
 		if (!is_dir($this->fileManagerService->getDefaultDirectory())) {
 			throw $this->createNotFoundException('Folder not found');
 		}
-	
-		$uploadUrl = $this->generateUrl('app_home', [
+
+		$uploadUrl = $this->generateUrl('app_file_manager', [
 			'folder' => $folder
 		]);
-	
+
 		$folders = $this->fileManagerService->getDirs();
 		$files = $this->fileManagerService->getFiles();
 		$allFolders = $this->fileManagerService->getDirs($path = '/', $excludeDir = "", $depth = null);
 		$allFiles = $this->fileManagerService->getFiles($path = '/', $depth = null);
-		
+
 		// Folder creation
 		$createFolderForm = $this->createForm(CreateFolderType::class);
 		$createFolderForm->handleRequest($request);
-		
+
 		if ($createFolderForm->isSubmitted() && $createFolderForm->isValid()) {
 			$folderName = $createFolderForm->get('folderName')->getData();
-	
+
 			if (!$this->fileManagerService->exists($folderName)) {
 				$this->fileManagerService->createDir($folderName);
-				
+
 				$this->addFlash(
 					'success',
 					$this->translator->trans('file_manager.folder_created_successfully')
@@ -91,12 +90,12 @@ final class FileManagerController extends AbstractController
 					$this->translator->trans('file_manager.the_folder_already_exists', ['%foldername%' => $folderName])
 				);
 			}
-	
-			return $this->redirectToRoute('app_home', [
+
+			return $this->redirectToRoute('app_file_manager', [
 				'folder' => $folder
 			]);
 		}
-	
+
 		// File upload
 		$uploadFileForm = $this->createForm(UploadFileType::class, null, [
 			'user' => null, // $user->getId(),
@@ -104,14 +103,14 @@ final class FileManagerController extends AbstractController
 			'current_folder' => $folder
 		]);
 		$uploadFileForm->handleRequest($request);
-	
+
 		if ($uploadFileForm->isSubmitted() && $uploadFileForm->isValid()) {
 			$files = $uploadFileForm->get('file')->getData();
-			
+
 			if ($files) {
 				try {
 					$uploaded = $this->fileManagerService->upload($files, $this->fileManagerService->getDefaultDirectory(), false);
-					
+
 					$this->addFlash(
 						'success',
 						$this->translator->trans('file_manager.file_uploaded_successfully')
@@ -123,20 +122,20 @@ final class FileManagerController extends AbstractController
 					);
 				}
 			}
-	
-			return $this->redirectToRoute('app_home', [
+
+			return $this->redirectToRoute('app_file_manager', [
 				'folder' => $folder
 			]);
 		}
-	
-	
+
+
 		return $this->render('home/index.html.twig', [
 			'folder_form' => $createFolderForm,
 			'file_form' => $uploadFileForm,
-	
+
 			'breadcrumb' => $breadcrumb,
 			'breadcrumb_link' => '',
-	
+
 			'current_folder' => $folder,
 			'folders' => $folders,
 			'files' => $files,
@@ -144,51 +143,50 @@ final class FileManagerController extends AbstractController
 			'allFiles' => $allFiles
 		]);
 	}
-	
-	#[Route('/file/serve/{filename}/{folder}', name: 'app_file', defaults: ['folder' => ''], requirements: ['folder' => '.+'])]
+
+	#[Route('/file/serve/{filename}/{folder}', name: 'app_file_manager_serve', defaults: ['folder' => ''], requirements: ['folder' => '.+'])]
 	public function serveFile(string $filename, string $folder): BinaryFileResponse
 	{
 		// File directory
 		// $fmService = $this->fileManagerService;
 		// $fmService->setDefaultDirectory('/var/uploads');
-	
+
 		$baseDirectory = $this->fileManagerService->getDefaultDirectory();
-	
-	
+
 		// Full path of the requested file
 		if (empty($folder)) {
 			$filePath = $baseDirectory . '/' . $filename;
 		} else {
 			$filePath = rtrim($baseDirectory, '/') . '/' . trim($folder, '/') . '/' . ltrim($filename, '/');
 		}
-	
+
 		if (!file_exists($filePath)) {
 			throw $this->createNotFoundException('Fichier introuvable.');
 		}
-	
-	
+
+
 		// Returns the file as a response
 		return new BinaryFileResponse($filePath, 200, [
 			'Content-Disposition' => ResponseHeaderBag::DISPOSITION_INLINE, // Online display (for images)
 		]);
 	}
 	
-	#[Route('/file/delete/{filename}/{folder}', name: 'app_delete_file', defaults: ['folder' => ''], methods: ['DELETE'], requirements: ['folder' => '.+'])]
+	#[Route('/file/delete/{filename}/{folder}', name: 'app_file_manager_delete_file', defaults: ['folder' => ''], methods: ['DELETE'], requirements: ['folder' => '.+'])]
 	public function deleteFile(string $filename, string $folder): Response
 	{
 		// File directory
 		// $fmService = $this->fileManagerService;
-		
+
 		// Relative path of the requested file
 		if (!empty($folder)) {
 			$filePath = $folder . '/' . $filename;
 		} else {
 			$filePath = $filename;
 		}
-	
+
 		if ($this->fileManagerService->exists($filePath)) {
 			$this->fileManagerService->remove($filePath);
-	
+
 			$this->addFlash(
 				'success',
 				$this->translator->trans('file_manager.file_successfully_deleted')
@@ -199,29 +197,29 @@ final class FileManagerController extends AbstractController
 				$this->translator->trans('file_manager.failed_to_delete_file')
 			);
 		}
-	
-	
-		return $this->redirectToRoute('app_home', [
+
+
+		return $this->redirectToRoute('app_file_manager', [
 			'folder' => $folder
 		]);
 	}
-	
-	#[Route('/folder/delete/{dirname}/{folder}', name: 'app_delete_folder', defaults: ['folder' => ''], methods: ['DELETE'], requirements: ['folder' => '.+'])]
+
+	#[Route('/folder/delete/{dirname}/{folder}', name: 'app_file_manager_delete_folder', defaults: ['folder' => ''], methods: ['DELETE'], requirements: ['folder' => '.+'])]
 	public function deleteFolder(string $folder, string $dirname): Response
 	{
 		// File directory
 		// $fmService = $this->fileManagerService;
-	
+
 		// Relative path of the requested file
 		if (!empty($folder)) {
 			$filePath = $folder . '/' . $dirname;
 		} else {
 			$filePath = $dirname;
 		}
-		
+
 		if ($this->fileManagerService->exists($filePath)) {
 			$this->fileManagerService->remove($filePath);
-	
+
 			$this->addFlash(
 				'success',
 				$this->translator->trans('file_manager.folder_successfully_deleted')
@@ -232,9 +230,9 @@ final class FileManagerController extends AbstractController
 				$this->translator->trans('file_manager.failed_to_delete_folder')
 			);
 		}
-	
-	
-		return $this->redirectToRoute('app_home', [
+
+
+		return $this->redirectToRoute('app_file_manager', [
 			'folder' => $folder
 		]);
 	}
