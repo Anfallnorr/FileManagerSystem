@@ -138,9 +138,9 @@ class FileManagerService
 		return $this->mimeTypes[$key] ?? null;
 	}
 
-	public function exists(string $filename): bool
+	public function exists(string $filepath): bool
 	{
-		$exist = $this->getDefaultDirectory() . '/' . $this->createSlug($filename);
+		$exist = $this->getDefaultDirectory() . '/' . $filepath;
 		return $this->filesystem->exists($exist);
 	}
 
@@ -658,5 +658,14 @@ class FileManagerService
 		// return ['success' => $processed, 'errors' => $errors];
 		return true; */
 		return ['resizeImages'];
+	}
+	
+	public function remove(string $relativePath): bool
+	{
+		if ($this->filesystem->remove($this->getDefaultDirectory() . '/' . $relativePath)) {
+			return true;
+		} else {
+			return false;
+		}
 	}
 }
