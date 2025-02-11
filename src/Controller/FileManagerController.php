@@ -52,6 +52,11 @@ final class FileManagerController extends AbstractController
 		$fmService->createDir('Hello World !'); // create hello-world directory in default directory path
 		$fmService->createFile('Hello World.html', 'Hello World! I\'m Js info'); // create hello-world.html file in default directory path */
 
+
+		// Retrieve global files and folders first before changing the default path
+		$allFolders = $this->fileManagerService->getDirs($path = '/', $excludeDir = "", $depth = null);
+		$allFiles = $this->fileManagerService->getFiles($path = '/', $depth = null);
+
 		if (!empty($folder)) {
 			$this->fileManagerService->setDefaultDirectory('/var/uploads/' . $folder); // Example for personnal folder space: '/var/uploads/' . $his->getUser()->getId()
 		}
@@ -67,8 +72,6 @@ final class FileManagerController extends AbstractController
 
 		$folders = $this->fileManagerService->getDirs();
 		$files = $this->fileManagerService->getFiles();
-		$allFolders = $this->fileManagerService->getDirs($path = '/', $excludeDir = "", $depth = null);
-		$allFiles = $this->fileManagerService->getFiles($path = '/', $depth = null);
 
 		// Folder creation
 		$createFolderForm = $this->createForm(CreateFolderType::class);
