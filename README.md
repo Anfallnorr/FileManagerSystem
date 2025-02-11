@@ -2,7 +2,7 @@
 [//]: # (FileManagerSystem est un bundle Symfony permettant de gérer facilement les fichiers et répertoires : création, suppression, déplacement, redimensionnement d'images, gestion des MIME types, etc.)
 FileManagerSystem is a Symfony bundle to easily manage files and directories: creation, deletion, moving, resizing images, managing MIME types, etc.
 
-**Demo:** [symfotest.js-info.fr](https://symfotest.js-info.fr/home){:target="_blank"}
+**Demo:** [symfotest.js-info.fr](https://symfotest.js-info.fr/home)
 
 ## Installation
 
