@@ -15,7 +15,7 @@ class UploadFileType extends AbstractType
 	public function __construct(
 		private TranslatorInterface $translator
 	) {}
-	
+
 	public function buildForm(FormBuilderInterface $builder, array $options)
 	{
 		$builder
@@ -46,14 +46,14 @@ class UploadFileType extends AbstractType
 			]);
 	}
 
-    public function configureOptions(OptionsResolver $resolver)
-    {
-        // $resolver->setDefaults([]);
-        $resolver->setDefaults([
-            // 'data_class' => null,
-            'user' => null, // User parameter for route: userId
-            'route' => null, // Route to the dropzone form
-            'current_folder' => null,
+	public function configureOptions(OptionsResolver $resolver)
+	{
+		// $resolver->setDefaults([]);
+		$resolver->setDefaults([
+			// 'data_class' => null,
+			'user' => null, // User parameter for route: userId
+			'route' => null, // Route to the dropzone form
+			'current_folder' => null,
 		]);
-    }
+	}
 }
