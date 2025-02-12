@@ -11,19 +11,22 @@ use Symfony\Component\Translation\TranslatableMessage;
 
 class CreateFolderType extends AbstractType
 {
-    public function buildForm(FormBuilderInterface $builder, array $options)
-    {
-        $builder
-            ->add('folderName', TextType::class, [
-                'label' => new TranslatableMessage('file_manager.folder_name', [], 'forms')
-            ])
-            ->add('submit', SubmitType::class, [
-                'label' => new TranslatableMessage('file_manager.create', [], 'forms')
-            ]);
-    }
+	public function buildForm(FormBuilderInterface $builder, array $options)
+	{
+		$builder
+			->add('folderName', TextType::class, [
+				'label' => new TranslatableMessage('file_manager.folder_name', [], 'forms'),
+				'help' => "Use `+` to add multiple folders at the same level, `>` to add nested folders. Example: `folder1+folder2`, `folder1-1>folder1-2`"
+				// 'help' => "Utilisez `+` pour ajouter plusieurs dossiers de même niveau, `>` pour ajouter des dossiers imbriqués. Exemple : `folder1+folder2`, `folder1-1>folder1-2`"
+				// 'help' => new TranslatableMessage('file_manager.folder_name_help', ['%example%' => "`folder1+folder2`, `folder1-1>folder1-2`"], 'forms')
+			])
+			->add('submit', SubmitType::class, [
+				'label' => new TranslatableMessage('file_manager.create', [], 'forms')
+			]);
+	}
 
-    public function configureOptions(OptionsResolver $resolver)
-    {
-        $resolver->setDefaults([]);
-    }
+	public function configureOptions(OptionsResolver $resolver)
+	{
+		$resolver->setDefaults([]);
+	}
 }
