@@ -11,14 +11,14 @@ use Symfony\Component\HttpKernel\Bundle\AbstractBundle;
 
 final class FileManagerSystem extends AbstractBundle
 {
-    public function configure(DefinitionConfigurator $definition): void
-    {
-        $definition->rootNode()
-            ->children()
-                ->scalarNode('default_directory')->defaultValue('/public/uploads')->end()
-            ->end()
-        ;
-    }
+	public function configure(DefinitionConfigurator $definition): void
+	{
+		$definition->rootNode()
+			->children()
+				->scalarNode('default_directory')->defaultValue('/public/uploads')->end()
+			->end()
+		;
+	}
 
 	public function loadExtension(array $config, ContainerConfigurator $container, ContainerBuilder $builder): void
 	{
@@ -39,8 +39,8 @@ final class FileManagerSystem extends AbstractBundle
 		// $builder->register(AsciiSlugger::class)->setAutowired(true)->setPublic(true);
 	}
 
-    public function getPath(): string
-    {
-        return \dirname(__DIR__);
-    }
+	public function getPath(): string
+	{
+		return \dirname(__DIR__);
+	}
 }
