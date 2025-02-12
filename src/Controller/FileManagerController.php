@@ -37,7 +37,6 @@ final class FileManagerController extends AbstractController
 	#[Route('/home/{folder}', name: 'app_file_manager', defaults: ['folder' => ''], methods: ['POST', 'GET'], requirements: ['folder' => '.+'])]
 	public function home(Request $request, string $folder): Response
 	{
-		$breadcrumb = explode('/', $folder);
 		// $fmService = $this->fileManagerService;
 
 		// $fmService = new FileManagerService($this->getParameter('file_manager_system.kernel_directory'), $this->getParameter('file_manager_system.default_directory'), new Filesystem(), new AsciiSlugger());
@@ -53,6 +52,8 @@ final class FileManagerController extends AbstractController
 		$fmService->createFile('Hello World.html', 'Hello World! I\'m Js info'); // create hello-world.html file in default directory path */
 
 
+		$breadcrumb = explode('/', $folder);
+
 		// Retrieve global files and folders first before changing the default path
 		$allFolders = $this->fileManagerService->getDirs($path = '/', $excludeDir = "", $depth = null);
 		$allFiles = $this->fileManagerService->getFiles($path = '/', $depth = null);
@@ -62,9 +63,9 @@ final class FileManagerController extends AbstractController
 		}
 
 		// Check if path is a valid folder
-		if (!is_dir($this->fileManagerService->getDefaultDirectory())) {
+		/* if (!is_dir($this->fileManagerService->getDefaultDirectory())) {
 			throw $this->createNotFoundException('Folder not found');
-		}
+		} */
 
 		$uploadUrl = $this->generateUrl('app_file_manager', [
 			'folder' => $folder
@@ -101,7 +102,7 @@ final class FileManagerController extends AbstractController
 
 		// File upload
 		$uploadFileForm = $this->createForm(UploadFileType::class, null, [
-			'user' => null, // $user->getId(),
+			'user' => null, // $user->getId() for example,
 			'route' => $uploadUrl,
 			'current_folder' => $folder
 		]);
@@ -135,10 +136,8 @@ final class FileManagerController extends AbstractController
 		return $this->render('home/index.html.twig', [
 			'folder_form' => $createFolderForm,
 			'file_form' => $uploadFileForm,
-
 			'breadcrumb' => $breadcrumb,
 			'breadcrumb_link' => '',
-
 			'current_folder' => $folder,
 			'folders' => $folders,
 			'files' => $files,
@@ -150,10 +149,8 @@ final class FileManagerController extends AbstractController
 	#[Route('/file/serve/{filename}/{folder}', name: 'app_file_manager_serve', defaults: ['folder' => ''], requirements: ['folder' => '.+'])]
 	public function serveFile(string $filename, string $folder): BinaryFileResponse
 	{
-		// File directory
 		// $fmService = $this->fileManagerService;
-		// $fmService->setDefaultDirectory('/var/uploads');
-
+		
 		$baseDirectory = $this->fileManagerService->getDefaultDirectory();
 
 		// Full path of the requested file
@@ -177,7 +174,6 @@ final class FileManagerController extends AbstractController
 	#[Route('/file/delete/{filename}/{folder}', name: 'app_file_manager_delete_file', defaults: ['folder' => ''], methods: ['DELETE'], requirements: ['folder' => '.+'])]
 	public function deleteFile(string $filename, string $folder): Response
 	{
-		// File directory
 		// $fmService = $this->fileManagerService;
 
 		// Relative path of the requested file
@@ -210,7 +206,6 @@ final class FileManagerController extends AbstractController
 	#[Route('/folder/delete/{dirname}/{folder}', name: 'app_file_manager_delete_folder', defaults: ['folder' => ''], methods: ['DELETE'], requirements: ['folder' => '.+'])]
 	public function deleteFolder(string $folder, string $dirname): Response
 	{
-		// File directory
 		// $fmService = $this->fileManagerService;
 
 		// Relative path of the requested file
@@ -231,6 +226,45 @@ final class FileManagerController extends AbstractController
 			$this->addFlash(
 				'danger',
 				$this->translator->trans('file_manager.failed_to_delete_folder')
+			);
+		}
+
+
+		return $this->redirectToRoute('app_file_manager', [
+			'folder' => $folder
+		]);
+	}
+
+	#[Route('/files/mass-delete/{folder}', name: 'app_file_manager_mass_delete_folder', defaults: ['folder' => ''], methods: ['DELETE'], requirements: ['folder' => '.+'])]
+	public function massDelete(Request $request, string $folder): Response
+	{
+		// $fmService = $this->fileManagerService;
+
+		// Retrieves selected and added file names via JavaScript into JSON
+		$filesToDelete = json_decode($request->get('filesToDelete'));
+
+		if (!empty($filesToDelete)) {
+			foreach ($filesToDelete as $file) {
+				// Relative path of the requested file
+				if (!empty($folder)) {
+					$filePath = $folder . '/' . $file;
+				} else {
+					$filePath = $file;
+				}
+
+				if ($this->fileManagerService->exists($filePath)) {
+					$this->fileManagerService->remove($filePath);
+				}
+			}
+
+			$this->addFlash(
+				'success',
+				$this->translator->trans('file_manager.files_successfully_mass_deleted')
+			);
+		} else {
+			$this->addFlash(
+				'warning',
+				$this->translator->trans('file_manager.no_files_selected')
 			);
 		}
 
