@@ -6,4 +6,11 @@ file_manager:
     the_folder_already_exists: "The folder `%foldername%` already exists"
     file_uploaded_successfully: "File uploaded successfully."
     error_while_uploading: "Error while uploading. Message: %message%"
-    
+    folder_name: "Folder name"
+    create: "Create"
+    file_successfully_deleted: "File deleted successfully"
+    failed_to_delete_file: "File deletion failed"
+    folder_successfully_deleted: "Folder deleted successfully"
+    failed_to_delete_folder: "Failed to delete folder"
+    files_successfully_mass_deleted: "Files deleted successfully"
+    no_files_selected: "No files selected"
