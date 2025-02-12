@@ -1,46 +1,46 @@
 {
-    "name": "anfallnorr/file-manager-system",
-    "description": "A Symfony bundle for file management (move, copy, delete, resize, etc.).",
-    "type": "symfony-bundle",
-    "authors": [
-        {
-            "name": "Js info (Julien Senechal)",
-            "email": "contact@js-info.fr"
-        }
-    ],
-    "require": {
-        "php": ">=8.3",
-        "symfony/asset": "7.2.*",
-        "symfony/framework-bundle": "7.2.*",
-        "symfony/flex": "^2.4.7",
-        "symfony/form": "7.2.*",
-        "symfony/http-foundation": "^7.2",
-        "symfony/mime": "7.2.*",
-        "symfony/string": "7.2.*",
-        "symfony/translation": "7.2.*",
-        "symfony/twig-bundle": "7.2.*",
-        "symfony/validator": "7.2.*"
-    },
-    "autoload": {
-        "psr-4": {
-            "Anfallnorr\\FileManagerSystem\\": "src/"
-        }
-    },
-    "extra": {
-        "symfony": {
-            "allow-contrib": true,
-            "bundles": {
-                "Anfallnorr\\FileManagerSystem\\FileManagerSystem": ["all"]
-            }
-        }
-    },
-    "minimum-stability": "stable",
-    "prefer-stable": true,
+	"name": "anfallnorr/file-manager-system",
+	"description": "A Symfony bundle for file management (move, copy, delete, resize, etc.).",
+	"type": "symfony-bundle",
+	"authors": [
+		{
+			"name": "Js info (Julien Senechal)",
+			"email": "contact@js-info.fr"
+		}
+	],
+	"require": {
+		"php": ">=8.3",
+		"symfony/asset": "7.2.*",
+		"symfony/framework-bundle": "7.2.*",
+		"symfony/flex": "^2.4.7",
+		"symfony/form": "7.2.*",
+		"symfony/http-foundation": "^7.2",
+		"symfony/mime": "7.2.*",
+		"symfony/string": "7.2.*",
+		"symfony/translation": "7.2.*",
+		"symfony/twig-bundle": "7.2.*",
+		"symfony/validator": "7.2.*"
+	},
+	"autoload": {
+		"psr-4": {
+			"Anfallnorr\\FileManagerSystem\\": "src/"
+		}
+	},
+	"extra": {
+		"symfony": {
+			"allow-contrib": true,
+			"bundles": {
+				"Anfallnorr\\FileManagerSystem\\FileManagerSystem": ["all"]
+			}
+		}
+	},
+	"minimum-stability": "stable",
+	"prefer-stable": true,
 	"repositories": [
 		{
 			"type": "vcs",
 			"url": "https://github.com/Anfallnorr/FileManagerSystem.git"
 		}
 	],
-    "license": "MIT"
+	"license": "MIT"
 }
