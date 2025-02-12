@@ -11,7 +11,7 @@ services:
             $filesystem: '@Symfony\Component\Filesystem\Filesystem'
             $slugger: '@Symfony\Component\String\Slugger\AsciiSlugger'
         public: true
-    
+
     Anfallnorr\FileManagerSystem\Form\UploadFileType:
         arguments:
             $translator: '@translator'
