@@ -11,20 +11,20 @@ use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 
 class RenameFileType extends AbstractType
 {
-    public function buildForm(FormBuilderInterface $builder, array $options)
-    {
-        $builder
-            ->add('currentFileName', HiddenType::class)
-            ->add('newFileName', TextType::class, [
-                'label' => 'Nouveau nom du fichier'
-            ])
-            ->add('submit', SubmitType::class, [
-                'label' => 'Renommer'
-            ]);
-    }
+	public function buildForm(FormBuilderInterface $builder, array $options)
+	{
+		$builder
+			->add('currentFileName', HiddenType::class)
+			->add('newFileName', TextType::class, [
+				'label' => 'Nouveau nom du fichier'
+			])
+			->add('submit', SubmitType::class, [
+				'label' => 'Renommer'
+			]);
+	}
 
-    public function configureOptions(OptionsResolver $resolver)
-    {
-        $resolver->setDefaults([]);
-    }
+	public function configureOptions(OptionsResolver $resolver)
+	{
+		$resolver->setDefaults([]);
+	}
 }
