@@ -150,7 +150,7 @@ final class FileManagerController extends AbstractController
 	public function serveFile(string $filename, string $folder): BinaryFileResponse
 	{
 		// $fmService = $this->fileManagerService;
-		
+
 		$baseDirectory = $this->fileManagerService->getDefaultDirectory();
 
 		// Full path of the requested file
@@ -170,7 +170,7 @@ final class FileManagerController extends AbstractController
 			'Content-Disposition' => ResponseHeaderBag::DISPOSITION_INLINE, // Online display (for images)
 		]);
 	}
-	
+
 	#[Route('/file/delete/{filename}/{folder}', name: 'app_file_manager_delete_file', defaults: ['folder' => ''], methods: ['DELETE'], requirements: ['folder' => '.+'])]
 	public function deleteFile(string $filename, string $folder): Response
 	{
