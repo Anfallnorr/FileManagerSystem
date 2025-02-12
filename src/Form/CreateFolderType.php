@@ -7,6 +7,7 @@ use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
+use Symfony\Component\Translation\TranslatableMessage;
 
 class CreateFolderType extends AbstractType
 {
@@ -14,10 +15,10 @@ class CreateFolderType extends AbstractType
     {
         $builder
             ->add('folderName', TextType::class, [
-                'label' => 'Folder name'
+                'label' => new TranslatableMessage('file_manager.folder_name', [], 'forms')
             ])
             ->add('submit', SubmitType::class, [
-                'label' => 'Create'
+                'label' => new TranslatableMessage('file_manager.create', [], 'forms')
             ]);
     }
 
