@@ -11,20 +11,20 @@ use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 
 class MoveFileType extends AbstractType
 {
-    public function buildForm(FormBuilderInterface $builder, array $options)
-    {
-        $builder
-            ->add('currentPath', HiddenType::class)
-            ->add('newPath', TextType::class, [
-                'label' => 'Nouveau chemin'
-            ])
-            ->add('submit', SubmitType::class, [
-                'label' => 'Déplacer'
-            ]);
-    }
+	public function buildForm(FormBuilderInterface $builder, array $options)
+	{
+		$builder
+			->add('currentPath', HiddenType::class)
+			->add('newPath', TextType::class, [
+				'label' => 'Nouveau chemin'
+			])
+			->add('submit', SubmitType::class, [
+				'label' => 'Déplacer'
+			]);
+	}
 
-    public function configureOptions(OptionsResolver $resolver)
-    {
-        $resolver->setDefaults([]);
-    }
+	public function configureOptions(OptionsResolver $resolver)
+	{
+		$resolver->setDefaults([]);
+	}
 }
