@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="robots" content="noindex, nofollow" />
+        <title>{% block title %}Js info - Anfallnorr/FileManagerSystem{% endblock %}</title>
+        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>⚫️</text><text y=%221.3em%22 x=%220.2em%22 font-size=%2276%22 fill=%22%23fff%22>sf</text></svg>" />
+        {% block stylesheets %}
+			<link rel="stylesheet" href="{{ asset('css/bootstrap.min.css') }}" media="all" />
+        {% endblock %}
+
+        {% block javascripts %}
+            {% block importmap %}{{ importmap('app') }}{% endblock %}
+
+			<script src="{{ asset('js/jquery-3.7.1.min.js') }}" defer></script>
+			<script src="{{ asset('js/bootstrap.bundle.min.js') }}" defer></script>
+        {% endblock %}
+		
+		{% set icon_classes = {
+			'success': 'bi bi-check-circle',
+			'warning': 'bi bi-exclamation-circle',
+			'danger': 'bi bi-x-circle'
+		} %}
+    </head>
+    <body>
+		<div class="container mt-3">
+			<div class="row">
+				<div class="col">
+					<div class="alert alert-warning">
+						<h1>Development in progress...</h1>
+						<p class="lead">Do not install this bundle at this time</p>
+					</div>
+				</div>
+			</div>
+		</div>
+		
+		<div class="container my-3">
+			{% for type, messages in app.flashes %}
+				{% for message in messages %}
+					<div class="alert bg-{{ type }} border-{{ type }} _text-{{ type }} alert-dismissible d-flex align-items-center fade show mb-3" role="alert">
+						<i class="{{ icon_classes[type] | default('bi bi-app-indicator') }} fs-2 me-2 lh-1"></i> 
+						{{ message | trans() }}
+						<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+					</div>
+				{% endfor %}
+			{% endfor %}
+    	</div>
+
+        {% block body %}{% endblock %}
+
+		<script src="{{ asset('js/file-manager-system.js') }}" defer></script>
+    </body>
+</html>
