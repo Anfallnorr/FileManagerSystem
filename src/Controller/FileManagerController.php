@@ -313,30 +313,44 @@ final class HomeController extends AbstractController
 	#[Route('/files/mass-delete/{folder}', name: 'app_file_manager_mass_delete_folder', defaults: ['folder' => ''], methods: ['DELETE'], requirements: ['folder' => '.+'])]
 	public function massDelete(Request $request, string $folder): Response
 	{
+		$foldersToDelete = json_decode($request->get('foldersToDelete'));
 		$filesToDelete = json_decode($request->get('filesToDelete'));
 
+
+		if (!empty($foldersToDelete)) {
+			foreach ($foldersToDelete as $file) {
+				// Chemin relatif du fichier demandé
+				if (!empty($folder)) {
+					$folderPath = $folder . '/' . $file;
+				} else {
+					$folderPath = $file;
+				}
+
+				if ($this->fileManagerService->exists($folderPath)) {
+					$this->fileManagerService->remove($folderPath);
+				}
+			}
+
+			$this->addFlash(
+				'success',
+				$this->translator->trans('file_manager.folders_successfully_mass_deleted')
+			);
+		} else {
+			$this->addFlash(
+				'warning',
+				$this->translator->trans('file_manager.no_folders_selected')
+			);
+		}
+
+		
 		if (!empty($filesToDelete)) {
-			// dump($filesToDelete);
-			// dump($folder);
-			// dd($request);
-			// Répertoire des fichiers des utilisateurs
-			// $baseDirectory = $this->fileManagerService->getDefaultDirectory();
-
-			// dump($folder);
-			// dd($baseDirectory);
-			// Initialiser le service Filesystem
-			// $filesystem = new Filesystem();
-
 			foreach ($filesToDelete as $file) {
-				// Chemin complet du fichier demandé
+				// Chemin relatif du fichier demandé
 				if (!empty($folder)) {
 					$filePath = $folder . '/' . $file;
 				} else {
 					$filePath = $file;
 				}
-
-				// dump($filePath);
-				// dd($file);
 
 				if ($this->fileManagerService->exists($filePath)) {
 					$this->fileManagerService->remove($filePath);
