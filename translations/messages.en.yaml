@@ -12,5 +12,7 @@ file_manager:
     failed_to_delete_file: "File deletion failed"
     folder_successfully_deleted: "Folder deleted successfully"
     failed_to_delete_folder: "Failed to delete folder"
+    folders_successfully_mass_deleted: "Folders deleted successfully"
+    no_folders_selected: "No folders selected"
     files_successfully_mass_deleted: "Files deleted successfully"
     no_files_selected: "No files selected"
