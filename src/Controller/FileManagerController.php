@@ -27,6 +27,7 @@ final class HomeController extends AbstractController
 		private TranslatorInterface $translator
 	) {
 		$fileManagerService->setDefaultDirectory('/var/uploads');
+		$fileManagerService->setRelativeDirectory('/var/uploads');
 	}
 
 	#[Route('/', name: 'app_index')]
@@ -40,6 +41,7 @@ final class HomeController extends AbstractController
 	{
 		// $fmService = $this->fileManagerService;
 		
+		// dd($this->fileManagerService->getRelativeDirectory());
 		// dd($breadcrumb);
 		// $fmService = new FileManagerService($this->getParameter('file_manager_system.kernel_directory'), $this->getParameter('file_manager_system.default_directory'), new Filesystem(), new AsciiSlugger());
 		// $fmService = new FileManagerService($this->getParameter('kernel.project_dir'), $this->getParameter('kernel.project_dir') . '/var/www/uploads', new Filesystem(), new AsciiSlugger());
@@ -63,8 +65,7 @@ final class HomeController extends AbstractController
 		if (!empty($folder)) {
 			$this->fileManagerService->setDefaultDirectory('/var/uploads/' . $folder); // Example for personnal folder space: '/var/uploads/' . $his->getUser()->getId()
 		}
-
-
+		
 		// Check if path is a valid folder
 		/* if (!is_dir($this->fileManagerService->getDefaultDirectory())) {
 			throw $this->createNotFoundException('Folder not found');
@@ -138,9 +139,19 @@ final class HomeController extends AbstractController
 
 
 		// Move File
-		$moveFileForm = $this->createForm(MoveFileType::class);
+		$moveFileForm = $this->createForm(MoveFileType::class, null);
 		$moveFileForm->handleRequest($request);
 
+		/* $moveFileForms = [];
+
+		if (!empty($files)) {
+			foreach ($files as $key => $file) {
+				$moveFileForms[$key] = $this->createForm(MoveFileType::class)->createView();
+			}
+			// dd($moveFileForms);
+		} */
+
+		// dd($moveFileForm);
 		if ($moveFileForm->isSubmitted() && $moveFileForm->isValid()) {
 			/* $files = $moveFileForm->get('file')->getData();
 			
@@ -170,6 +181,7 @@ final class HomeController extends AbstractController
 			'folder_form' => $createFolderForm,
 			'file_form' => $uploadFileForm,
 			'move_file_form' => $moveFileForm,
+			// 'move_file_forms' => $moveFileForms,
 			'breadcrumb' => $breadcrumb,
 			'breadcrumb_link' => '',
 			'current_folder' => $folder,
@@ -185,8 +197,8 @@ final class HomeController extends AbstractController
 	{
 		// File directory
 		// $fmService = $this->fileManagerService;
-		// $fmService->setDefaultDirectory('/var/uploads');
 
+		// Base directory (this should now handle both cases)
 		$baseDirectory = $this->fileManagerService->getDefaultDirectory();
 
 
@@ -194,11 +206,9 @@ final class HomeController extends AbstractController
 		if (empty($folder)) {
 			$filePath = $baseDirectory . '/' . $filename;
 		} else {
-			// $filePath = $baseDirectory . '/' . $folder . '/' . $filename;
 			$filePath = rtrim($baseDirectory, '/') . '/' . trim($folder, '/') . '/' . ltrim($filename, '/');
 		}
 
-			// dd($filePath);
 		if (!file_exists($filePath)) {
 			throw $this->createNotFoundException('Fichier introuvable.');
 			// throw $this->createNotFoundException('File not found');
@@ -241,7 +251,6 @@ final class HomeController extends AbstractController
 	#[Route('/file/delete/{filename}/{folder}', name: 'app_file_manager_delete_file', defaults: ['folder' => ''], methods: ['DELETE'], requirements: ['folder' => '.+'])]
 	public function deleteFile(string $filename, string $folder): Response
 	{
-		// dd($filename);
 		// File directory
 		// $fmService = $this->fileManagerService;
 		
@@ -252,12 +261,7 @@ final class HomeController extends AbstractController
 			$filePath = $filename;
 		}
 
-		// dump($filename);
-		// dump($folder);
-		// dd($filePath);
-
 		if ($this->fileManagerService->exists($filePath)) {
-			// dd($filePath);
 			$this->fileManagerService->remove($filePath);
 
 			$this->addFlash(
@@ -316,10 +320,9 @@ final class HomeController extends AbstractController
 		$foldersToDelete = json_decode($request->get('foldersToDelete'));
 		$filesToDelete = json_decode($request->get('filesToDelete'));
 
-
 		if (!empty($foldersToDelete)) {
 			foreach ($foldersToDelete as $file) {
-				// Chemin relatif du fichier demandé
+				// Chemin complet du fichier demandé
 				if (!empty($folder)) {
 					$folderPath = $folder . '/' . $file;
 				} else {
@@ -342,10 +345,9 @@ final class HomeController extends AbstractController
 			);
 		}
 
-		
 		if (!empty($filesToDelete)) {
 			foreach ($filesToDelete as $file) {
-				// Chemin relatif du fichier demandé
+				// Chemin complet du fichier demandé
 				if (!empty($folder)) {
 					$filePath = $folder . '/' . $file;
 				} else {
