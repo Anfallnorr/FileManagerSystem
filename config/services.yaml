@@ -6,8 +6,9 @@ services:
 
     Anfallnorr\FileManagerSystem\Service\FileManagerService:
         arguments:
-            $kernelDirectory: '%file_manager_system.kernel_directory%'
-            $defaultDirectory: '%file_manager_system.default_directory%'
+            $kernelDirectory: '%fms.kernel_directory%'
+            $defaultDirectory: '%fms.default_directory%'
+            $relativeDirectory: '%fms.relative_directory%'
             $filesystem: '@Symfony\Component\Filesystem\Filesystem'
             $slugger: '@Symfony\Component\String\Slugger\AsciiSlugger'
         public: true
