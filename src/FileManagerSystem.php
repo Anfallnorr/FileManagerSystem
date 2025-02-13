@@ -15,6 +15,7 @@ final class FileManagerSystem extends AbstractBundle
 	{
 		$definition->rootNode()
 			->children()
+				->scalarNode('relative_directory')->defaultValue('/public/uploads')->end()
 				->scalarNode('default_directory')->defaultValue('/public/uploads')->end()
 			->end()
 		;
@@ -30,8 +31,9 @@ final class FileManagerSystem extends AbstractBundle
 
 		// you can also add or replace parameters and services
 		$container->parameters()
-			->set('file_manager_system.kernel_directory', $projectDir)
-			->set('file_manager_system.default_directory', $projectDir . $config['default_directory'])
+			->set('fms.kernel_directory', $projectDir)
+			->set('fms.default_directory', $projectDir . $config['default_directory'])
+			->set('fms.relative_directory', $config['relative_directory'])
 		;
 
 		// Add Filesystem and AsciiSlugger services
