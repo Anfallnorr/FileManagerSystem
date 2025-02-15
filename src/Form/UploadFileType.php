@@ -24,9 +24,9 @@ class UploadFileType extends AbstractType
 				'mapped' => false,
 				'multiple' => true,
 				'required' => true,
-				/* 'row_attr' => [
+				'row_attr' => [
 					'class' => 'hidden'
-				], */
+				],
 				'attr' => [
 					'class' => 'dropzone-field',
 					'placeholder' => new TranslatableMessage('file_manager.drag_and_drop_or_browse', [], 'forms'),
@@ -41,6 +41,9 @@ class UploadFileType extends AbstractType
 					'data-param-name' => 'file_path'
 				],
 			])
+            /* ->add('rootPath', HiddenType::class, [
+                'data' => base64_encode($options['root_path']),
+            ]) */
 			->add('submit', SubmitType::class, [
 				'label' => new TranslatableMessage('file_manager.send')
 			]);
@@ -54,6 +57,7 @@ class UploadFileType extends AbstractType
 			'user' => null, // User parameter for route: userId
 			'route' => null, // Route to the dropzone form
 			'current_folder' => null,
+			// 'root_path' => null,
 		]);
 	}
 }
