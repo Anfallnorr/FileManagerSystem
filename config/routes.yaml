@@ -1,0 +1,4 @@
+# file_manager_system:
+#     resource: ../src/Controller/
+#     type: attribute
+#     prefix: /
