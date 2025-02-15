@@ -16,7 +16,7 @@ class CreateFolderType extends AbstractType
 		$builder
 			->add('folderName', TextType::class, [
 				'label' => new TranslatableMessage('file_manager.folder_name'),
-				'help' => "Use `+` to add multiple folders at the same level, `>` to add nested folders. Example: `folder1+folder2`, `folder1-1>folder1-2`"
+				'help' => new TranslatableMessage('file_manager.folder_name_help')
 				// 'help' => "Utilisez `+` pour ajouter plusieurs dossiers de même niveau, `>` pour ajouter des dossiers imbriqués. Exemple : `folder1+folder2`, `folder1-1>folder1-2`"
 				// 'help' => new TranslatableMessage('file_manager.folder_name_help', ['%example%' => "`folder1+folder2`, `folder1-1>folder1-2`"], 'forms')
 			])
