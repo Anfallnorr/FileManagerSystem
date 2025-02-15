@@ -1,6 +1,7 @@
 file_manager:
     error: "An error occurred while processing the file."
     folder_name: "Folder name"
+    folder_name_help: "Use `+` to add multiple folders at the same level, `>` to add nested folders. Example: `folder1+folder2`, `folder1-1>folder1-2`"
     create: "Create"
     select_a_file: "Select a file"
     send: "Send"
