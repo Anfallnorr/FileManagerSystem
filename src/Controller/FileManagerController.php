@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Controller;
+namespace Anfallnorr\FileManagerSystem\Controller;
 
 use Anfallnorr\FileManagerSystem\Form\CreateFolderType;
 use Anfallnorr\FileManagerSystem\Form\MoveFileType;
@@ -20,23 +20,20 @@ use Symfony\Component\Routing\Attribute\Route;
 // use Symfony\Component\String\Slugger\AsciiSlugger;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
-final class HomeController extends AbstractController
+class FileManagerController extends AbstractController
 {
 	public function __construct(
 		private FileManagerService $fileManagerService,
 		private TranslatorInterface $translator
-	) {
-		$fileManagerService->setDefaultDirectory('/var/uploads');
-		$fileManagerService->setRelativeDirectory('/var/uploads');
-	}
+	) {}
 
-	#[Route('/', name: 'app_index')]
+	/* #[Route('/', name: 'app_index')]
 	public function index()
 	{
 		return $this->redirectToRoute('app_file_manager');
-	}
+	} */
 
-	#[Route('/home/{folder}', name: 'app_file_manager', defaults: ['folder' => ''], methods: ['POST', 'GET'], requirements: ['folder' => '.+'])]
+	#[Route('/file-manager/{folder}', name: 'app_file_manager', defaults: ['folder' => ''], methods: ['POST', 'GET'], requirements: ['folder' => '.+'])]
 	public function home(Request $request, string $folder): Response
 	{
 		// $fmService = $this->fileManagerService;
@@ -177,7 +174,7 @@ final class HomeController extends AbstractController
 		}
 
 
-		return $this->render('home/index.html.twig', [
+		return $this->render('@FileManagerSystem/file-manager/index.html.twig', [
 			'folder_form' => $createFolderForm,
 			'file_form' => $uploadFileForm,
 			'move_file_form' => $moveFileForm,
@@ -192,7 +189,7 @@ final class HomeController extends AbstractController
 		]);
 	}
 
-	#[Route('/file/serve/{filename}/{folder}', name: 'app_file_manager_serve', defaults: ['folder' => ''], requirements: ['folder' => '.+'])]
+	#[Route('/file-manager/file/serve/{filename}/{folder}', name: 'app_file_manager_serve', defaults: ['folder' => ''], requirements: ['folder' => '.+'])]
 	public function serveFile(string $filename, string $folder): BinaryFileResponse
 	{
 		// File directory
@@ -248,7 +245,7 @@ final class HomeController extends AbstractController
 		]);
 	} */
 
-	#[Route('/file/delete/{filename}/{folder}', name: 'app_file_manager_delete_file', defaults: ['folder' => ''], methods: ['DELETE'], requirements: ['folder' => '.+'])]
+	#[Route('/file-manager/file/delete/{filename}/{folder}', name: 'app_file_manager_delete_file', defaults: ['folder' => ''], methods: ['DELETE'], requirements: ['folder' => '.+'])]
 	public function deleteFile(string $filename, string $folder): Response
 	{
 		// File directory
@@ -281,7 +278,7 @@ final class HomeController extends AbstractController
 		]);
 	}
 
-	#[Route('/folder/delete/{dirname}/{folder}', name: 'app_file_manager_delete_folder', defaults: ['folder' => ''], methods: ['DELETE'], requirements: ['folder' => '.+'])]
+	#[Route('/file-manager/folder/delete/{dirname}/{folder}', name: 'app_file_manager_delete_folder', defaults: ['folder' => ''], methods: ['DELETE'], requirements: ['folder' => '.+'])]
 	public function deleteFolder(string $folder, string $dirname): Response
 	{
 		// File directory
@@ -314,7 +311,7 @@ final class HomeController extends AbstractController
 		]);
 	}
 
-	#[Route('/files/mass-delete/{folder}', name: 'app_file_manager_mass_delete_folder', defaults: ['folder' => ''], methods: ['DELETE'], requirements: ['folder' => '.+'])]
+	#[Route('/file-manager/files/mass-delete/{folder}', name: 'app_file_manager_mass_delete_folder', defaults: ['folder' => ''], methods: ['DELETE'], requirements: ['folder' => '.+'])]
 	public function massDelete(Request $request, string $folder): Response
 	{
 		$foldersToDelete = json_decode($request->get('foldersToDelete'));
