@@ -3,7 +3,7 @@ file_manager:
     folder_name: "Nom du dossier"
     folder_name_help: "Utilisez `+` pour ajouter plusieurs dossiers de même niveau, `>` pour ajouter des dossiers imbriqués. Exemple : `folder1-1+folder1-2`, `folder1-1>folder2-1`"
     create: "Créer"
-    select_a_file: "Sélectionner un fichier"
+    select_a_file: "Sélectionner des fichiers"
     send: "Envoyer"
     folder_created_successfully: "Dossier créé avec succès."
     the_folder_already_exists: "Le dossier `%foldername%` éxist déjà"
