@@ -4,6 +4,11 @@ services:
         autowire: true      # Automatically injects dependencies in your services.
         autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
 
+    # Anfallnorr\FileManagerSystem\Controller\:
+    #     resource: '../src/Controller/*'
+    #     tags: ['controller.service_arguments']
+    #     public: true
+
     Anfallnorr\FileManagerSystem\Service\FileManagerService:
         arguments:
             $kernelDirectory: '%fms.kernel_directory%'
