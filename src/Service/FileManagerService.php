@@ -524,8 +524,10 @@ class FileManagerService
 		$files = is_array($files) ? $files : [$files];
 
 		foreach ($files as $file) {
-			$filename = $this->createSlug($file->getClientOriginalName());
-			$filename = str_replace('-' . $file->getClientOriginalExtension(), '.' . $file->getClientOriginalExtension(), $filename);
+			/* $filename = $this->createSlug($file->getClientOriginalName());
+			$filename = str_replace('-' . $file->getClientOriginalExtension(), '.' . $file->getClientOriginalExtension(), $filename); */
+			$fileInfo = pathinfo($file->getClientOriginalName());
+			$filename = $this->createSlug($fileInfo['filename']) . '.' . strtolower($fileInfo['extension']);
 			// dd($folder);
 			$output = [
 				'absolute' => $folder . '/' . $filename,
