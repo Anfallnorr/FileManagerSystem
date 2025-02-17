@@ -516,7 +516,7 @@ class FileManagerService
 		}
 	}
 
-	public function upload(UploadedFile|array $files, string $folder, bool $return = false): array|bool
+	public function upload(UploadedFile|array $files, string $folder, string $newName = "", bool $return = false): array|bool
 	{
 		$uploadedFiles = [];
 
@@ -527,7 +527,12 @@ class FileManagerService
 			/* $filename = $this->createSlug($file->getClientOriginalName());
 			$filename = str_replace('-' . $file->getClientOriginalExtension(), '.' . $file->getClientOriginalExtension(), $filename); */
 			$fileInfo = pathinfo($file->getClientOriginalName());
-			$filename = $this->createSlug($fileInfo['filename']) . '.' . strtolower($fileInfo['extension']);
+			// $filename = $this->createSlug($fileInfo['filename']) . '.' . strtolower($fileInfo['extension']);
+			if (!empty($newName)) {
+				$filename = $this->createSlug($newName) . '.' . strtolower($fileInfo['extension']);
+			} else {
+				$filename = $this->createSlug($fileInfo['filename']) . '.' . strtolower($fileInfo['extension']);
+			}
 			// dd($folder);
 			$output = [
 				'absolute' => $folder . '/' . $filename,
