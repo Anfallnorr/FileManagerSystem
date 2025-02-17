@@ -668,10 +668,12 @@ class FileManagerService
 
 	public function remove(string $relativePath): bool
 	{
-		if ($this->filesystem->remove($this->getDefaultDirectory() . '/' . $relativePath)) {
-			return true;
-		} else {
+		$this->filesystem->remove($this->getDefaultDirectory() . '/' . $relativePath);
+
+		if ($this->exists($relativePath)) {
 			return false;
+		} else {
+			return true;
 		}
 	}
 
