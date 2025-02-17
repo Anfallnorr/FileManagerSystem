@@ -115,7 +115,7 @@ class FileManagerController extends AbstractController
 			
 			if ($files) {
 				try {
-					$uploaded = $this->fileManagerService->upload($files, $this->fileManagerService->getDefaultDirectory(), false);
+					$uploaded = $this->fileManagerService->upload($files, $this->fileManagerService->getDefaultDirectory(), "", false);
 					
 					$this->addFlash(
 						'success',
@@ -154,7 +154,7 @@ class FileManagerController extends AbstractController
 			
 			if ($files) {
 				try {
-					$uploaded = $this->fileManagerService->upload($files, $this->fileManagerService->getDefaultDirectory(), false);
+					$uploaded = $this->fileManagerService->upload($files, $this->fileManagerService->getDefaultDirectory(), "", false);
 					
 					$this->addFlash(
 						'success',
