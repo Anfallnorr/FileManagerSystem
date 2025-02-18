@@ -151,10 +151,14 @@ class FileManagerService
 		return $this->mimeTypes[$key] ?? null;
 	}
 
-	public function exists(string $filePath): bool
+	public function exists(string $filePath, bool $absolute = false): bool
 	{
-		$exist = $this->getDefaultDirectory() . '/' . $filePath;
-		return $this->filesystem->exists($exist);
+		if ($absolute) {
+			return $this->filesystem->exists($filePath);
+		} else {
+			$exist = $this->getDefaultDirectory() . '/' . $filePath;
+			return $this->filesystem->exists($exist);
+		}
 	}
 
 	public function createSlug(string $string): string
@@ -682,6 +686,38 @@ class FileManagerService
 			return true;
 		}
 	}
+
+	/**
+	 * Undocumented function
+	 *
+	 * @param string $source relative path to the file/directory source
+	 * @param string $destination relative path to the file/directory destination
+	 * @param boolean $override replace file (true) or directory (false), default false
+	 *
+	 * @return boolean
+	 */
+	public function copy(string $source, string $destination, bool $override = false): bool
+	{
+		$this->filesystem->copy($this->getKernelDirectory() . $source, $this->getKernelDirectory() . $destination, $override);
+		return true;
+	}
+
+	/* public function rename(string $source, string $destination, bool $override = false): bool
+	{
+		dump($source);
+		dd($destination);
+		// renames a file
+		$filesystem->rename('/tmp/processed_video.ogg', '/path/to/store/video_647.ogg');
+		// renames a directory
+		$filesystem->rename('/tmp/files', '/path/to/store/files');
+
+		// if ($this->filesystem->rename($this->getDefaultDirectory() . '/' . $relativePath)) {
+		// 	return true;
+		// } else {
+		// 	return false;
+		// }
+		return true;
+	} */
 
 	public function move(string $newName, bool $override = false): bool
 	{
