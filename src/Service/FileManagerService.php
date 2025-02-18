@@ -526,13 +526,14 @@ class FileManagerService
 		foreach ($files as $file) {
 			/* $filename = $this->createSlug($file->getClientOriginalName());
 			$filename = str_replace('-' . $file->getClientOriginalExtension(), '.' . $file->getClientOriginalExtension(), $filename); */
-			$fileInfo = pathinfo($file->getClientOriginalName());
+			// $fileInfo = pathinfo($file->getClientOriginalName());
 			// $filename = $this->createSlug($fileInfo['filename']) . '.' . strtolower($fileInfo['extension']);
 			if (!empty($newName)) {
-				$filename = $this->createSlug($newName) . '.' . strtolower($fileInfo['extension']);
+				$fileInfo = pathinfo($newName);
 			} else {
-				$filename = $this->createSlug($fileInfo['filename']) . '.' . strtolower($fileInfo['extension']);
+				$fileInfo = pathinfo($file->getClientOriginalName());
 			}
+			$filename = $this->createSlug($fileInfo['filename']) . '.' . strtolower($fileInfo['extension']);
 			// dd($folder);
 			$output = [
 				'absolute' => $folder . '/' . $filename,
