@@ -539,7 +539,7 @@ class FileManagerService
 				'relative' => substr($folder . '/' . $filename, strlen($this->getKernelDirectory() . $this->getRelativeDirectory())), // 'relative' => str_replace($this->getKernelDirectory(), '', $folder . '/' . $filename),
 				'filename' => $filename,
 				'filesize' => $this->getSizeName($file->getSize()),
-				'filemtime' => date("d/m/Y", $file->getMTime()),
+				'filemtime' => $file->getMTime(),
 				'extension' => (!empty($file->getExtension())) ? $file->getExtension() : pathinfo($filename, PATHINFO_EXTENSION),
 				'mime' => mime_content_type($file->getPathname())
 			];
