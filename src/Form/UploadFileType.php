@@ -35,9 +35,9 @@ class UploadFileType extends AbstractType
 					'data-current-folder' => $options['current_folder'],
 					'data-cancel-label' => $this->translator->trans('file_manager.cancel', [], 'forms'),
 					'data-remove-label' => $this->translator->trans('file_manager.clear', [], 'forms'),
-					'data-max-size-folder' => 50,
-					'data-max-filesize' => 500,
-					'data-max-files' => 50,
+					'data-max-size-folder' => 100,
+					'data-max-filesize' => 2,
+					'data-max-files' => 20,
 					'data-param-name' => 'file_path'
 				],
 			])
