@@ -32,11 +32,15 @@ return [
 
 ```php
 public function __construct(
-    private FileManagerService $fileManagerService
-) {}
+    private FileManagerService $fmService
+) {
+    $fmService
+        ->setDefaultDirectory('/var/uploads')
+        ->setRelativeDirectory('/var/uploads');
+}
 ```
 ```php
-$fmService = $this->fileManagerService;
+$fmService = $this->fmService;
 ```
 
 ### Examples
