@@ -537,8 +537,9 @@ class FileManagerService
 
 		// Check if $files is an array (multiple upload) or a single file
 		$files = is_array($files) ? $files : [$files];
-		if ($multiple) {
-			$fileInfo['filename'] = $fileInfo['filename'] . '-' . $key;
+		
+		if (!empty($newName) && count($files) > 1) {
+			$multiple = true;
 		}
 
 		foreach ($files as $key => $file) {
@@ -547,10 +548,10 @@ class FileManagerService
 			// $fileInfo = pathinfo($file->getClientOriginalName());
 			// $filename = $this->createSlug($fileInfo['filename']) . '.' . strtolower($fileInfo['extension']);
 			if (!empty($newName)) {
-				$fileInfo = pathinfo($newName);
-				if ($multiple) {
-					$fileInfo['filename'] = $fileInfo['filename'] . '-' . $key;
-				}
+				$fileInfo = [
+					'filename' => ($multiple) ? $newName . '-' . ($key + 1) : $newName,
+					'extension' => $file->getClientOriginalExtension()
+				];
 			} else {
 				$fileInfo = pathinfo($file->getClientOriginalName());
 			}
