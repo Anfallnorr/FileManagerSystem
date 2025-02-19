@@ -24,9 +24,9 @@ class UploadFileType extends AbstractType
 				'mapped' => false,
 				'multiple' => true,
 				'required' => true,
-				'row_attr' => [
+				/* 'row_attr' => [
 					'class' => 'hidden' // Optional
-				],
+				], */
 				'attr' => [
 					'class' => 'dropzone-field',
 					'placeholder' => new TranslatableMessage('file_manager.drag_and_drop_or_browse'),
@@ -35,7 +35,7 @@ class UploadFileType extends AbstractType
 					'data-current-folder' => $options['current_folder'], // {folder} route param
 					'data-cancel-label' => $this->translator->trans('file_manager.cancel'),
 					'data-remove-label' => $this->translator->trans('file_manager.clear'),
-					'data-max-size-folder' => 100, // Personal folder limit to avoid overload
+					'data-max-size-folder' => 100, // Personal folder limit to avoid overload in percentage
 					'data-max-filesize' => 2, // PHP upload_max_filesize param
 					'data-max-files' => 20, // PHP max_file_uploads param
 					'data-param-name' => 'file_manager_system' // Override for Dropzone JS
