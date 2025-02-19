@@ -555,8 +555,9 @@ class FileManagerService
 			} else {
 				$fileInfo = pathinfo($file->getClientOriginalName());
 			}
+
 			$filename = $this->createSlug($fileInfo['filename']) . '.' . strtolower($fileInfo['extension']);
-			// dd($folder);
+
 			$output = [
 				'absolute' => $folder . '/' . $filename,
 				'relative' => substr($folder . '/' . $filename, strlen($this->getKernelDirectory() . $this->getRelativeDirectory())), // 'relative' => str_replace($this->getKernelDirectory(), '', $folder . '/' . $filename),
@@ -567,12 +568,13 @@ class FileManagerService
 				'mime' => mime_content_type($file->getPathname())
 			];
 
+			// Upload file
 			if (!$file->move($folder, $filename)) {
 				throw new \Exception("A problem occurred while uploading this file: " . $filename);
 			}
 
-			// $imageSize = @getimagesize($folder . '/' . $filename); // Avoid error if it is not an image
-			/* $output['dimensions'] = [
+			/* $imageSize = @getimagesize($folder . '/' . $filename); // Avoid error if it is not an image
+			$output['dimensions'] = [
 				'width' => $imageSize[0] ?? null,
 				'height' => $imageSize[1] ?? null
 			]; */
