@@ -520,20 +520,37 @@ class FileManagerService
 		}
 	}
 
+	/**
+	 * Undocumented function
+	 *
+	 * @param UploadedFile|array $files
+	 * @param string $folder
+	 * @param string $newName default void
+	 * @param boolean $return Array info file upload or default return true
+	 *
+	 * @return array|boolean
+	 */
 	public function upload(UploadedFile|array $files, string $folder, string $newName = "", bool $return = false): array|bool
 	{
 		$uploadedFiles = [];
+		$multiple = null;
 
 		// Check if $files is an array (multiple upload) or a single file
 		$files = is_array($files) ? $files : [$files];
+		if ($multiple) {
+			$fileInfo['filename'] = $fileInfo['filename'] . '-' . $key;
+		}
 
-		foreach ($files as $file) {
+		foreach ($files as $key => $file) {
 			/* $filename = $this->createSlug($file->getClientOriginalName());
 			$filename = str_replace('-' . $file->getClientOriginalExtension(), '.' . $file->getClientOriginalExtension(), $filename); */
 			// $fileInfo = pathinfo($file->getClientOriginalName());
 			// $filename = $this->createSlug($fileInfo['filename']) . '.' . strtolower($fileInfo['extension']);
 			if (!empty($newName)) {
 				$fileInfo = pathinfo($newName);
+				if ($multiple) {
+					$fileInfo['filename'] = $fileInfo['filename'] . '-' . $key;
+				}
 			} else {
 				$fileInfo = pathinfo($file->getClientOriginalName());
 			}
