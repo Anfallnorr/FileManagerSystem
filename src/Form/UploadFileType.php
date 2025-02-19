@@ -29,12 +29,12 @@ class UploadFileType extends AbstractType
 				],
 				'attr' => [
 					'class' => 'dropzone-field',
-					'placeholder' => new TranslatableMessage('file_manager.drag_and_drop_or_browse', [], 'forms'),
+					'placeholder' => new TranslatableMessage('file_manager.drag_and_drop_or_browse'),
 					'data-user' => $options['user'], // id user
 					'data-url' => $options['route'], // generateUrl with params
 					'data-current-folder' => $options['current_folder'], // {folder} route param
-					'data-cancel-label' => $this->translator->trans('file_manager.cancel', [], 'forms'),
-					'data-remove-label' => $this->translator->trans('file_manager.clear', [], 'forms'),
+					'data-cancel-label' => $this->translator->trans('file_manager.cancel'),
+					'data-remove-label' => $this->translator->trans('file_manager.clear'),
 					'data-max-size-folder' => 100, // Personal folder limit to avoid overload
 					'data-max-filesize' => 2, // PHP upload_max_filesize param
 					'data-max-files' => 20, // PHP max_file_uploads param
