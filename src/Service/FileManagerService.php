@@ -176,8 +176,28 @@ class FileManagerService
 
 	public function createDir(string $directory): void
 	{
+		if (str_contains($directory, '+')) {
+			$directories = explode('+', $directory);
+
+			foreach ($directories as $dir) {
+				$this->filesystem->mkdir($this->getDefaultDirectory() . '/' . $this->createSlug($dir));
+			}
+		} elseif (str_contains($directory, '/')) {
+			$nestedDirectories = "";
+			$directories = explode('/', $directory);
+			
+			foreach ($directories as $dir) {
+				$nestedDirectories .= '/' . $this->createSlug($dir);
+			}
+			
+			if (!empty($nestedDirectories)) {
+				$this->filesystem->mkdir($this->getDefaultDirectory() . $nestedDirectories);
+			}
+		} else {
+			$this->filesystem->mkdir($this->getDefaultDirectory() . '/' . $this->createSlug($directory));
+		}
 		// $directories = explode('/', $directory);
-		$this->filesystem->mkdir($this->getDefaultDirectory() . '/' . $this->createSlug($directory));
+		// $this->filesystem->mkdir($this->getDefaultDirectory() . '/' . $this->createSlug($directory));
 	}
 
 	/**
