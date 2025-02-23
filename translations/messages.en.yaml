@@ -20,3 +20,4 @@ file_manager:
     no_folders_selected: "No folders selected"
     files_successfully_mass_deleted: "Files deleted successfully"
     no_files_selected: "No files selected"
+    no_files_or_folders_selected: "No file/folder selected"
