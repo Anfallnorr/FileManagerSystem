@@ -174,7 +174,61 @@ class FileManagerService
 		$this->filesystem->dumpFile($this->getDefaultDirectory() . '/' . $this->createSlug($filename) . '.' . $extension, $content);
 	}
 
-	public function createDir(string $directory): void
+	public function createDir(string $directory, bool $return = false): array
+	{
+		$outputDirectories = [];
+
+		if (str_contains($directory, '+')) {
+			$directories = explode('+', $directory);
+
+			foreach ($directories as $dir) {
+				$dirs = $this->createSlug($dir);
+				$this->filesystem->mkdir($this->getDefaultDirectory() . '/' . $dirs);
+
+				$relative = substr($this->getDefaultDirectory() . '/' . $dirs, strlen($this->getKernelDirectory() . $this->getRelativeDirectory()));
+				$outputDirectories[] = [
+					'absolute' => $this->getDefaultDirectory() . '/' . $dirs,
+					'relative' => $relative,
+					'ltrimed_relative' => ltrim($relative, '/'),
+					'foldername' => $dirs
+				];
+			}
+		} elseif (str_contains($directory, '/')) {
+			$nestedDirectories = "";
+			$directories = explode('/', $directory);
+			$firstDir = $this->createSlug($directories[0]);
+			
+			foreach ($directories as $dir) {
+				$nestedDirectories .= '/' . $this->createSlug($dir);
+			}
+			
+			if (!empty($nestedDirectories)) {
+				$this->filesystem->mkdir($this->getDefaultDirectory() . $nestedDirectories);
+
+				$relative = substr($this->getDefaultDirectory() . '/' . $firstDir, strlen($this->getKernelDirectory() . $this->getRelativeDirectory()));
+				$outputDirectories[] = [
+					'absolute' => $this->getDefaultDirectory() . '/' . $firstDir,
+					'relative' => $relative,
+					'ltrimed_relative' => ltrim($relative, '/'),
+					'foldername' => $firstDir
+				];
+			}
+		} else {
+			$dir = $this->createSlug($directory);
+			$this->filesystem->mkdir($this->getDefaultDirectory() . '/' . $dir);
+
+			$relative = substr($this->getDefaultDirectory() . '/' . $dir, strlen($this->getKernelDirectory() . $this->getRelativeDirectory()));
+			$outputDirectories[] = [
+				'absolute' => $this->getDefaultDirectory() . '/' . $dir,
+				'relative' => $relative,
+				'ltrimed_relative' => ltrim($relative, '/'),
+				'foldername' => $dir
+			];
+		}
+
+		return $outputDirectories;
+	}
+	/* public function createDir(string $directory): void
 	{
 		if (str_contains($directory, '+')) {
 			$directories = explode('+', $directory);
@@ -198,7 +252,7 @@ class FileManagerService
 		}
 		// $directories = explode('/', $directory);
 		// $this->filesystem->mkdir($this->getDefaultDirectory() . '/' . $this->createSlug($directory));
-	}
+	} */
 
 	/**
 	 * Cette fonction prend un tableau de fichiers en entrée et les catégorise selon leur extension.
