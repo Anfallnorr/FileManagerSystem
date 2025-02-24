@@ -18,7 +18,7 @@
 		</div>
 
 		<div id="files_zone" class="card mt-5 mb-3">
-			<div class="card-body">
+			<div class="card-body" data-controller="table-check">
 
 				<div id="data_breadcrumb" class="mb-3">
 					<ol class="breadcrumb _d-none _d-lg-flex d-flex">
@@ -55,8 +55,8 @@
 							<div class="dropdown-item">
 								<form action="{{ path('app_file_manager_mass_delete_folder', {'folder': current_folder}) }}" method="post" class="d-inline">
 									<input type="hidden" name="_method" value="DELETE" />
-									<input type="hidden" name="foldersToDelete" value="[]" />
-									<input type="hidden" name="filesToDelete" value="[]" />
+									<input type="hidden" name="foldersToDelete" value="[]" data-table-check-target="itemDirDelete" />
+									<input type="hidden" name="filesToDelete" value="[]" data-table-check-target="itemDelete" />
 									<button type="submit" class="dropdown-item delete-item p-0" title="Delete selection" onclick="return confirm('Do you really want to delete these items?');" context="massDelete">
 										Delete selection
 									</button>
@@ -87,7 +87,7 @@
 									<th scope="col" width="5%" class="text-center">
 										<div class="form-check">
 											<label class="form-check-label right-checkbox">
-												<input id="check_all" type="checkbox" name="select_file[]" class="form-check-input font-22" aria-label="Select all">
+												<input id="check_all" type="checkbox" name="select_file[]" class="form-check-input font-22" aria-label="Select all" data-action="change->table-check#changes" />
 											</label>
 										</div>
 									</th>
