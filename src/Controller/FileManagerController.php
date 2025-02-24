@@ -87,7 +87,8 @@ class FileManagerController extends AbstractController
 			$folderName = $createFolderForm->get('folderName')->getData();
 
 			if (!$this->fmService->exists($folderName)) {
-				$this->fmService->createDir($folderName);
+				// $this->fmService->createDir($folderName);
+				$created = $this->fmService->createDir($folderName, true);
 				
 				$this->addFlash(
 					'success',
@@ -100,9 +101,18 @@ class FileManagerController extends AbstractController
 				);
 			}
 
-			return $this->redirectToRoute('app_file_manager', [
+
+			return new Response(
+				$this->renderView('@FileManagerSystem/_partials/elements/folders-list.html.twig', [
+					'folders' => $created,
+					'current_folder' => $folder,
+				]) . $this->renderView('@FileManagerSystem/_partials/elements/stream-flash.html.twig'),
+				200,
+				['Content-Type' => 'text/vnd.turbo-stream.html'] // Le type de contenu pour Turbo Stream
+			);
+			/* return $this->redirectToRoute('app_file_manager', [
 				'folder' => $folder
-			]);
+			]); */
 		}
 
 
@@ -119,7 +129,8 @@ class FileManagerController extends AbstractController
 			
 			if ($files) {
 				try {
-					$uploaded = $this->fmService->upload($files, $this->fmService->getDefaultDirectory(), "", false);
+					// $uploaded = $this->fmService->upload($files, $this->fmService->getDefaultDirectory(), "", false);
+					$uploaded = $this->fmService->upload($files, $this->fmService->getDefaultDirectory(), "", true);
 					
 					$this->addFlash(
 						'success',
@@ -133,9 +144,18 @@ class FileManagerController extends AbstractController
 				}
 			}
 
-			return $this->redirectToRoute('app_file_manager', [
+
+			return new Response(
+				$this->renderView('@FileManagerSystem/_partials/elements/files-list.html.twig', [
+					'files' => $uploaded,
+					'current_folder' => $folder,
+				]) . $this->renderView('@FileManagerSystem/_partials/elements/stream-flash.html.twig'),
+				200,
+				['Content-Type' => 'text/vnd.turbo-stream.html']
+			);
+			/* return $this->redirectToRoute('app_file_manager', [
 				'folder' => $folder
-			]);
+			]); */
 		}
 
 
@@ -321,53 +341,60 @@ class FileManagerController extends AbstractController
 		$foldersToDelete = json_decode($request->get('foldersToDelete'));
 		$filesToDelete = json_decode($request->get('filesToDelete'));
 
-		if (!empty($foldersToDelete)) {
-			foreach ($foldersToDelete as $file) {
-				// Chemin complet du fichier demandé
-				if (!empty($folder)) {
-					$folderPath = $folder . '/' . $file;
-				} else {
-					$folderPath = $file;
+		if (!empty($foldersToDelete) || !empty($filesToDelete)) {
+			if (!empty($foldersToDelete)) {
+				foreach ($foldersToDelete as $file) {
+					// Chemin complet du fichier demandé
+					if (!empty($folder)) {
+						$folderPath = $folder . '/' . $file;
+					} else {
+						$folderPath = $file;
+					}
+	
+					if ($this->fmService->exists($folderPath)) {
+						$this->fmService->remove($folderPath);
+					}
 				}
-
-				if ($this->fmService->exists($folderPath)) {
-					$this->fmService->remove($folderPath);
+	
+				$this->addFlash(
+					'success',
+					$this->translator->trans('file_manager.folders_successfully_mass_deleted')
+				);
+			}/* else {
+				$this->addFlash(
+					'warning',
+					$this->translator->trans('file_manager.no_folders_selected')
+				);
+			} */
+	
+			if (!empty($filesToDelete)) {
+				foreach ($filesToDelete as $file) {
+					// Chemin complet du fichier demandé
+					if (!empty($folder)) {
+						$filePath = $folder . '/' . $file;
+					} else {
+						$filePath = $file;
+					}
+	
+					if ($this->fmService->exists($filePath)) {
+						$this->fmService->remove($filePath);
+					}
 				}
-			}
-
-			$this->addFlash(
-				'success',
-				$this->translator->trans('file_manager.folders_successfully_mass_deleted')
-			);
+	
+				$this->addFlash(
+					'success',
+					$this->translator->trans('file_manager.files_successfully_mass_deleted')
+				);
+			}/* else {
+				$this->addFlash(
+					'warning',
+					$this->translator->trans('file_manager.no_files_selected')
+				);
+			} */
 		} else {
 			$this->addFlash(
 				'warning',
-				$this->translator->trans('file_manager.no_folders_selected')
-			);
-		}
-
-		if (!empty($filesToDelete)) {
-			foreach ($filesToDelete as $file) {
-				// Chemin complet du fichier demandé
-				if (!empty($folder)) {
-					$filePath = $folder . '/' . $file;
-				} else {
-					$filePath = $file;
-				}
-
-				if ($this->fmService->exists($filePath)) {
-					$this->fmService->remove($filePath);
-				}
-			}
-
-			$this->addFlash(
-				'success',
-				$this->translator->trans('file_manager.files_successfully_mass_deleted')
-			);
-		} else {
-			$this->addFlash(
-				'warning',
-				$this->translator->trans('file_manager.no_files_selected')
+				$this->translator->trans('file_manager.no_files_or_folders_selected')
 			);
 		}
 
