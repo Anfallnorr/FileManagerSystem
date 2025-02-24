@@ -36,15 +36,17 @@
 		</div>
 		
 		<div class="container my-3">
-			{% for type, messages in app.flashes %}
-				{% for message in messages %}
-					<div class="alert bg-{{ type }} border-{{ type }} _text-{{ type }} alert-dismissible d-flex align-items-center fade show mb-3" role="alert">
-						<i class="{{ icon_classes[type] | default('bi bi-app-indicator') }} fs-2 me-2 lh-1"></i> 
-						{{ message | trans() }}
-						<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-					</div>
+			<div id="flash-messages">
+				{% for type, messages in app.flashes %}
+					{% for message in messages %}
+						<div class="alert bg-{{ type }} border-{{ type }} _text-{{ type }} alert-dismissible d-flex align-items-center fade show mb-3" role="alert">
+							<i class="{{ icon_classes[type] | default('bi bi-app-indicator') }} fs-2 me-2 lh-1"></i> 
+							{{ message | trans() }}
+							<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+						</div>
+					{% endfor %}
 				{% endfor %}
-			{% endfor %}
+	    	</div>
     	</div>
 
         {% block body %}{% endblock %}
