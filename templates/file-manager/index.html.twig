@@ -71,7 +71,7 @@
 				<div id="data_folders-list" class="mb-5">
 					<!-- Row start -->
 					<div id="folder-list" class="row gx-3">
-						{% include '_partials/elements/folders-list.html.twig' with {'folders': folders} %}
+						{% include '@FileManagerSystem/_partials/elements/folders-list.html.twig' with {'folders': folders} %}
 					</div>
 					<!-- Row end -->
 				</div>
@@ -106,7 +106,7 @@
 									</tr>
 								{% else %}
 									{{ dump(files) }}
-									{% include '_partials/elements/files-list.html.twig' with {'files': files} %}
+									{% include '@FileManagerSystem/_partials/elements/files-list.html.twig' with {'files': files} %}
 								{% endif %}
 							</tbody>
 						</table>
