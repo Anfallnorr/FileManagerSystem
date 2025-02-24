@@ -10,11 +10,9 @@ export default class extends Controller {
 	connect()
 	{
 		console.log("Contrôleur table-check connecté !");
-		// this.checkValue = []; // Initialise le tableau
 	}
 
 	changes(event) {
-		// console.log(event.target.closest('table'));
 		this.checks(event.target.checked);
 	}
 
@@ -32,7 +30,6 @@ export default class extends Controller {
 		this.checkValue = check; // Met à jour la valeur réactive
 
 		this.updateHiddenInput();
-		// console.log(this.checkValue);
 	}
 
 	check(event) {
@@ -45,7 +42,6 @@ export default class extends Controller {
 		}
 
 		this.updateHiddenInput();
-		// console.log(this.checkValue);
 	}
 
 	updateHiddenInput() {
@@ -64,7 +60,6 @@ export default class extends Controller {
 		}
 
 		this.updateHiddenDirInput();
-		// console.log(this.checkDirValue);
 	}
 
 	updateHiddenDirInput() {
