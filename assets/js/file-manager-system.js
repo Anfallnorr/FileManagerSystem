@@ -3,7 +3,7 @@
 	/* ******************* CHECK ALL IN TABLE ****************** */
 	/* ********************************************************* */
 	console.log('Init File manager system JS');
-	var checkFolders = new Array;
+	/* var checkFolders = new Array;
 	var check = new Array;
 
 	$('#check_all').on('click',function() {
@@ -43,10 +43,10 @@
 
 		$('[name="foldersToDelete"]').val(JSON.stringify(checkFolders));
 		console.log(checkFolders);
-	});
+	}); */
 // });
 
-// const modalMoveFile = document.getElementById('modal_move_file')
+/* // const modalMoveFile = document.getElementById('modal_move_file')
 const modalMoveFile = $('#modal_move_file')
 if (modalMoveFile) {
 //   modalMoveFile.addEventListener('show.bs.modal', event => {
@@ -65,22 +65,10 @@ if (modalMoveFile) {
 
 	$(target).find('#filename').text(filename);
 	$(target).find('#move_file_currentPath').val(filename);
-
-    /* // Extract info from data-bs-* attributes
-    const recipient = button.getAttribute('data-bs-whatever')
-    // If necessary, you could initiate an Ajax request here
-    // and then do the updating in a callback.
-
-    // Update the modal's content.
-    const modalTitle = modalMoveFile.querySelector('.modal-title')
-    const modalBodyInput = modalMoveFile.querySelector('.modal-body input')
-
-    modalTitle.textContent = `New message to ${recipient}`
-    modalBodyInput.value = recipient */
   });
   modalMoveFile.on('hidden.bs.modal', event => {
     // Button that triggered the modal
     const button = $(event.relatedTarget);
 	console.log(button);
   });
-}
+} */
