@@ -1,0 +1,107 @@
+<turbo-stream action="prepend" target="folder-list">
+	<template>
+		{# {{ dump(folders) }} #}
+		{% for folder in folders %}
+			{% set folder_link = path('app_file_manager', {'folder': (current_folder ? current_folder ~ '/' : '') ~ folder.foldername | url_encode}) %}
+			{# {{ dump(scandir(folder.absolute)) }} #}
+			<div class="col-12 col-sm-6 col-lg-4 task task-folders mb-3" data-dirsearch="{{ folder.foldername }}">
+				<div class="card shadow-none border radius-15 droptarget draggable mobile-draggable dragenter dragleave selectable" draggable="true" selectable="false">
+					<div class="card-body">
+						<div class="d-flex align-items-center">
+							<a href="{{ folder_link }}" class="icon-box radius-15 text-decoration-none" title="{{ folder.foldername }}">&#x1F4C1;</a>
+							<div class="ms-auto _fs-22">
+								<div class="row">
+									<div class="col-7">
+										<button class="btn btn-primary _text-white" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Menu {{ folder.foldername }}" aria-label="Menu {{ folder.foldername }}">
+											&Xi;
+										</button>
+										<ul class="dropdown-menu dropdown-folder">
+											<li><a href="#" class="dropdown-item download-item" data-url="?action=download" data-bs-toggle="modal" data-bs-target="#modal_download" title="Download {{ folder.foldername }}" context="download">Download</a></li>
+											<li><a href="#" class="dropdown-item compress-item" data-url="?action=archive" data-bs-toggle="modal" data-bs-target="#modal_compress" title="Compress {{ folder.foldername }}" context="zip">Zip</a></li>
+											<li><a href="#" class="dropdown-item share-item" data-filetarget="{{ folder.foldername }}" data-bs-toggle="modal" data-bs-target="#modal_share" title="Share {{ folder.foldername }}" context="share">Share</a></li>
+											<li><a href="#" class="dropdown-item move-item" data-bs-toggle="modal" data-bs-target="#modal_move_file{# _{{ loop.index }} #}" data-name="{{ folder.foldername }}" title="Move {{ folder.foldername }}" context="move">Move</a></li>
+											<li><a href="#" class="dropdown-item rename-item" data-bs-toggle="modal" data-bs-target="#modal_rename_{{ loop.index }}" title="Rename {{ folder.foldername }}" context="rename">Rename</a></li>
+											<li><div class="dropdown-divider mb-1"></div></li>
+											<li>
+												<form action="{{ path('app_file_manager_delete_folder', {'dirname': folder.foldername, 'folder': current_folder}) }}" method="post" class="d-inline">
+													<input type="hidden" name="_method" value="DELETE" />
+													<button type="submit" class="dropdown-item delete-item" title="{{ 'user.folders.delete' | trans({}, 'pages') }}" onclick="return confirm('Delete {{ folder.foldername }} ?');" title="Delete {{ folder.foldername }}" context="delete">
+														Delete
+													</button>
+												</form>
+											</li>
+										</ul>
+									</div>
+									<div class="col-5">
+										<div class="form-check">
+											<label class="form-check-label right-checkbox">
+												<input type="checkbox" name="select_file[dir][]" value="{{ folder.foldername }}" data-type="dir" class="form-check-input fs-22 md-checkbox"
+												aria-label="{{ folder.foldername }}"
+												data-action="change->table-check#checkDir" />
+											</label>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="d-flex align-items-center">
+							<div class="_user-groups">
+								<h6 class="mb-1 mt-3"><a href="{{ folder_link }}">{{ folder.foldername }}</a></h6>
+								<small><a href="{{ folder_link }}"><span class="folder-counter">{{ listDirs(folder.absolute) | length }}</span> directory / <span class="file-counter">{{ listFiles(folder.absolute) | length }}</span> files</a></small>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div class="modal fade" id="modal_rename_{{ loop.index }}" tabindex="-1" aria-hidden="true">
+				<div class="modal-dialog modal-dialog-centered">
+					<div class="modal-content">
+						<div class="modal-header">
+							<h5 class="modal-title">Rename {{ folder.foldername }}</h5>
+							<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+						</div>
+						<div class="modal-body">
+							<div class="block-form d-none">
+								<input name="dir_renamer[path][]" type="hidden" id="dir_renamer_path_{{ loop.index }}" value="{{ folder.relative }}" />
+							</div>
+							<div class="col-md-12">
+								<label for="dir_renamer_{{ loop.index }}" class="form-label">Rename a folder</label>
+								<input name="dir_renamer[dir][]" type="text" id="dir_renamer_{{ loop.index }}" class="form-control" placeholder="{{ folder.foldername }}" aria-label="{{ folder.foldername }}" data-value="{{ folder.foldername }}" autocomplete="off" value="" />
+							</div>
+						</div>
+						<div class="modal-footer">
+							<button type="button" class="btn btn-warning" data-bs-dismiss="modal">Cancel</button>
+							<button type="submit" class="btn btn-success">Rename</button>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			{# <div class="modal fade" id="modal_move_{{ loop.index }}" tabindex="-1" aria-hidden="true">
+				<div class="modal-dialog modal-dialog-scrollable modal-lg">
+					<div class="modal-content">
+						<div class="modal-header">
+							<h5 class="modal-title">Move {{ folder.foldername }}</h5>
+							<button type="button" role="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+						</div>
+						<div class="modal-body text-end">
+							<p class="text-start">Select a folder:</p>
+							<div _class="radio radio-success btn btn-primary my-1 wp-100 tree-before-0 mb-3 text-start">
+								<label class="radio radio-success btn btn-primary my-1 wp-100 tree-before-0 mb-3 text-start" _for="dir_move">
+									<input type="radio" name="dir_move[old_path][]" id="{{ loop.index }}_old_path" class="double-check md-radio old_path _d-none" value="{{ folder.relative }}" />
+									<input type="radio" name="dir_move[new_path][]" id="{{ loop.index }}_new_path" class="double-check md-radio new_path" value="/" />
+									My documents
+								</label>
+							</div>
+						</div>
+						<div class="modal-footer">
+							<button type="button" class="btn btn-warning" data-bs-dismiss="modal">Cancel</button>
+							<button type="submit" class="btn btn-success">Move</button>
+						</div>
+					</div>
+				</div>
+			</div> #}
+		{% endfor %}
+	</template>
+</turbo-stream>
