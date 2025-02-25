@@ -38,7 +38,8 @@ class UploadFileType extends AbstractType
 					'data-max-size-folder' => 100, // Personal folder limit to avoid overload in percentage
 					'data-max-filesize' => 2, // PHP upload_max_filesize param
 					'data-max-files' => 20, // PHP max_file_uploads param
-					'data-param-name' => 'file_manager_system' // Override for Dropzone JS
+					'data-param-name' => 'file_manager_system', // Override for Dropzone JS
+					'data-dropzone-target' => 'dropzoneField' // For Stimulus Dropzone JS
 				],
 			])
             /* ->add('rootPath', HiddenType::class, [
