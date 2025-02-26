@@ -5,6 +5,8 @@ file_manager:
     create: "Créer"
     select_a_file: "Sélectionner des fichiers"
     drag_and_drop_or_browse: "Glissez-déposez ou parcourez"
+    new_path: "Nouveau chemin"
+    move: "Déplacer"
     cancel: "Annuler"
     clear: "Effacer"
     send: "Envoyer"
