@@ -166,10 +166,10 @@ class FileManagerService
 		return $this->slugger->slug($string)->lower();
 	}
 
-	public function createFile(string $file, string $content = '<!DOCTYPE html><html lang="en"><body style="background: #ffffff;"></body></html>'): void
+	public function createFile(string $filename, string $content = '<!DOCTYPE html><html lang="en"><body style="background: #ffffff;"></body></html>'): void
 	{
-		$filename = pathinfo($file, PATHINFO_FILENAME);
-		$extension = pathinfo($file, PATHINFO_EXTENSION);
+		$extension = pathinfo($filename, PATHINFO_EXTENSION);
+		$filename = pathinfo($filename, PATHINFO_FILENAME);
 
 		$this->filesystem->dumpFile($this->getDefaultDirectory() . '/' . $this->createSlug($filename) . '.' . $extension, $content);
 	}
