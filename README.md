@@ -50,22 +50,29 @@ $fmService = $this->fmService;
 $defaultDirectory = $fmService->getDefaultDirectory(); // /path/to/folder/public/uploads
 
 // Change the default upload directory
-$directory = $fmService->setDefaultDirectory('/var/www/uploads')->getDefaultDirectory(); // /path/to/folder/var/www/uploads
+$directory = $fmService->setDefaultDirectory($directory = '/var/www/uploads')->getDefaultDirectory(); // /path/to/folder/var/www/uploads
 
 // Retrieve available MIME types
 $mimeTypes = $fmService->getMimeTypes(); // array
 
 // Get the MIME type of a specific extension
-$mimeType = $fmService->getMimeType('pdf'); // application/pdf
+$mimeType = $fmService->getMimeType($key = 'pdf'); // application/pdf
 
 // Create a URL-friendly slug from a string
-$string = $fmService->createSlug('Hello World !'); // hello-world
+$string = $fmService->createSlug($string = 'Hello World !'); // hello-world
 
 // Create a directory named "hello-world" inside the default directory
-$fmService->createDir('Hello World !');
+$fmService->createDir($directory = 'Hello World !', $return = false);
+// if $return is `true`, then an array will be returned:
+[
+    'absolute' => $this->getDefaultDirectory() . '/hello-world', // Absolute path
+    'relative' => $relative, // Relative path of the folder
+    'ltrimed_relative' => ltrim($relative, '/'), // Relative path of the folder minus a slash at the beginning of the string
+    'foldername' => $dir // The name of the folder created
+]
 
 // Create a file named "hello-world.html" inside the default directory with content
-$fmService->createFile('Hello World.html', 'Hello World! I\'m Js info');
+$fmService->createFile($filename = 'Hello World.html', $content = 'Hello World! I\'m Js info'); // $content is optional
 ```
 
 ### Optional Configuration
