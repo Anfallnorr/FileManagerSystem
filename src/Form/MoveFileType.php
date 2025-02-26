@@ -8,6 +8,7 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type\HiddenType;
+use Symfony\Component\Translation\TranslatableMessage;
 
 class MoveFileType extends AbstractType
 {
@@ -16,10 +17,10 @@ class MoveFileType extends AbstractType
 		$builder
 			->add('currentPath', HiddenType::class)
 			->add('newPath', TextType::class, [
-				'label' => 'Nouveau chemin'
+				'label' => new TranslatableMessage('file_manager.new_path')
 			])
 			->add('submit', SubmitType::class, [
-				'label' => 'Déplacer'
+				'label' => new TranslatableMessage('file_manager.move')
 			]);
 	}
 
