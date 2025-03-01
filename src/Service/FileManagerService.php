@@ -467,6 +467,11 @@ class FileManagerService
 		return 'getSliceDirs';
 	}
 
+	public function cleanDir(): void
+	{
+		dd($this->getDefaultDirectory());
+	}
+
 	/**
 	 * Récupère la liste des fichiers d'un répertoire donné.
 	 *
