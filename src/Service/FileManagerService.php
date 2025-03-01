@@ -770,15 +770,45 @@ class FileManagerService
 		return ['resizeImages'];
 	}
 
+	public function hasDir(): bool
+	{
+		$dirs = $this->getDirs();
+
+		if (empty($dirs)) {
+			// dd('return false');
+			return false;
+		} else {
+			// dd('return true');
+			return true;
+		}
+	}
+
 	public function remove(string $relativePath): bool
 	{
-		$this->filesystem->remove($this->getDefaultDirectory() . '/' . $relativePath);
+		if (empty($relativePath)) {
+			$this->filesystem->remove($this->getDefaultDirectory());
 
-		if ($this->exists($relativePath)) {
+			if ($this->exists($this->getDefaultDirectory(), true)) {
+				return false;
+			} else {
+				return true;
+			}
+		} else {
+			$this->filesystem->remove($this->getDefaultDirectory() . '/' . $relativePath);
+
+			if ($this->exists($relativePath)) {
+				return false;
+			} else {
+				return true;
+			}
+		}
+		// $this->filesystem->remove($this->getDefaultDirectory() . '/' . $relativePath);
+
+		/* if ($this->exists($relativePath)) {
 			return false;
 		} else {
 			return true;
-		}
+		} */
 	}
 
 	/**
