@@ -467,10 +467,30 @@ class FileManagerService
 		return 'getSliceDirs';
 	}
 
-	public function cleanDir(): void
+	public function cleanDir(string $dir = ''): void
 	{
-		dd($this->getDefaultDirectory());
-	}
+		if (empty($dir)) {
+			$dir = $this->getRelativeDirectory();
+		}
+
+		// Définit le chemin du répertoire pour les méthodes getDirs et getFiles
+		$this->setDefaultDirectory($dir);
+
+		// Récupère les sous-dossiers et fichiers
+		$dirs = $this->getDirs();
+		$files = $this->getFiles();
+
+		// Si aucun fichier et aucun sous-dossier trouvé, supprime le répertoire
+		if (empty($files) && empty($dirs)) {
+			$this->remove();
+
+			// Appelle récursivement la fonction sur le dossier parent
+			$parentDir = dirname($dir);
+			if ($parentDir !== $dir) { // Évite la récursion infinie
+				$this->cleanDir($parentDir);
+			}
+		}
+	} 
 
 	/**
 	 * Récupère la liste des fichiers d'un répertoire donné.
