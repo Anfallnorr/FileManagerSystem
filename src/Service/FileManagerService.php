@@ -808,7 +808,7 @@ class FileManagerService
 		}
 	}
 
-	public function remove(string $relativePath): bool
+	public function remove(string $relativePath = ''): bool
 	{
 		if (empty($relativePath)) {
 			$this->filesystem->remove($this->getDefaultDirectory());
