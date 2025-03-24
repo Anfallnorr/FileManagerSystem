@@ -151,6 +151,17 @@ class FileManagerService
 		return $this->mimeTypes[$key] ?? null;
 	}
 
+	public function getMimeContent(string $relativeFile): string
+	{
+		return mime_content_type($this->getKernelDirectory() . $relativeFile);
+	}
+
+	public function getFileContent(string $relativeFile): string
+	{
+		// return $this->filesystem->readFile($this->getKernelDirectory() . $relativeFile);
+		return file_get_contents($this->getKernelDirectory() . $relativeFile);
+	}
+
 	public function exists(string $filePath, bool $absolute = false): bool
 	{
 		if ($absolute) {
