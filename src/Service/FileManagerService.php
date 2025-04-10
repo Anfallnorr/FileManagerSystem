@@ -537,6 +537,24 @@ class FileManagerService
 		return $fileList;
 	}
 
+	public function getImageSize(string $filePath, bool $absolute = false): ?array
+	{
+		if ($absolute) {
+			$imageSize = @getimagesize($filePath);
+		} else {
+			$imageSize = @getimagesize($this->getKernelDirectory() . $filePath);
+		}
+
+		if ($imageSize) {
+			return [
+				'width' => $imageSize[0] ?? null,
+				'height' => $imageSize[1] ?? null
+			];
+		} else {
+			return null;
+		}
+	}
+
 	private function getFileInfo(SplFileInfo $file): array
 	{
 		$filePath = $file->getRealPath();
