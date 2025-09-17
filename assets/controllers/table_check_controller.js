@@ -1,7 +1,11 @@
 import { Controller } from "@hotwired/stimulus";
 
+/**
+ * Update 20250917
+ * assets/controllers/table_check_controller.js
+ */
 export default class extends Controller {
-	static targets = ["rowInputs", "itemDelete", "itemDirDelete"];
+	static targets = ["rowInputs", "itemDownload", "itemDirDownload", "itemDelete", "itemDirDelete"];
 	static values = {
 		check: Array,
 		checkDir: Array
@@ -10,9 +14,11 @@ export default class extends Controller {
 	connect()
 	{
 		console.log("Contrôleur table-check connecté !");
+		// this.checkValue = []; // Initialise le tableau
 	}
 
 	changes(event) {
+		// console.log(event.target.closest('table'));
 		this.checks(event.target.checked);
 	}
 
@@ -30,6 +36,7 @@ export default class extends Controller {
 		this.checkValue = check; // Met à jour la valeur réactive
 
 		this.updateHiddenInput();
+		// console.log(this.checkValue);
 	}
 
 	check(event) {
@@ -42,11 +49,15 @@ export default class extends Controller {
 		}
 
 		this.updateHiddenInput();
+		// console.log(this.checkValue);
 	}
 
 	updateHiddenInput() {
 		if (this.hasItemDeleteTarget) {
 			this.itemDeleteTarget.value = JSON.stringify(this.checkValue);
+		}
+		if (this.hasItemDownloadTarget) {
+			this.itemDownloadTarget.value = JSON.stringify(this.checkValue);
 		}
 	}
 
@@ -60,11 +71,15 @@ export default class extends Controller {
 		}
 
 		this.updateHiddenDirInput();
+		// console.log(this.checkDirValue);
 	}
 
 	updateHiddenDirInput() {
 		if (this.hasItemDirDeleteTarget) {
 			this.itemDirDeleteTarget.value = JSON.stringify(this.checkDirValue);
+		}
+		if (this.hasItemDirDownloadTarget) {
+			this.itemDirDownloadTarget.value = JSON.stringify(this.checkDirValue);
 		}
 	}
 }
