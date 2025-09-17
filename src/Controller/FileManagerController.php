@@ -4,7 +4,7 @@
  * Update 20250917
  * src/Controller/FileManagerController.php
  */
-namespace Anfallnorr\FileManagerSystem\Controller;
+namespace App\Controller;
 
 use Anfallnorr\FileManagerSystem\Form\CreateFolderType;
 use Anfallnorr\FileManagerSystem\Form\MoveFileType;
@@ -24,26 +24,32 @@ use Symfony\Component\Routing\Attribute\Route;
 // use Symfony\Component\String\Slugger\AsciiSlugger;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
-class FileManagerController extends AbstractController
+final class HomeController extends AbstractController
 {
 	public function __construct(
 		private FileManagerService $fmService,
 		private TranslatorInterface $translator
 	) {
 		$fmService
-			->setDefaultDirectory('/var/uploads')
-			->setRelativeDirectory('/var/uploads');
+			->setDefaultDirectory('/var/uploads') // ->setDefaultDirectory($directory = '/var/uploads')
+			->setRelativeDirectory('/var/uploads'); // ->setRelativeDirectory($directory = '/var/uploads');
+		// $fmService->setDefaultDirectory('/var/uploads');
+		// $fmService->setRelativeDirectory('/var/uploads');
+		/* if (!is_dir($fmService->getDefaultDirectory())) {
+			throw $this->createNotFoundException('Folder ' . $fmService->getRelativeDirectory() . ' not found');
+		} */
 	}
 
-	/* #[Route('/', name: 'app_index')]
+	#[Route('/', name: 'app_index')]
 	public function index()
 	{
 		return $this->redirectToRoute('app_file_manager');
-	} */
+	}
 
-	#[Route('/file-manager/{folder}', name: 'app_file_manager', defaults: ['folder' => ''], methods: ['POST', 'GET'], requirements: ['folder' => '.+'])]
+	#[Route('/home/{folder}', name: 'app_file_manager', defaults: ['folder' => ''], methods: ['POST', 'GET'], requirements: ['folder' => '.+'])]
 	public function home(Request $request, string $folder): Response
 	{
+		// dd('toto');
 		// $fmService = $this->fmService;
 		
 		// dd($this->fmService->getRelativeDirectory());
@@ -64,16 +70,23 @@ class FileManagerController extends AbstractController
 		$breadcrumb = explode('/', $folder);
 
 		// Retrieve global files and folders first before changing the default path
-		$allFolders = $this->fmService->getDirs($path = '/', $excludeDir = "", $depth = null);
+		// $allFolders = $this->fmService->getDirs($path = '/', $excludeDir = "", $depth = null);
+		$allFolders = $this->fmService->getDirsTree($path = '/', $excludeDir = "", $depth = null);
 		$allFiles = $this->fmService->getFiles($path = '/', $depth = null);
 		
 		if (!empty($folder)) {
-			$this->fmService->setDefaultDirectory('/var/uploads/' . $folder); // Example for personnal folder space: '/var/uploads/' . $his->getUser()->getId()
+			// $this->fmService->setDefaultDirectory('/public/uploads/' . $folder); // Example for personnal folder space: '/var/uploads/' . $his->getUser()->getId()
+			$this->fmService->setDefaultDirectory($this->fmService->getRelativeDirectory() . '/' . $folder); // $this->fmService->setDefaultDirectory($directory = $this->fmService->getRelativeDirectory() . '/' . $folder); // Example for personnal folder space: '/var/uploads/' . $his->getUser()->getId()
 		}
-		
+		// dump($this->fmService->getDefaultDirectory());
+		// dump($this->getParameter('kernel.project_dir'));
+		// dump($this->getParameter('kernel.project_dir') . $this->fmService->getRelativeDirectory());
+		// dd($this->fmService->getRelativeDirectory());
+
+
 		// Check if path is a valid folder
 		/* if (!is_dir($this->fmService->getDefaultDirectory())) {
-			throw $this->createNotFoundException('Folder not found');
+			throw $this->createNotFoundException('Folder ' . $this->fmService->getRelativeDirectory() . ' not found');
 		} */
 
 		$uploadUrl = $this->generateUrl('app_file_manager', [
@@ -82,35 +95,33 @@ class FileManagerController extends AbstractController
 
 		$folders = $this->fmService->getDirs();
 		$files = $this->fmService->getFiles();
-		
+
 		// Folder creation
 		$createFolderForm = $this->createForm(CreateFolderType::class);
 		$createFolderForm->handleRequest($request);
-		
+
 		if ($createFolderForm->isSubmitted() && $createFolderForm->isValid()) {
 			$folderName = $createFolderForm->get('folderName')->getData();
 
-			if (!$this->fmService->exists($folderName)) {
+			if (!$this->fmService->exists($folderName, false)) { // if (!$this->fmService->exists($filePath = $folderName, $absolute = false)) {
 				// $this->fmService->createDir($folderName);
-				$created = $this->fmService->createDir($folderName, true);
-				
-				$this->addFlash(
-					'success',
-					$this->translator->trans('file_manager.folder_created_successfully')
-				);
+				$created = $this->fmService->createDir($folderName, true); // $created = $this->fmService->createDir($directory = $folderName, $return = true);
+
+				$flashType = 'success';
+				$flashMessage = $this->translator->trans('file_manager.folder_created_successfully');
 			} else {
-				$this->addFlash(
-					'warning',
-					$this->translator->trans('file_manager.the_folder_already_exists', ['%foldername%' => $folderName])
-				);
+				$flashType = 'warning';
+				$flashMessage = $this->translator->trans('file_manager.the_folder_already_exists', ['%foldername%' => $folderName]);
 			}
+
+			$this->addFlash($flashType, $flashMessage);
 
 
 			return new Response(
-				$this->renderView('@FileManagerSystem/_partials/elements/folders-list.html.twig', [
+				$this->renderView('_partials/elements/folders-list.html.twig', [
 					'folders' => $created,
 					'current_folder' => $folder,
-				]) . $this->renderView('@FileManagerSystem/_partials/elements/stream-flash.html.twig'),
+				]) . $this->renderView('_partials/elements/stream-flash.html.twig'),
 				200,
 				['Content-Type' => 'text/vnd.turbo-stream.html'] // Le type de contenu pour Turbo Stream
 			);
@@ -134,7 +145,7 @@ class FileManagerController extends AbstractController
 			if ($files) {
 				try {
 					// $uploaded = $this->fmService->upload($files, $this->fmService->getDefaultDirectory(), "", false);
-					$uploaded = $this->fmService->upload($files, $this->fmService->getDefaultDirectory(), "", true);
+					$uploaded = $this->fmService->upload($files, $this->fmService->getDefaultDirectory(), "", true); // $uploaded = $this->fmService->upload($files = $files, $folder = $this->fmService->getDefaultDirectory(), $newName = "", $return = true);
 					
 					$this->addFlash(
 						'success',
@@ -148,12 +159,11 @@ class FileManagerController extends AbstractController
 				}
 			}
 
-
 			return new Response(
-				$this->renderView('@FileManagerSystem/_partials/elements/files-list.html.twig', [
+				$this->renderView('_partials/elements/files-list.html.twig', [
 					'files' => $uploaded,
 					'current_folder' => $folder,
-				]) . $this->renderView('@FileManagerSystem/_partials/elements/stream-flash.html.twig'),
+				]) . $this->renderView('_partials/elements/stream-flash.html.twig'),
 				200,
 				['Content-Type' => 'text/vnd.turbo-stream.html']
 			);
@@ -202,7 +212,7 @@ class FileManagerController extends AbstractController
 		}
 
 
-		return $this->render('@FileManagerSystem/file-manager/index.html.twig', [
+		return $this->render('home/index.html.twig', [
 			'folder_form' => $createFolderForm,
 			'file_form' => $uploadFileForm,
 			'move_file_form' => $moveFileForm,
@@ -217,11 +227,12 @@ class FileManagerController extends AbstractController
 		]);
 	}
 
-	#[Route('/file-manager/file/serve/{filename}/{folder}', name: 'app_file_manager_serve', defaults: ['folder' => ''], requirements: ['folder' => '.+'])]
+	#[Route('/file/serve/{filename}/{folder}', name: 'app_file_manager_serve', defaults: ['folder' => ''], requirements: ['folder' => '.+'])]
 	public function serveFile(string $filename, string $folder): BinaryFileResponse
 	{
 		// File directory
 		// $fmService = $this->fmService;
+		// $fmService->setDefaultDirectory('/var/uploads');
 
 		// Base directory (this should now handle both cases)
 		$baseDirectory = $this->fmService->getDefaultDirectory();
@@ -231,9 +242,11 @@ class FileManagerController extends AbstractController
 		if (empty($folder)) {
 			$filePath = $baseDirectory . '/' . $filename;
 		} else {
+			// $filePath = $baseDirectory . '/' . $folder . '/' . $filename;
 			$filePath = rtrim($baseDirectory, '/') . '/' . trim($folder, '/') . '/' . ltrim($filename, '/');
 		}
 
+			// dd($filePath);
 		if (!file_exists($filePath)) {
 			throw $this->createNotFoundException('Fichier introuvable.');
 			// throw $this->createNotFoundException('File not found');
@@ -244,6 +257,55 @@ class FileManagerController extends AbstractController
 		return new BinaryFileResponse($filePath, 200, [
 			'Content-Disposition' => ResponseHeaderBag::DISPOSITION_INLINE, // Online display (for images)
 		]);
+	}
+
+	#[Route('/file/download/{filename}/{folder}', name: 'app_file_manager_download_file', defaults: ['folder' => ''], requirements: ['folder' => '.+'])]
+	public function downloadFile(string $filename, string $folder): BinaryFileResponse
+	{
+		/* // File directory
+		$baseDirectory = $this->fmService->getDefaultDirectory();
+
+		// Full path of the requested file
+		if (empty($folder)) {
+			$filePath = $baseDirectory . '/' . $filename;
+		} else {
+			$filePath = rtrim($baseDirectory, '/') . '/' . trim($folder, '/') . '/' . ltrim($filename, '/');
+		}
+		// dd($filePath);
+
+		if (!file_exists($filePath)) {
+			throw $this->createNotFoundException('Fichier introuvable.');
+		}
+
+		// Retourne le fichier en téléchargement
+		$response = new BinaryFileResponse($filePath);
+		$response->setContentDisposition(
+			ResponseHeaderBag::DISPOSITION_ATTACHMENT, // ATTACHMENT => force download
+			$filename // nom de fichier suggéré pour le navigateur
+		);
+
+		return $response; */
+		return $this->fmService->download($filename, $folder);
+		/* if ($this->fmService->download($filename, $folder)) {
+			return $this->redirectToRoute('app_file_manager', [
+				'folder' => $folder
+			]);
+		} */
+	}
+
+	// #[Route('/file/download/bulk/{folder}', name: 'app_file_manager_download_bulk_file', methods: ['POST'], defaults: ['folder' => ''], requirements: ['folder' => '.+'])]
+	#[Route('/file/mass-download/{folder}', name: 'app_file_manager_download_bulk_file', methods: ['POST'], defaults: ['folder' => ''], requirements: ['folder' => '.+'])]
+	public function massDownload(Request $request): BinaryFileResponse
+	{
+		$files = json_decode($request->get('filesToDownload'));
+		$folders = json_decode($request->get('foldersToDownload'));
+		// $files = $request->request->get('files', []); // tableau de noms de fichiers
+		// $folders = $request->request->get('folder', null);
+		// dd($files);
+		dump($files);
+		dd($folders);
+
+		return $this->fmService->downloadBulk($files, $folder);
 	}
 
 	/* #[Route('/file/move/{filename}/{folder}', name: 'app_file_manager_move', defaults: ['folder' => ''], requirements: ['folder' => '.+'])]
@@ -273,9 +335,10 @@ class FileManagerController extends AbstractController
 		]);
 	} */
 
-	#[Route('/file-manager/file/delete/{filename}/{folder}', name: 'app_file_manager_delete_file', defaults: ['folder' => ''], methods: ['DELETE'], requirements: ['folder' => '.+'])]
+	#[Route('/file/delete/{filename}/{folder}', name: 'app_file_manager_delete_file', defaults: ['folder' => ''], methods: ['DELETE'], requirements: ['folder' => '.+'])]
 	public function deleteFile(string $filename, string $folder): Response
 	{
+		// dd($filename);
 		// File directory
 		// $fmService = $this->fmService;
 		
@@ -286,8 +349,12 @@ class FileManagerController extends AbstractController
 			$filePath = $filename;
 		}
 
-		if ($this->fmService->exists($filePath)) {
-			$this->fmService->remove($filePath);
+		// dump($filename);
+		// dump($folder);
+		// dd($filePath);
+		if ($this->fmService->exists($filePath, false)) { // if ($this->fmService->exists($filePath = $filePath, $absolute = false)) { 
+			// dd($filePath);
+			$this->fmService->remove($filePath); // $this->fmService->remove($relativePath = $filePath);
 
 			$this->addFlash(
 				'success',
@@ -306,7 +373,7 @@ class FileManagerController extends AbstractController
 		]);
 	}
 
-	#[Route('/file-manager/folder/delete/{dirname}/{folder}', name: 'app_file_manager_delete_folder', defaults: ['folder' => ''], methods: ['DELETE'], requirements: ['folder' => '.+'])]
+	#[Route('/folder/delete/{dirname}/{folder}', name: 'app_file_manager_delete_folder', defaults: ['folder' => ''], methods: ['DELETE'], requirements: ['folder' => '.+'])]
 	public function deleteFolder(string $folder, string $dirname): Response
 	{
 		// File directory
@@ -319,8 +386,8 @@ class FileManagerController extends AbstractController
 			$filePath = $dirname;
 		}
 		
-		if ($this->fmService->exists($filePath)) {
-			$this->fmService->remove($filePath);
+		if ($this->fmService->exists($filePath)) { // if ($this->fmService->exists($filePath = $filePath, $absolute = false)) {
+			$this->fmService->remove($filePath); // $this->fmService->remove($relativePath = $filePath);
 
 			$this->addFlash(
 				'success',
@@ -339,7 +406,7 @@ class FileManagerController extends AbstractController
 		]);
 	}
 
-	#[Route('/file-manager/files/mass-delete/{folder}', name: 'app_file_manager_mass_delete_folder', defaults: ['folder' => ''], methods: ['DELETE'], requirements: ['folder' => '.+'])]
+	#[Route('/files/mass-delete/{folder}', name: 'app_file_manager_mass_delete_folder', defaults: ['folder' => ''], methods: ['DELETE'], requirements: ['folder' => '.+'])]
 	public function massDelete(Request $request, string $folder): Response
 	{
 		$foldersToDelete = json_decode($request->get('foldersToDelete'));
@@ -354,23 +421,18 @@ class FileManagerController extends AbstractController
 					} else {
 						$folderPath = $file;
 					}
-	
-					if ($this->fmService->exists($folderPath)) {
-						$this->fmService->remove($folderPath);
+
+					if ($this->fmService->exists($folderPath)) { // if ($this->fmService->exists($filePath = $folderPath, $absolute = false)) {
+						$this->fmService->remove($folderPath); // $this->fmService->remove($relativePath = $folderPath);
 					}
 				}
-	
+
 				$this->addFlash(
 					'success',
 					$this->translator->trans('file_manager.folders_successfully_mass_deleted')
 				);
-			}/* else {
-				$this->addFlash(
-					'warning',
-					$this->translator->trans('file_manager.no_folders_selected')
-				);
-			} */
-	
+			}
+
 			if (!empty($filesToDelete)) {
 				foreach ($filesToDelete as $file) {
 					// Chemin complet du fichier demandé
@@ -379,22 +441,17 @@ class FileManagerController extends AbstractController
 					} else {
 						$filePath = $file;
 					}
-	
-					if ($this->fmService->exists($filePath)) {
-						$this->fmService->remove($filePath);
+
+					if ($this->fmService->exists($filePath)) { // if ($this->fmService->exists($filePath = $filePath, $absolute = false)) {
+						$this->fmService->remove($filePath); // $this->fmService->remove($relativePath = $filePath);
 					}
 				}
-	
+
 				$this->addFlash(
 					'success',
 					$this->translator->trans('file_manager.files_successfully_mass_deleted')
 				);
-			}/* else {
-				$this->addFlash(
-					'warning',
-					$this->translator->trans('file_manager.no_files_selected')
-				);
-			} */
+			}
 		} else {
 			$this->addFlash(
 				'warning',
