@@ -10,24 +10,45 @@ namespace Anfallnorr\FileManagerSystem\Service;
 use SplFileInfo;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Finder\Finder;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
+use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\String\Slugger\AsciiSlugger;
 // use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  *
  * METHODS :
+ * @method private getKernelDirectory(): string
+ * @method public getDefaultDirectory(): string
+ * @method public setDefaultDirectory(@var string $directory): static
+ * @method public getRelativeDirectory(@var string $directory): string
+ * @method public setRelativeDirectory(@var string $directory): static
  * @method public getMimeTypes(): array
  * @method public getMimeType(@var string $key): string|array|null
- * @method public createSlug(@var string $text): string
- * @method public createFile(@var string $path, @var string $content = '<!DOCTYPE...'): @return void
+ * @method public getMimeContent(@var string $relativeFile): string
+ * @method public getFileContent(@var string $relativeFile): string
+ * @method public exists(@var string $filePath, @var bool $absolute = false): bool
+ * @method public createSlug(@var string $string): string
+ * @method public createFile(@var string $filename, @var string $content = '<!DOCTYPE html><html lang="en"><body style="background: #ffffff;"></body></html>'): @return void
+ * @method public createDir(@var string $directory, @var bool $return = false): @return array
+ * @method public categorizeFiles(@var array $files, @var bool $basename = false, @var bool $path = false): @return array
+ * @method public getExtractedFolder(@var string $folder): @return string
+ * @method public getExtByType(@var string $type): @return array
  * @method public getDirs(@var string $path = '/', @var string $excludeDir = "", @var string|null $depth = '== 0'): @return array
+ * @method public getDirsTree(@var string $path = '/', @var string $excludeDir = "", @var string|null $depth = '== 0'): @return array
  * @method public getSliceDirs(@var string|array $dirs, @var int $slice, @var bool $implode = false): @return string|array
  * @method public getFiles(@var string $path = '/', @var string|null $depth = '== 0'): @return array|bool
  * @method public getSize(@var string|array $files, @var int $totalFileSize = 0): @return int|float
  * @method public getSizeName(@var int|float $size): @return string
  * @method public upload(@var UploadedFile|array $files, @var string $folder, @var bool $return = false): @return array|bool
  * @method public resizeImages(@var array $files, @var string $sourceDir, @var string $targetDir, @var int $width, @var int $quality = 100): @return array|bool
+ * @method public hasDir(): @return bool
+ * @method public download(@var string $filename, @var ?string $directory): @return BinaryFileResponse
+ * @method public downloadBulk(@var array $files, @var array $folders, @var ?string $directory): @return BinaryFileResponse
+ * @method public remove(@var string $relativePath = ''): @return bool
+ * @method public copy(@var string $source, @var string $destination, @var bool $override = false): @return bool
+ * @method public move(@var string $newName, @var bool $override = false): @return bool
  */
 
 class FileManagerService
@@ -437,6 +458,45 @@ class FileManagerService
 		return $directories;
 	}
 
+	public function getDirsTree(string $path = '/', string $excludeDir = "", string|null $depth = '== 0'): array
+	{
+		$realPath = realpath($this->getDefaultDirectory() . '/' . trim($path, '/'));
+
+		if (!$realPath || !is_dir($realPath)) {
+			return [];
+		}
+
+		$finder = new Finder();
+		if ($depth) {
+			$finder->depth($depth); // Search only folders at the given depth $depth
+		}
+		$finder->directories()->in($realPath); // Search only folders at the root
+		// $finder->directories()->in($realPath)->depth('== 0'); // seulement 1er niveau
+
+		$directories = [];
+
+		foreach ($finder as $dir) {
+			$dirPath = $dir->getRealPath();
+
+			if ($excludeDir && str_contains($dirPath, $excludeDir)) {
+				continue;
+			}
+
+			$relative = str_replace($this->getDefaultDirectory(), '', $dirPath);
+
+			$directories[] = [
+				'absolute'   => $dirPath,
+				'relative'   => $relative,
+				'ltrimed_relative' => ltrim($relative, '/'),
+				'foldername' => $dir->getFilename(),
+				// appel récursif pour sous-dossiers
+				'children'   => $this->getDirsTree($relative, $excludeDir),
+			];
+		}
+
+		return $directories;
+	}
+
 	/**
 	 * Récupère des parties spécifiques des répertoires fournis et les concatène si nécessaire.
 	 *
@@ -502,7 +562,7 @@ class FileManagerService
 				$this->cleanDir($parentDir);
 			}
 		}
-	} 
+	}
 
 	/**
 	 * Récupère la liste des fichiers d'un répertoire donné.
@@ -837,6 +897,70 @@ class FileManagerService
 			return true;
 		}
 	}
+
+/* **************************************************************************************************************************************************************** */
+	public function download(string $filename, ?string $directory = null): BinaryFileResponse
+	{
+		// Si aucun répertoire n'est fourni, on prend le defaultDirectory
+		$baseDir = $directory 
+			? $this->getDefaultDirectory() . DIRECTORY_SEPARATOR . ltrim($directory, DIRECTORY_SEPARATOR)
+			: $this->getDefaultDirectory();
+
+		$filePath = $baseDir . DIRECTORY_SEPARATOR . $filename;
+		// dump($this->getKernelDirectory());
+		// dump($this->getDefaultDirectory());
+		// dd($filePath);
+
+		if (!file_exists($filePath)) {
+			throw new \RuntimeException(sprintf('Le fichier "%s" est introuvable.', str_replace($this->getDefaultDirectory(), "", $filePath)));
+		}
+
+		$response = new BinaryFileResponse($filePath);
+		$response->setContentDisposition(
+			ResponseHeaderBag::DISPOSITION_ATTACHMENT,
+			basename($filePath)
+		);
+
+		return $response;
+	}
+
+	public function downloadBulk(array $filenames, array $folders, ?string $directory = null): BinaryFileResponse
+	{
+		$baseDir = $directory 
+			? $this->getDefaultDirectory() . DIRECTORY_SEPARATOR . ltrim($directory, DIRECTORY_SEPARATOR)
+			: $this->getDefaultDirectory();
+
+		// Créer un fichier zip temporaire
+		$zipPath = sys_get_temp_dir() . '/files_' . uniqid() . '.zip';
+		$zip = new \ZipArchive();
+
+		if ($zip->open($zipPath, \ZipArchive::CREATE) !== true) {
+			throw new \RuntimeException('Impossible de créer le ZIP.');
+		}
+
+		foreach ($filenames as $filename) {
+			$filePath = $baseDir . DIRECTORY_SEPARATOR . $filename;
+
+			if (!file_exists($filePath)) {
+				throw new \RuntimeException(sprintf('Le fichier "%s" est introuvable.', $filePath));
+			}
+
+			// Ajouter le fichier au zip
+			$zip->addFile($filePath, basename($filePath));
+		}
+
+		$zip->close();
+
+		// Retourner le zip en téléchargement
+		$response = new BinaryFileResponse($zipPath);
+		$response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, 'files.zip');
+
+		// Supprimer le zip après envoi
+		$response->deleteFileAfterSend(true);
+
+		return $response;
+	}
+/* **************************************************************************************************************************************************************** */
 
 	public function remove(string $relativePath = ''): bool
 	{
