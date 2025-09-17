@@ -5,7 +5,7 @@ import { Controller } from "@hotwired/stimulus";
  * assets/controllers/table_check_controller.js
  */
 export default class extends Controller {
-	static targets = ["rowInputs", "itemDownload", "itemDirDownload", "itemDelete", "itemDirDelete"];
+	static targets = ["rowInputs", "itemDownload", "itemDirDownload", "itemMove", "itemDirMove", "itemRename", "itemDirRename", "itemDelete", "itemDirDelete"];
 	static values = {
 		check: Array,
 		checkDir: Array
@@ -59,6 +59,12 @@ export default class extends Controller {
 		if (this.hasItemDownloadTarget) {
 			this.itemDownloadTarget.value = JSON.stringify(this.checkValue);
 		}
+		if (this.hasItemMoveTarget) {
+			this.itemMoveTarget.value = JSON.stringify(this.checkValue);
+		}
+		if (this.hasItemRenameTarget) {
+			this.itemRenameTarget.value = JSON.stringify(this.checkValue);
+		}
 	}
 
 	checkDir(event) {
@@ -80,6 +86,12 @@ export default class extends Controller {
 		}
 		if (this.hasItemDirDownloadTarget) {
 			this.itemDirDownloadTarget.value = JSON.stringify(this.checkDirValue);
+		}
+		if (this.hasItemDirMoveTarget) {
+			this.itemDirMoveTarget.value = JSON.stringify(this.checkDirValue);
+		}
+		if (this.hasItemDirRenameTarget) {
+			this.itemDirRenameTarget.value = JSON.stringify(this.checkDirValue);
 		}
 	}
 }
