@@ -1,10 +1,7 @@
 <?php
 
-/**
- * Update 20250917
- * src/Controller/FileManagerController.php
- */
-namespace App\Controller;
+// anfallnorr/file-manager-system/src/Controller/FileManagerController.php
+namespace Anfallnorr\FileManagerSystem\Controller;
 
 use Anfallnorr\FileManagerSystem\Form\CreateFolderType;
 use Anfallnorr\FileManagerSystem\Form\MoveFileType;
@@ -24,7 +21,7 @@ use Symfony\Component\Routing\Attribute\Route;
 // use Symfony\Component\String\Slugger\AsciiSlugger;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
-final class HomeController extends AbstractController
+final class FileManagerController extends AbstractController
 {
 	public function __construct(
 		private FileManagerService $fmService,
@@ -43,6 +40,7 @@ final class HomeController extends AbstractController
 	#[Route('/', name: 'app_index')]
 	public function index()
 	{
+		dd('toto');
 		return $this->redirectToRoute('app_file_manager');
 	}
 

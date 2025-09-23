@@ -1,13 +1,23 @@
+# vendor/anfallnorr/file-manager-system/config/services.yaml
+
 services:
 
     _defaults:
         autowire: true      # Automatically injects dependencies in your services.
         autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+        # public: false
 
-    # Anfallnorr\FileManagerSystem\Controller\:
-    #     resource: '../src/Controller/*'
-    #     tags: ['controller.service_arguments']
-    #     public: true
+#####
+    Anfallnorr\FileManagerSystem\:
+        resource: '../src/*'
+        exclude: '../src/{DependencyInjection,Resources,Tests}'
+
+    Anfallnorr\FileManagerSystem\Controller\:
+        # resource: '../src/Controller/*'
+        resource: '../src/Controller'
+        tags: ['controller.service_arguments']
+        public: true # temporaire pour debug
+#####
 
     Anfallnorr\FileManagerSystem\Service\FileManagerService:
         arguments:
