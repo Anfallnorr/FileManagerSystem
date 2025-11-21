@@ -68,13 +68,13 @@ $directory = $fmService->setDefaultDirectory(directory: '/var/www/uploads')->get
 $mimeTypes = $fmService->getMimeTypes(); // array
 
 // Get the MIME type of a specific extension
-$mimeType = $fmService->getMimeType($key = 'pdf'); // application/pdf
+$mimeType = $fmService->getMimeType(key: 'pdf'); // application/pdf
 
 // Create a URL-friendly slug from a string
-$string = $fmService->createSlug($string = 'Hello World !'); // hello-world
+$string = $fmService->createSlug(string: 'Hello World !'); // hello-world
 
 // Create a directory named "hello-world" inside the default directory
-$fmService->createDir($directory = 'Hello World !', $return = false);
+$fmService->createDir(directory: 'Hello World !', return: false);
 // if $return is `true`, then an array will be returned:
 [
     'absolute' => $this->getDefaultDirectory() . '/hello-world', // Absolute path
@@ -84,7 +84,7 @@ $fmService->createDir($directory = 'Hello World !', $return = false);
 ]
 
 // Create a file named "hello-world.html" inside the default directory with content
-$fmService->createFile($filename = 'Hello World.html', $content = 'Hello World! I\'m Js info'); // $content is optional
+$fmService->createFile(filename: 'Hello World.html', content: 'Hello World! I\'m Js info'); // $content is optional
 
 // This method allows you to download a file located in a specified directory (or in the default directory if none is provided).
 // It checks for the file's existence and returns a BinaryFileResponse configured to force the download.
