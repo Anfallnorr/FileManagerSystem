@@ -35,7 +35,8 @@ final class FileManagerController extends AbstractController
 		private FileManagerService $fmService,
 		private TranslatorInterface $translator
 	) {
-		$fmService
+		// $fmService
+		$this->fmService
 			->setDefaultDirectory(directory: '/var/uploads') // ->setDefaultDirectory($directory = '/var/uploads')
 			->setRelativeDirectory(directory: '/var/uploads'); // ->setRelativeDirectory($directory = '/var/uploads');
 		// $fmService->setDefaultDirectory('/var/uploads');
@@ -70,12 +71,12 @@ final class FileManagerController extends AbstractController
 			$filePath = $baseDirectory . '/' . $filename;
 		} else {
 			// $filePath = $baseDirectory . '/' . $folder . '/' . $filename;
-			$filePath = rtrim($baseDirectory, '/') . '/' . trim($folder, '/') . '/' . ltrim($filename, '/');
+			$filePath = rtrim(string: $baseDirectory, characters: '/') . '/' . trim(string: $folder, characters: '/') . '/' . ltrim(string: $filename, characters: '/');
 		}
 
 		// dd($filePath);
-		if (!file_exists($filePath)) {
-			throw $this->createNotFoundException('Fichier introuvable.');
+		if (!file_exists(filename: $filePath)) {
+			throw $this->createNotFoundException(message: 'Fichier introuvable.');
 			// throw $this->createNotFoundException('File not found');
 		}
 		// throw $this->createNotFoundException('Fichier introuvable.');
@@ -128,8 +129,8 @@ final class FileManagerController extends AbstractController
 	#[Route('/file/mass-download/{folder}', name: self::FILE_MANAGER_DOWNLOAD_BULK_FILE, methods: ['POST'], defaults: ['folder' => ''], requirements: ['folder' => '.+'])]
 	public function appFileManagerDownloadBulkFile(Request $request): BinaryFileResponse
 	{
-		$files = json_decode($request->get('filesToDownload'));
-		$folders = json_decode($request->get('foldersToDownload'));
+		$files = json_decode(json: $request->get('filesToDownload'));
+		$folders = json_decode(json: $request->get('foldersToDownload'));
 		// $files = $request->request->get('files', []); // tableau de noms de fichiers
 		// $folders = $request->request->get('folder', null);
 		// dd($files);
@@ -188,18 +189,18 @@ final class FileManagerController extends AbstractController
 			$this->fmService->remove(relativePath: $filePath); // $this->fmService->remove($relativePath = $filePath);
 
 			$this->addFlash(
-				'success',
-				$this->translator->trans('file_manager.file_successfully_deleted')
+				type: 'success',
+				message: $this->translator->trans(id: 'file_manager.file_successfully_deleted')
 			);
 		} else {
 			$this->addFlash(
-				'danger',
-				$this->translator->trans('file_manager.failed_to_delete_file')
+				type: 'danger',
+				message: $this->translator->trans(id: 'file_manager.failed_to_delete_file')
 			);
 		}
 
 
-		return $this->redirectToRoute(self::FILE_MANAGER, [
+		return $this->redirectToRoute(route: self::FILE_MANAGER, parameters: [
 			'folder' => $folder
 		]);
 	}
@@ -221,18 +222,18 @@ final class FileManagerController extends AbstractController
 			$this->fmService->remove(relativePath: $filePath); // $this->fmService->remove($relativePath = $filePath);
 
 			$this->addFlash(
-				'success',
-				$this->translator->trans('file_manager.folder_successfully_deleted')
+				type: 'success',
+				message: $this->translator->trans(id: 'file_manager.folder_successfully_deleted')
 			);
 		} else {
 			$this->addFlash(
-				'danger',
-				$this->translator->trans('file_manager.failed_to_delete_folder')
+				type: 'danger',
+				message: $this->translator->trans(id: 'file_manager.failed_to_delete_folder')
 			);
 		}
 
 
-		return $this->redirectToRoute(self::FILE_MANAGER, [
+		return $this->redirectToRoute(route: self::FILE_MANAGER, parameters: [
 			'folder' => $folder
 		]);
 	}
@@ -240,8 +241,8 @@ final class FileManagerController extends AbstractController
 	#[Route('/files/mass-delete/{folder}', name: self::FILE_MANAGER_MASS_DELETE_FOLDER, defaults: ['folder' => ''], methods: ['DELETE'], requirements: ['folder' => '.+'])]
 	public function appFileManagerMassDeleteFolder(Request $request, string $folder): Response
 	{
-		$foldersToDelete = json_decode($request->get('foldersToDelete'));
-		$filesToDelete = json_decode($request->get('filesToDelete'));
+		$foldersToDelete = json_decode(json: $request->get('foldersToDelete'));
+		$filesToDelete = json_decode(json: $request->get('filesToDelete'));
 
 		if (!empty($foldersToDelete) || !empty($filesToDelete)) {
 			if (!empty($foldersToDelete)) {
@@ -259,8 +260,8 @@ final class FileManagerController extends AbstractController
 				}
 
 				$this->addFlash(
-					'success',
-					$this->translator->trans('file_manager.folders_successfully_mass_deleted')
+					type: 'success',
+					message: $this->translator->trans(id: 'file_manager.folders_successfully_mass_deleted')
 				);
 			}
 
@@ -279,19 +280,19 @@ final class FileManagerController extends AbstractController
 				}
 
 				$this->addFlash(
-					'success',
-					$this->translator->trans('file_manager.files_successfully_mass_deleted')
+					type: 'success',
+					message: $this->translator->trans(id: 'file_manager.files_successfully_mass_deleted')
 				);
 			}
 		} else {
 			$this->addFlash(
-				'warning',
-				$this->translator->trans('file_manager.no_files_or_folders_selected')
+				type: 'warning',
+				message: $this->translator->trans(id: 'file_manager.no_files_or_folders_selected')
 			);
 		}
 
 
-		return $this->redirectToRoute(self::FILE_MANAGER, [
+		return $this->redirectToRoute(route: self::FILE_MANAGER, parameters: [
 			'folder' => $folder
 		]);
 	}
@@ -299,7 +300,7 @@ final class FileManagerController extends AbstractController
 	#[Route('/{folder}', name: self::FILE_MANAGER, defaults: ['folder' => ''], methods: ['POST', 'GET'], requirements: ['folder' => '.+'])]
 	public function appFileManager(Request $request, string $folder): Response
 	{
-		// dd('toto');
+		dd('toto');
 		// $fmService = $this->fmService;
 
 		// dd($this->fmService->getRelativeDirectory());
@@ -317,7 +318,7 @@ final class FileManagerController extends AbstractController
 		$fmService->createFile('Hello World.html', 'Hello World! I\'m Js info'); // create hello-world.html file in default directory path */
 
 
-		$breadcrumb = explode('/', $folder);
+		$breadcrumb = explode(separator: '/', string: $folder);
 
 		// Retrieve global files and folders first before changing the default path
 		// $allFolders = $this->fmService->getDirs($path = '/', $excludeDir = "", $depth = null);
@@ -339,7 +340,7 @@ final class FileManagerController extends AbstractController
 			throw $this->createNotFoundException('Folder ' . $this->fmService->getRelativeDirectory() . ' not found');
 		} */
 
-		$uploadUrl = $this->generateUrl(self::FILE_MANAGER, [
+		$uploadUrl = $this->generateUrl(route: self::FILE_MANAGER, parameters: [
 			'folder' => $folder
 		]);
 
@@ -347,52 +348,52 @@ final class FileManagerController extends AbstractController
 		$files = $this->fmService->getFiles();
 
 		// Folder creation
-		$createFolderForm = $this->createForm(CreateFolderType::class);
-		$createFolderForm->handleRequest($request);
+		$createFolderForm = $this->createForm(type: CreateFolderType::class);
+		$createFolderForm->handleRequest(request: $request);
 
 		if ($createFolderForm->isSubmitted() && $createFolderForm->isValid()) {
-			$folderName = $createFolderForm->get('folderName')->getData();
+			$folderName = $createFolderForm->get(name: 'folderName')->getData();
 
 			if (!$this->fmService->exists(filePath: $folderName, absolute: false)) { // if (!$this->fmService->exists($filePath = $folderName, $absolute = false)) {
 				// $this->fmService->createDir($folderName);
 				$created = $this->fmService->createDir(directory: $folderName, return: true); // $created = $this->fmService->createDir($directory = $folderName, $return = true);
 
 				$flashType = 'success';
-				$flashMessage = $this->translator->trans('file_manager.folder_created_successfully');
+				$flashMessage = $this->translator->trans(id: 'file_manager.folder_created_successfully');
 			} else {
 				$flashType = 'warning';
-				$flashMessage = $this->translator->trans('file_manager.the_folder_already_exists', ['%foldername%' => $folderName]);
+				$flashMessage = $this->translator->trans(id: 'file_manager.the_folder_already_exists', parameters: ['%foldername%' => $folderName]);
 			}
 
-			$this->addFlash($flashType, $flashMessage);
+			$this->addFlash(type: $flashType, message: $flashMessage);
 
 
 			return new Response(
 				// $this->renderView('_partials/elements/folders-list.html.twig', [
-				$this->renderView('@FileManagerSystem/_partials/elements/folders-list.html.twig', [
+				content: $this->renderView(view: '@FileManagerSystem/_partials/elements/folders-list.html.twig', parameters: [
 					'folders' => $created,
 					'current_folder' => $folder,
-					// ]) . $this->renderView('_partials/elements/stream-flash.html.twig'),
-				]) . $this->renderView('@FileManagerSystem/_partials/elements/stream-flash.html.twig'),
-				200,
-				['Content-Type' => 'text/vnd.turbo-stream.html'] // Le type de contenu pour Turbo Stream
+					// ]) . $this->renderView(view: '_partials/elements/stream-flash.html.twig'),
+				]) . $this->renderView(view: '@FileManagerSystem/_partials/elements/stream-flash.html.twig'),
+				status: 200,
+				headers: ['Content-Type' => 'text/vnd.turbo-stream.html'] // Le type de contenu pour Turbo Stream
 			);
-			/* return $this->redirectToRoute(self::FILE_MANAGER, [
+			/* return $this->redirectToRoute(route: self::FILE_MANAGER, parameters: [
 				'folder' => $folder
 			]); */
 		}
 
 
 		// File upload
-		$uploadFileForm = $this->createForm(UploadFileType::class, null, [
+		$uploadFileForm = $this->createForm(type: UploadFileType::class, data: null, options: [
 			'user' => null, // $user->getId(),
 			'route' => $uploadUrl,
 			'current_folder' => $folder
 		]);
-		$uploadFileForm->handleRequest($request);
+		$uploadFileForm->handleRequest(request: $request);
 
 		if ($uploadFileForm->isSubmitted() && $uploadFileForm->isValid()) {
-			$files = $uploadFileForm->get('file')->getData();
+			$files = $uploadFileForm->get(name: 'file')->getData();
 
 			if ($files) {
 				try {
@@ -400,36 +401,36 @@ final class FileManagerController extends AbstractController
 					$uploaded = $this->fmService->upload(files: $files, folder: $this->fmService->getDefaultDirectory(), newName: "", return: true); // $uploaded = $this->fmService->upload($files = $files, $folder = $this->fmService->getDefaultDirectory(), $newName = "", $return = true);
 
 					$this->addFlash(
-						'success',
-						$this->translator->trans('file_manager.file_uploaded_successfully')
+						type: 'success',
+						message: $this->translator->trans(id: 'file_manager.file_uploaded_successfully')
 					);
 				} catch (FileException $e) {
 					$this->addFlash(
-						'danger',
-						$this->translator->trans('file_manager.error_while_uploading', ['%message%' => $e])
+						type: 'danger',
+						message: $this->translator->trans(id: 'file_manager.error_while_uploading', parameters: ['%message%' => $e])
 					);
 				}
 			}
 
 			return new Response(
 				// $this->renderView('_partials/elements/files-list.html.twig', [
-				$this->renderView('@FileManagerSystem/_partials/elements/files-list.html.twig', [
+				content: $this->renderView(view: '@FileManagerSystem/_partials/elements/files-list.html.twig', parameters: [
 					'files' => $uploaded,
 					'current_folder' => $folder,
-					// ]) . $this->renderView('_partials/elements/stream-flash.html.twig'),
-				]) . $this->renderView('@FileManagerSystem/_partials/elements/stream-flash.html.twig'),
-				200,
-				['Content-Type' => 'text/vnd.turbo-stream.html']
+					// ]) . $this->renderView(view: '_partials/elements/stream-flash.html.twig'),
+				]) . $this->renderView(view: '@FileManagerSystem/_partials/elements/stream-flash.html.twig'),
+				status: 200,
+				headers: ['Content-Type' => 'text/vnd.turbo-stream.html']
 			);
-			/* return $this->redirectToRoute(self::FILE_MANAGER, [
+			/* return $this->redirectToRoute(route: self::FILE_MANAGER, parameters: [
 				'folder' => $folder
 			]); */
 		}
 
 
 		// Move File
-		$moveFileForm = $this->createForm(MoveFileType::class, null);
-		$moveFileForm->handleRequest($request);
+		$moveFileForm = $this->createForm(type: MoveFileType::class, data: null);
+		$moveFileForm->handleRequest(request: $request);
 
 		/* $moveFileForms = [];
 
@@ -442,32 +443,32 @@ final class FileManagerController extends AbstractController
 
 		// dd($moveFileForm);
 		if ($moveFileForm->isSubmitted() && $moveFileForm->isValid()) {
-			/* $files = $moveFileForm->get('file')->getData();
+			/* $files = $moveFileForm->get(name: 'file')->getData();
 			
 			if ($files) {
 				try {
 					$uploaded = $this->fmService->upload($files, $this->fmService->getDefaultDirectory(), "", false);
 					
 					$this->addFlash(
-						'success',
-						$this->translator->trans('file_manager.file_uploaded_successfully')
+						type: 'success',
+						message: $this->translator->trans(id: 'file_manager.file_uploaded_successfully')
 					);
 				} catch (FileException $e) {
 					$this->addFlash(
-						'danger',
-						$this->translator->trans('file_manager.error_while_uploading', ['%message%' => $e])
+						type: 'danger',
+						message: $this->translator->trans(id: 'file_manager.error_while_uploading', parameters: ['%message%' => $e])
 					);
 				}
 			}
 
-			return $this->redirectToRoute(self::FILE_MANAGER, [
+			return $this->redirectToRoute(route: self::FILE_MANAGER, parameters: [
 				'folder' => $folder
 			]); */
 		}
 
 
-		// return $this->render('home/index.html.twig', [
-		return $this->render('@FileManagerSystem/file-manager/index.html.twig', [
+		// return $this->render(view: 'home/index.html.twig', [
+		return $this->render(view: '@FileManagerSystem/file-manager/index.html.twig', parameters: [
 			'folder_form' => $createFolderForm,
 			'file_form' => $uploadFileForm,
 			'move_file_form' => $moveFileForm,
