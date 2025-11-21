@@ -11,9 +11,8 @@ export default class extends Controller {
 		checkDir: Array
 	}
 
-	connect()
-	{
-		console.log("Contrôleur table-check connecté depuis Anfallnorr/FileManagerSystem !");
+	connect() {
+		console.log("Contrôleur table-check connecté !");
 		// this.checkValue = []; // Initialise le tableau
 	}
 
@@ -95,4 +94,3 @@ export default class extends Controller {
 		}
 	}
 }
-
