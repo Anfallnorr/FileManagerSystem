@@ -21,7 +21,7 @@ final class FileManagerSystem extends AbstractBundle
 	{
 		// Register template paths for this bundle
 		// Templates will be accessible via @FileManagerSystem/ namespace
-		$builder->prependExtensionConfig('twig', [
+		$builder->prependExtensionConfig(name: 'twig', config: [
 			'paths' => [
 				$this->getPath() . '/templates' => 'FileManagerSystem'
 			]
@@ -34,8 +34,8 @@ final class FileManagerSystem extends AbstractBundle
 		$definition->rootNode()
 			->children()
 				// ->scalarNode('kernel_directory')->defaultValue('/')->end()
-				->scalarNode('relative_directory')->defaultValue('/public/uploads')->end()
-				->scalarNode('default_directory')->defaultValue('/public/uploads')->end()
+				->scalarNode(name: 'relative_directory')->defaultValue(value: '/public/uploads')->end()
+				->scalarNode(name: 'default_directory')->defaultValue(value: '/public/uploads')->end()
 			->end()
 		;
 	}
@@ -43,22 +43,31 @@ final class FileManagerSystem extends AbstractBundle
 	public function loadExtension(array $config, ContainerConfigurator $container, ContainerBuilder $builder): void
 	{
 		// Obtenir le chemin du projet
-		$projectDir = $builder->getParameter('kernel.project_dir');
+		$projectDir = $builder->getParameter(name: 'kernel.project_dir');
 
 		// charger un fichier XML, PHP ou YAML
-		$container->import($this->getPath() . '/config/services.yaml');
+		$container->import(resource: $this->getPath() . '/config/services.yaml');
 
 		// vous pouvez également ajouter ou remplacer des paramètres et des services
 		$container->parameters()
-			->set('fms.kernel_directory', $projectDir)
-			->set('fms.default_directory', $projectDir . $config['default_directory'])
-			->set('fms.relative_directory', $config['relative_directory'])
+			->set(name: 'fms.kernel_directory', value: $projectDir)
+			->set(name: 'fms.default_directory', value: $projectDir . $config['default_directory'])
+			->set(name: 'fms.relative_directory', value: $config['relative_directory'])
 		;
 
 		/* $container->services()
 			->load('Anfallnorr\\FileManagerSystem\\', $this->getPath() . '/src/*')
 			->exclude($this->getPath() . '/src/{DependencyInjection,Resources,Tests}')
 		; */
+
+		/* $container->services()
+			->load('Anfallnorr\\FileManagerSystem\\', $this->getPath() . '/src/*')
+			->exclude($this->getPath() . '/src/{DependencyInjection,Resources,Tests}');
+
+		$container->parameters()
+			->set('fms.kernel_directory', $projectDir)
+			->set('fms.default_directory', $projectDir . $config['default_directory'])
+			->set('fms.relative_directory', $config['relative_directory']); */
 
 		// Ajouter les services Filesystem et AsciiSlugger
 		// $builder->register(Filesystem::class)->setAutowired(true)->setPublic(true);
@@ -68,7 +77,7 @@ final class FileManagerSystem extends AbstractBundle
 	public function configureRoutes(RoutingConfigurator $routes, array $config): void
 	{
 		// Importer le fichier routes.yaml du bundle
-		$routes->import($this->getPath() . '/config/routes.yaml');
+		$routes->import(resource: $this->getPath() . '/config/routes.yaml');
 	}
 
 	public function getContainerExtension(): ?ExtensionInterface
@@ -94,4 +103,3 @@ final class FileManagerSystem extends AbstractBundle
 		return \dirname(__DIR__);
 	}
 }
-
