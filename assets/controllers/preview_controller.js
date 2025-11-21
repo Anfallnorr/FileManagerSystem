@@ -10,7 +10,7 @@ export default class extends Controller {
 
 	connect()
 	{
-		// console.log("Contrôleur preview connecté !");
+		console.log("Contrôleur preview connecté avec Anfallnorr/file-manager-system !");
 
 		// Ajoute la modal au DOM si elle n'existe pas encore
 		if (!document.getElementById('modal_viewer')) {
