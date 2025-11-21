@@ -26,6 +26,18 @@ return [
 ];
 ```
 
+### AssetMapper
+
+Créez config/packages/file_manager_system.yaml
+
+```yaml
+# config/packages/file_manager_system.yaml
+framework:
+    asset_mapper:
+        paths:
+            - '%kernel.project_dir%/vendor/anfallnorr/file-manager-system/assets'
+```
+
 ## Usage
 
 ### Initialize in a Controller
