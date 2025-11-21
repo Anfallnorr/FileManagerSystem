@@ -13,6 +13,20 @@ use Symfony\Component\Routing\Loader\Configurator\RoutingConfigurator;
 
 final class FileManagerSystem extends AbstractBundle
 {
+
+	/**
+	 * Configure Twig to recognize bundle templates
+	 */
+	public function prependExtension(ContainerConfigurator $container, ContainerBuilder $builder): void
+	{
+		// Register template paths - accessible via @FileManagerSystem/
+		$builder->prependExtensionConfig('twig', [
+			'paths' => [
+				$this->getPath() . '/templates' => 'FileManagerSystem'
+			]
+		]);
+	}
+
 	public function configure(DefinitionConfigurator $definition): void
 	{
 		$definition->rootNode()
@@ -61,3 +75,4 @@ final class FileManagerSystem extends AbstractBundle
 		return \dirname(__DIR__);
 	}
 }
+
