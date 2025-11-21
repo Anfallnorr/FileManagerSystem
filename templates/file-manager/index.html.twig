@@ -1,183 +1,230 @@
 {% extends 'base.html.twig' %}
 
-{# {% block title %}Js info - Anfallnorr/FileManagerSystem{% endblock %} #}
+{% block title %}BUNDLE Js info - Anfallnorr/FileManagerSystem{% endblock %}
+
+{% macro treeRender(folders) %}
+	<ul class="folder-tree list-none list-style-none _list-unstyled">
+		{% for folder in folders %}
+			{% set link_folder = path('app_file_manager', {'folder': folder.ltrimed_relative | raw}) %}
+			<li>
+				{# <a href="{{ path('app_file_manager', {'folder': folder.relative}) }}" #}
+				{# <a href="{{ link_folder }}" class="d-flex justify-content-between align-items-center"> #}
+				<a href="{{ link_folder }}" class="btn btn-success d-flex justify-content-between align-items-center mb-2">
+					<span><i class="bi bi-folder me-2"></i>{{ folder.foldername }}</span>
+					<span class="float-end badge bg-light rounded-pill">5</span>
+				</a>
+
+				{% if folder.children is not empty %}
+					{{ _self.treeRender(folder.children) }}
+				{% endif %}
+			</li>
+		{% endfor %}
+	</ul>
+{% endmacro treeRender %}
 
 {% block body %}
-	<div class="container">
+<div class="container">
 
-		<div class="row mb-3">
-			<div class="col">
-				{{ form(folder_form) }}
-			</div>
+	<div class="row mb-3">
+		<div class="col">
+			{{ form(folder_form) }}
 		</div>
+	</div>
 
-		<div class="row">
-			<div class="col">
-				{{ form(file_form) }}
-			</div>
+	<div class="row">
+		<div class="col">
+			{{ form(file_form) }}
 		</div>
+	</div>
 
-		<div id="files_zone" class="card mt-5 mb-3">
-			<div class="card-body" data-controller="table-check">
+	<div id="files_zone" class="card mt-5 mb-3">
+		<div class="card-body" data-controller="table-check">
 
-				<div id="data_breadcrumb" class="mb-3">
-					<ol class="breadcrumb _d-none _d-lg-flex d-flex">
-						<li class="breadcrumb-item">
-							<i class="bi bi-house lh-1"></i>
-							<a href="{{ path('app_file_manager') }}" class="text-decoration-none">My documents</a>
-						</li>
-						
-						{% for item in breadcrumb %}
-							{% set breadcrumb_link = breadcrumb_link ~ '/' ~ item %}
-							{% if loop.last %}
-								<li class="breadcrumb-item" aria-current="page">
-									<span>{{ item }}</span>
-								</li>
-							{% else %}
-								<li class="breadcrumb-item">
-									<a href="{{ path('app_file_manager', {'folder': breadcrumb_link | trim('/')}) }}">{{ item }}</a>
-								</li>
-							{% endif %}
-						{% endfor %}
-					</ol>
+			<div id="data_breadcrumb" class="mb-3">
+				<ol class="breadcrumb _d-none _d-lg-flex d-flex">
+					<li class="breadcrumb-item">
+						<i class="bi bi-house lh-1"></i>
+						<a href="{{ path('app_file_manager') }}" class="text-decoration-none">My documents</a>
+					</li>
+					
+					{% for item in breadcrumb %}
+						{% set breadcrumb_link = breadcrumb_link ~ '/' ~ item %}
+						{% if loop.last %}
+							<li class="breadcrumb-item" aria-current="page">
+								<span>{{ item }}</span>
+							</li>
+						{% else %}
+							<li class="breadcrumb-item">
+								<a href="{{ path('app_file_manager', {'folder': breadcrumb_link | trim('/')}) }}">{{ item }}</a>
+							</li>
+						{% endif %}
+					{% endfor %}
+				</ol>
+			</div>
+			<div class="d-flex flex-sm-row flex-column mb-3">
+				<div class="btn-group">
+					<a href="#" type="button" class="btn btn-primary px-sm-5" data-bs-toggle="modal" data-bs-target="#modal_go_to" title="Aller à">Go To</a>
 				</div>
-				<div class="d-flex flex-sm-row flex-column mb-3">
-					<div class="btn-group">
-						<a href="#" type="button" class="btn btn-primary px-sm-5" data-bs-toggle="modal" data-bs-target="#modal_go_to" title="Aller à">Go To</a>
-					</div>
-					<div class="btn-group ms-0 ms-sm-auto mt-1 mt-sm-0">
-						<button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" title="Bulk action">Bulk action</button>
-						<div class="dropdown-menu dropdown-menu-right dropdown-menu-lg-end">
-							<a href="#" class="dropdown-item massdownload-item" data-bs-toggle="modal" data-bs-target="#modal_download" title="Download the selection" context="massDownload">Download the selection</a>
-							<a href="#" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#modal_mass_move" title="Move selection" context="massMove">Move selection</a>
-							<a href="#" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#modal_mass_renamer" title="Rename selection" context="massRename">Rename selection</a>
-							<div class="dropdown-divider"></div>
-							<div class="dropdown-item">
-								<form action="{{ path('app_file_manager_mass_delete_folder', {'folder': current_folder}) }}" method="post" class="d-inline">
-									<input type="hidden" name="_method" value="DELETE" />
-									<input type="hidden" name="foldersToDelete" value="[]" data-table-check-target="itemDirDelete" />
-									<input type="hidden" name="filesToDelete" value="[]" data-table-check-target="itemDelete" />
-									<button type="submit" class="dropdown-item delete-item p-0" title="Delete selection" onclick="return confirm('Do you really want to delete these items?');" context="massDelete">
-										Delete selection
-									</button>
-								</form>
-							</div>
+				<div class="btn-group ms-0 ms-sm-auto mt-1 mt-sm-0">
+					<button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" title="Bulk action">Bulk action</button>
+					<div class="dropdown-menu dropdown-menu-right dropdown-menu-lg-end">
+						{# <a href="#" class="dropdown-item massdownload-item" data-bs-toggle="modal" data-bs-target="#modal_download" title="Download the selection" context="massDownload">Download the selection</a> #}
+						<div class="dropdown-item">
+							<form action="{{ path('app_file_manager_download_bulk_file', {'folder': current_folder}) }}" method="post" class="d-inline" data-turbo="false">
+								<input type="hidden" name="foldersToDownload" value="[]" data-table-check-target="itemDirDownload" />
+								<input type="hidden" name="filesToDownload" value="[]" data-table-check-target="itemDownload" />
+								<button type="submit" class="dropdown-item download-item p-0" title="Download selection" context="massDownload">
+									Download the selection
+								</button>
+							</form>
+						</div>
+						<a href="#" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#modal_mass_move" title="Move selection" context="massMove">Move selection</a>
+						{# <div class="dropdown-item">
+							<form action="{{ path('app_file_manager_Move_bulk_file', {'folder': current_folder}) }}" method="post" class="d-inline" data-turbo="false">
+								<input type="hidden" name="foldersToMove" value="[]" data-table-check-target="itemDirMove" />
+								<input type="hidden" name="filesToMove" value="[]" data-table-check-target="itemMove" />
+								<button type="submit" class="dropdown-item move-item p-0" data-bs-toggle="modal" data-bs-target="#modal_mass_move" title="Move selection" context="massMove">
+									Move selection
+								</button>
+							</form>
+						</div> #}
+						<a href="#" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#modal_mass_renamer" title="Rename selection" context="massRename">Rename selection</a>
+						{# <div class="dropdown-item">
+							<form action="{{ path('app_file_manager_rename_bulk_file', {'folder': current_folder}) }}" method="post" class="d-inline" data-turbo="false">
+								<input type="hidden" name="foldersToRename" value="[]" data-table-check-target="itemDirRename" />
+								<input type="hidden" name="filesToRename" value="[]" data-table-check-target="itemRename" />
+								<button type="submit" class="dropdown-item rename-item p-0" data-bs-toggle="modal" data-bs-target="#modal_mass_renamer" title="Rename selection" context="massRename">
+									Rename selection
+								</button>
+							</form>
+						</div> #}
+						<div class="dropdown-divider"></div>
+						<div class="dropdown-item">
+							<form action="{{ path('app_file_manager_mass_delete_folder', {'folder': current_folder}) }}" method="post" class="d-inline">
+								<input type="hidden" name="_method" value="DELETE" />
+								<input type="hidden" name="foldersToDelete" value="[]" data-table-check-target="itemDirDelete" />
+								<input type="hidden" name="filesToDelete" value="[]" data-table-check-target="itemDelete" />
+								<button type="submit" class="dropdown-item delete-item p-0" title="Delete selection" onclick="return confirm('Do you really want to delete these items?');" context="massDelete">
+									Delete selection
+								</button>
+							</form>
 						</div>
 					</div>
 				</div>
+			</div>
 
-				<hr class="my-3" />
+			<hr class="my-3" />
 
-				<div id="data_folders-list" class="mb-5">
-					<!-- Row start -->
-					<div id="folder-list" class="row gx-3">
-						{% include '@FileManagerSystem/_partials/elements/folders-list.html.twig' with {'folders': folders} %}
-					</div>
-					<!-- Row end -->
+			<div id="data_folders-list" class="mb-5">
+				<!-- Row start -->
+				<div id="folder-list" class="row gx-3">
+					{% include '@FileManagerSystem/_partials/elements/folders-list.html.twig' with {'folders': folders} %}
 				</div>
+				<!-- Row end -->
+			</div>
 
+			<div id="data_files-list">
+				{# {{ form(move_file_form) }} #}
 
-				<div id="data_files-list">
-					{# {{ form(move_file_form) }} #}
-
-					<div class="table-responsive">
-						<table class="table align-middle table-hover m-0">
-							<thead>
+				<div class="table-responsive">
+					<table class="table align-middle table-hover m-0">
+						<thead>
+							<tr>
+								<th scope="col" width="5%" class="text-center">
+									<div class="form-check">
+										<label class="form-check-label right-checkbox">
+											<input id="check_all" type="checkbox" name="select_file[]" class="form-check-input font-22" aria-label="Select all" data-action="change->table-check#changes" />
+										</label>
+									</div>
+								</th>
+								<th scope="col" width="15%">Image</th>
+								<th scope="col" width="35%">Name</th>
+								<th scope="col" width="10%">Dimensions</th>
+								<th scope="col" width="10%">Weight</th>
+								<th scope="col" width="15%">Date added</th>
+								<th scope="col" width="10%" class="text-center">Actions</th>
+							</tr>
+						</thead>
+						<tbody id="file-list" data-controller="preview confirms">
+							{% if files is empty %}
 								<tr>
-									<th scope="col" width="5%" class="text-center">
-										<div class="form-check">
-											<label class="form-check-label right-checkbox">
-												<input id="check_all" type="checkbox" name="select_file[]" class="form-check-input font-22" aria-label="Select all" data-action="change->table-check#changes" />
-											</label>
-										</div>
-									</th>
-									<th scope="col" width="15%">Image</th>
-									<th scope="col" width="35%">Name</th>
-									<th scope="col" width="10%">Dimensions</th>
-									<th scope="col" width="10%">Weight</th>
-									<th scope="col" width="15%">Date added</th>
-									<th scope="col" width="10%" class="text-center">Actions</th>
+									<td colspan="7" class="text-center"><h5>Aucun fichiers</h5></td>
 								</tr>
-							</thead>
-							<tbody id="file-list">
-								{% if files is empty %}
-									<tr>
-										<td colspan="7" class="text-center"><h5>Aucun fichiers</h5></td>
-									</tr>
-								{% else %}
-									{{ dump(files) }}
-									{% include '@FileManagerSystem/_partials/elements/files-list.html.twig' with {'files': files} %}
-								{% endif %}
-							</tbody>
-						</table>
-					</div>
-
+							{% else %}
+								{{ dump(files) }}
+								{% include '@FileManagerSystem/_partials/elements/files-list.html.twig' with {'files': files} %}
+							{% endif %}
+						</tbody>
+					</table>
 				</div>
+
 			</div>
 		</div>
-
 	</div>
 
+</div>
 
-	<div class="modal fade" id="modal_move_file" tabindex="-1" aria-labelledby="modal_move_file_label" aria-hidden="true">
-		<div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
-			<div class="modal-content">
-				<div class="modal-header">
-					<h5 class="modal-title h4" id="modal_move_file_label">Move <span id="filename">file.ext or direname</span></h5>
-					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-				</div>
-				<div class="modal-body">
-					<a href="{{ path('app_file_manager') }}" class="btn btn-success d-flex justify-content-between align-items-center mb-2" title="My documents">
-						<span>My documents</span><span class="float-end badge bg-light rounded-pill">5</span>
+
+<div class="modal fade" id="modal_move_file" tabindex="-1" aria-labelledby="modal_move_file_label" aria-hidden="true">
+	<div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title h4" id="modal_move_file_label">Move <span id="filename">file.ext or direname</span></h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body">
+				<a href="{{ path('app_file_manager') }}" class="btn btn-success d-flex justify-content-between align-items-center mb-2" title="My documents">
+					<span>My documents</span><span class="float-end badge bg-light rounded-pill">5</span>
+				</a>
+				{{ form_start(move_file_form) }}
+					{{ form_row(move_file_form.newPath) }}
+					{{ form_row(move_file_form.submit) }}
+				{{ form_end(move_file_form) }}
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-warning" data-bs-dismiss="modal">Cancel</button>
+				<button type="button" class="btn btn-primary">Move</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+{# <div class="modal fade" id="modal_viewer" tabindex="-1" aria-labelledby="modal_viewer_label" aria-hidden="true">
+	<div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title h4" id="modal_viewer_label">Preview</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body"><div id="content_result">...</div></div>
+		</div>
+	</div>
+</div> #}
+
+<div class="modal fade" id="modal_go_to" tabindex="-1" aria-labelledby="modal_go_to_label" aria-hidden="true">
+	<div class="modal-dialog modal-dialog-scrollable modal-lg">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="modal_go_to_label">Choisir la déstination</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body text-end">
+				{# {{ dump(allFolders) }} #}
+				<a href="{{ path('app_file_manager') }}" class="btn btn-success d-flex justify-content-between align-items-center mb-2" title="Mes dossiers">
+					<span><i class="bi bi-folder me-2"></i>My documents</span><span class="float-end badge bg-light rounded-pill">5</span>
+				</a>
+				{# {% for all_folder in allFolders %}
+					{% set link_folder = path('app_file_manager', {'folder': all_folder.ltrimed_relative | raw}) %}
+					<a href="{{ link_folder }}" class="btn btn-primary d-flex justify-content-between align-items-center my-1 _wp-100 _tree-before-0 _text-start _d-block" title="{{ all_folder.relative }}">
+						<span><i class="bi bi-folder me-2"></i>{{ all_folder.foldername }}</span><span class="float-end badge bg-light rounded-pill">5</span>
 					</a>
-					{{ form_start(move_file_form) }}
-						{{ form_row(move_file_form.newPath) }}
-						{{ form_row(move_file_form.submit) }}
-					{{ form_end(move_file_form) }}
-				</div>
-				<div class="modal-footer">
-					<button type="button" class="btn btn-warning" data-bs-dismiss="modal">Cancel</button>
-					<button type="button" class="btn btn-primary">Move</button>
-				</div>
+				{% endfor %} #}
+				{{ _self.treeRender(allFolders) }}
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-warning" data-bs-dismiss="modal">Cancel</button>
 			</div>
 		</div>
 	</div>
-
-	<div class="modal fade" id="modal_viewer" tabindex="-1" aria-labelledby="modal_viewer_label" aria-hidden="true">
-		<div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
-			<div class="modal-content">
-				<div class="modal-header">
-					<h5 class="modal-title h4" id="modal_viewer_label">Preview</h5>
-					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-				</div>
-				<div class="modal-body">...</div>
-			</div>
-		</div>
-	</div>
-
-	<div class="modal fade" id="modal_go_to" tabindex="-1" aria-labelledby="modal_go_to_label" aria-hidden="true">
-		<div class="modal-dialog modal-dialog-scrollable modal-lg">
-			<div class="modal-content">
-				<div class="modal-header">
-					<h5 class="modal-title" id="modal_go_to_label">Choisir la déstination</h5>
-					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-				</div>
-				<div class="modal-body text-end">
-					{# {{ dump(allFolders) }} #}
-					<a href="{{ path('app_file_manager') }}" class="btn btn-success d-flex justify-content-between align-items-center mb-2" title="Mes dossiers">
-						<span><i class="bi bi-folder me-2"></i>My documents</span><span class="float-end badge bg-light rounded-pill">5</span>
-					</a>
-					{% for all_folder in allFolders %}
-						{% set link_folder = path('app_file_manager', {'folder': all_folder.ltrimed_relative | raw}) %}
-						<a href="{{ link_folder }}" class="btn btn-primary d-flex justify-content-between align-items-center my-1 _wp-100 _tree-before-0 _text-start _d-block" title="{{ all_folder.relative }}">
-							<span><i class="bi bi-folder me-2"></i>{{ all_folder.foldername }}</span><span class="float-end badge bg-light rounded-pill">5</span>
-						</a>
-					{% endfor %}
-				</div>
-				<div class="modal-footer">
-					<button type="button" class="btn btn-warning" data-bs-dismiss="modal">Cancel</button>
-				</div>
-			</div>
-		</div>
-	</div>
+</div>
 {% endblock %}
