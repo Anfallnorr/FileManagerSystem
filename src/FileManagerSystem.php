@@ -1,6 +1,6 @@
 <?php
 
-// anfallnorr/file-manager-system/src/FileManagerSystemBundle.php
+// anfallnorr/file-manager-system/src/FileManagerSystem.php
 namespace Anfallnorr\FileManagerSystem;
 
 use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
@@ -11,7 +11,7 @@ use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigura
 use Symfony\Component\HttpKernel\Bundle\AbstractBundle;
 use Symfony\Component\Routing\Loader\Configurator\RoutingConfigurator;
 
-final class FileManagerSystemBundle extends AbstractBundle
+final class FileManagerSystem extends AbstractBundle
 {
 	/**
 	 * Configure Twig to recognize bundle templates
@@ -33,9 +33,9 @@ final class FileManagerSystemBundle extends AbstractBundle
 		// Configure les valeurs par défaut
 		$definition->rootNode()
 			->children()
-			// ->scalarNode('kernel_directory')->defaultValue('/')->end()
-			->scalarNode('relative_directory')->defaultValue('/public/uploads')->end()
-			->scalarNode('default_directory')->defaultValue('/public/uploads')->end()
+				// ->scalarNode('kernel_directory')->defaultValue('/')->end()
+				->scalarNode('relative_directory')->defaultValue('/public/uploads')->end()
+				->scalarNode('default_directory')->defaultValue('/public/uploads')->end()
 			->end()
 		;
 	}
@@ -54,6 +54,11 @@ final class FileManagerSystemBundle extends AbstractBundle
 			->set('fms.default_directory', $projectDir . $config['default_directory'])
 			->set('fms.relative_directory', $config['relative_directory'])
 		;
+
+		/* $container->services()
+			->load('Anfallnorr\\FileManagerSystem\\', $this->getPath() . '/src/*')
+			->exclude($this->getPath() . '/src/{DependencyInjection,Resources,Tests}')
+		; */
 
 		// Ajouter les services Filesystem et AsciiSlugger
 		// $builder->register(Filesystem::class)->setAutowired(true)->setPublic(true);
@@ -89,3 +94,4 @@ final class FileManagerSystemBundle extends AbstractBundle
 		return \dirname(__DIR__);
 	}
 }
+
