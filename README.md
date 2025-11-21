@@ -28,7 +28,7 @@ return [
 
 ### AssetMapper
 
-Créez config/packages/file_manager_system.yaml
+Create config/packages/file_manager_system.yaml
 
 ```yaml
 # config/packages/file_manager_system.yaml
