@@ -1,12 +1,18 @@
 # vendor/anfallnorr/file-manager-system/config/routes.yaml
-
 # file_manager_system:
 #     resource: ../src/Controller/
 #     type: attribute
 #     prefix: /
-fms:
-# file_manager_system:
+# fms:
+file_manager_system:
     resource: ../src/Controller/
     # resource: '@FileManagerSystemBundle/Controller/'
+    # resource: '@FileManagerSystem/Controller/'
     type: attribute
     prefix: /files-manager
+# file_manager_system:
+#     resource:
+#         path: ../src/Controller/
+#         namespace: Anfallnorr\FileManagerSystem\Controller
+#     type: annotation
+#     prefix: /files-manager
