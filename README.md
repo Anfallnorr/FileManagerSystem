@@ -62,7 +62,7 @@ $fmService = $this->fmService;
 $defaultDirectory = $fmService->getDefaultDirectory(); // /path/to/folder/public/uploads
 
 // Change the default upload directory
-$directory = $fmService->setDefaultDirectory($directory = '/var/www/uploads')->getDefaultDirectory(); // /path/to/folder/var/www/uploads
+$directory = $fmService->setDefaultDirectory(directory: '/var/www/uploads')->getDefaultDirectory(); // /path/to/folder/var/www/uploads
 
 // Retrieve available MIME types
 $mimeTypes = $fmService->getMimeTypes(); // array
@@ -85,6 +85,14 @@ $fmService->createDir($directory = 'Hello World !', $return = false);
 
 // Create a file named "hello-world.html" inside the default directory with content
 $fmService->createFile($filename = 'Hello World.html', $content = 'Hello World! I\'m Js info'); // $content is optional
+
+// This method allows you to download a file located in a specified directory (or in the default directory if none is provided).
+// It checks for the file's existence and returns a BinaryFileResponse configured to force the download.
+$fmService->download(filename: $filename, directory: $folder);
+
+// This method generates a ZIP file containing a list of files from a given directory (or the default directory).
+// It checks for the existence of each file, temporarily constructs the ZIP, and returns a BinaryFileResponse allowing the file to be downloaded.
+$fmService->downloadBulk(filenames: $files, folders: $folders);
 ```
 
 ### Optional Configuration
