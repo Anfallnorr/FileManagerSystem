@@ -37,12 +37,12 @@ final class FileManagerController extends AbstractController
 		} */
 	}
 
-	#[Route('/', name: 'app_index')]
+	/* #[Route('/', name: 'app_index')]
 	public function index()
 	{
 		dd('toto');
 		return $this->redirectToRoute('app_file_manager');
-	}
+	} */
 
 	#[Route('/home/{folder}', name: 'app_file_manager', defaults: ['folder' => ''], methods: ['POST', 'GET'], requirements: ['folder' => '.+'])]
 	public function home(Request $request, string $folder): Response
@@ -116,10 +116,10 @@ final class FileManagerController extends AbstractController
 
 
 			return new Response(
-				$this->renderView('_partials/elements/folders-list.html.twig', [
+				$this->renderView('@FileManagerSystem/_partials/elements/folders-list.html.twig', [
 					'folders' => $created,
 					'current_folder' => $folder,
-				]) . $this->renderView('_partials/elements/stream-flash.html.twig'),
+				]) . $this->renderView('@FileManagerSystem/_partials/elements/stream-flash.html.twig'),
 				200,
 				['Content-Type' => 'text/vnd.turbo-stream.html'] // Le type de contenu pour Turbo Stream
 			);
@@ -158,10 +158,10 @@ final class FileManagerController extends AbstractController
 			}
 
 			return new Response(
-				$this->renderView('_partials/elements/files-list.html.twig', [
+				$this->renderView('@FileManagerSystem/_partials/elements/files-list.html.twig', [
 					'files' => $uploaded,
 					'current_folder' => $folder,
-				]) . $this->renderView('_partials/elements/stream-flash.html.twig'),
+				]) . $this->renderView('@FileManagerSystem/_partials/elements/stream-flash.html.twig'),
 				200,
 				['Content-Type' => 'text/vnd.turbo-stream.html']
 			);
@@ -210,7 +210,7 @@ final class FileManagerController extends AbstractController
 		}
 
 
-		return $this->render('home/index.html.twig', [
+		return $this->render('@FileManagerSystem/file-manager/index.html.twig', [
 			'folder_form' => $createFolderForm,
 			'file_form' => $uploadFileForm,
 			'move_file_form' => $moveFileForm,
@@ -463,3 +463,4 @@ final class FileManagerController extends AbstractController
 		]);
 	}
 }
+
