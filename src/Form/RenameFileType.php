@@ -14,17 +14,17 @@ class RenameFileType extends AbstractType
 	public function buildForm(FormBuilderInterface $builder, array $options): void
 	{
 		$builder
-			->add('currentFileName', HiddenType::class)
-			->add('newFileName', TextType::class, [
+			->add(child: 'currentFileName', type: HiddenType::class)
+			->add(child: 'newFileName', type: TextType::class, options: [
 				'label' => 'Nouveau nom du fichier'
 			])
-			->add('submit', SubmitType::class, [
+			->add(child: 'submit', type: SubmitType::class, options: [
 				'label' => 'Renommer'
 			]);
 	}
 
 	public function configureOptions(OptionsResolver $resolver): void
 	{
-		$resolver->setDefaults([]);
+		$resolver->setDefaults(defaults: []);
 	}
 }
