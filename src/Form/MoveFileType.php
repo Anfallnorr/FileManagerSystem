@@ -15,17 +15,17 @@ class MoveFileType extends AbstractType
 	public function buildForm(FormBuilderInterface $builder, array $options): void
 	{
 		$builder
-			->add('currentPath', HiddenType::class)
-			->add('newPath', TextType::class, [
+			->add(child: 'currentPath', type: HiddenType::class)
+			->add(child: 'newPath', type: TextType::class, options: [
 				'label' => new TranslatableMessage('file_manager.new_path')
 			])
-			->add('submit', SubmitType::class, [
+			->add(child: 'submit', type: SubmitType::class, options: [
 				'label' => new TranslatableMessage('file_manager.move')
 			]);
 	}
 
 	public function configureOptions(OptionsResolver $resolver): void
 	{
-		$resolver->setDefaults([]);
+		$resolver->setDefaults(defaults: []);
 	}
 }
