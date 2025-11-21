@@ -12,7 +12,7 @@ export default class extends Controller {
 	}
 
 	connect() {
-		console.log("Contrôleur table-check connecté !");
+		console.log("Contrôleur table-check connecté avec Anfallnorr/file-manager-system !");
 		// this.checkValue = []; // Initialise le tableau
 	}
 
@@ -94,3 +94,4 @@ export default class extends Controller {
 		}
 	}
 }
+
