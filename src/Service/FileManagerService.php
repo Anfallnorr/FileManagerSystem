@@ -54,10 +54,10 @@ use Symfony\Component\String\Slugger\AsciiSlugger;
 class FileManagerService
 {
 	const EXTENSIONS = array(
-		'documents' => array('doc','docx','odf','odp','ods','odt','otf','ppt','csv','pps','pptx','xls','xlsx','rtf','txt','pdf'),
-		'images' => array('jpg','jpeg','png','tif','webp','bmp','ico','svg','gif'),
-		'audios' => array('mp3','wav','wave','wma','aac','mid','midi','ogg','aif','aiff'),
-		'videos' => array('mp4','mpg','mpeg','mov','3gp','avi')
+		'documents' => array('doc', 'docx', 'odf', 'odp', 'ods', 'odt', 'otf', 'ppt', 'csv', 'pps', 'pptx', 'xls', 'xlsx', 'rtf', 'txt', 'pdf'),
+		'images' => array('jpg', 'jpeg', 'png', 'tif', 'webp', 'bmp', 'ico', 'svg', 'gif'),
+		'audios' => array('mp3', 'wav', 'wave', 'wma', 'aac', 'mid', 'midi', 'ogg', 'aif', 'aiff'),
+		'videos' => array('mp4', 'mpg', 'mpeg', 'mov', '3gp', 'avi')
 	);
 
 	private array $mimeTypes;
@@ -69,8 +69,7 @@ class FileManagerService
 		private string $relativeDirectory,
 		private Filesystem $filesystem,
 		private AsciiSlugger $slugger
-	)
-	{
+	) {
 		// Unités de mesure pour la taille des fichiers
 		$this->unite = ['o' => "Octets", 'ko' => "Ko", 'mo' => "Mo", 'go' => "Go"];
 
@@ -230,11 +229,11 @@ class FileManagerService
 			$nestedDirectories = "";
 			$directories = explode('/', $directory);
 			$firstDir = $this->createSlug($directories[0]);
-			
+
 			foreach ($directories as $dir) {
 				$nestedDirectories .= '/' . $this->createSlug($dir);
 			}
-			
+
 			if (!empty($nestedDirectories)) {
 				$this->filesystem->mkdir($this->getDefaultDirectory() . $nestedDirectories);
 
@@ -690,18 +689,15 @@ class FileManagerService
 	{
 		if ($size < 1024) { // Octets
 			return $size . ' ' . $this->unite['o'];
-		}
-		else {
+		} else {
 			if ($size < 10485760) { // Ko
 				$ko = round($size / 1024, 2);
 				return $ko . ' ' . $this->unite['ko'];
-			}
-			else {
+			} else {
 				if ($size < 1073741824) { // Mo
 					$mo = round($size / (1024 * 1024), 2);
 					return $mo . ' ' . $this->unite['mo'];
-				}
-				else { // Go
+				} else { // Go
 					$go = round($size / (1024 * 1024 * 1024), 2);
 					return $go . ' ' . $this->unite['go'];
 				}
@@ -726,7 +722,7 @@ class FileManagerService
 
 		// Check if $files is an array (multiple upload) or a single file
 		$files = is_array($files) ? $files : [$files];
-		
+
 		if (!empty($newName) && count($files) > 1) {
 			$multiple = true;
 		}
@@ -899,10 +895,24 @@ class FileManagerService
 	}
 
 /* **************************************************************************************************************************************************************** */
+	/**
+	 * Télécharge un fichier depuis le répertoire par défaut ou un sous-répertoire spécifique.
+	 *
+	 * Construit le chemin complet du fichier à partir du répertoire indiqué (ou du
+	 * répertoire par défaut si aucun n’est fourni), vérifie son existence et renvoie
+	 * une réponse HTTP configurée pour forcer le téléchargement.
+	 *
+	 * @param string      $filename   Nom du fichier à télécharger.
+	 * @param string|null $directory  Sous-répertoire optionnel dans lequel se trouve le fichier.
+	 *
+	 * @return BinaryFileResponse     Réponse contenant le fichier en téléchargement.
+	 *
+	 * @throws \RuntimeException      Si le fichier est introuvable.
+	 */
 	public function download(string $filename, ?string $directory = null): BinaryFileResponse
 	{
 		// Si aucun répertoire n'est fourni, on prend le defaultDirectory
-		$baseDir = $directory 
+		$baseDir = $directory
 			? $this->getDefaultDirectory() . DIRECTORY_SEPARATOR . ltrim($directory, DIRECTORY_SEPARATOR)
 			: $this->getDefaultDirectory();
 
@@ -924,9 +934,26 @@ class FileManagerService
 		return $response;
 	}
 
+	/**
+	 * Télécharge plusieurs fichiers regroupés dans une archive ZIP.
+	 *
+	 * Construit un répertoire de base à partir du répertoire fourni (ou du répertoire
+	 * par défaut), vérifie l’existence de chaque fichier, crée une archive ZIP 
+	 * temporaire contenant ces fichiers, puis renvoie une réponse HTTP configurée 
+	 * pour forcer son téléchargement. Le ZIP est supprimé après envoi.
+	 *
+	 * @param array       $filenames  Liste des noms de fichiers à inclure dans l'archive ZIP.
+	 * @param array       $folders    Liste des dossiers associés aux fichiers (non utilisé actuellement).
+	 * @param string|null $directory  Sous-répertoire optionnel contenant les fichiers.
+	 *
+	 * @return BinaryFileResponse     Réponse contenant l’archive ZIP à télécharger.
+	 *
+	 * @throws \RuntimeException      Si un fichier est introuvable ou si l’archive ZIP
+	 *                                ne peut pas être créée.
+	 */
 	public function downloadBulk(array $filenames, array $folders, ?string $directory = null): BinaryFileResponse
 	{
-		$baseDir = $directory 
+		$baseDir = $directory
 			? $this->getDefaultDirectory() . DIRECTORY_SEPARATOR . ltrim($directory, DIRECTORY_SEPARATOR)
 			: $this->getDefaultDirectory();
 
@@ -960,7 +987,7 @@ class FileManagerService
 
 		return $response;
 	}
-/* **************************************************************************************************************************************************************** */
+	/* **************************************************************************************************************************************************************** */
 
 	public function remove(string $relativePath = ''): bool
 	{
