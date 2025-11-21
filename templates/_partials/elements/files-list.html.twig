@@ -1,10 +1,12 @@
 <turbo-stream action="prepend" target="file-list">
 	<template>
 		{% for file in files %}
+			{# {% set src_file = path('app_file_manager_serve', { 'filename': file.filename, 'folder': current_folder }) %} #}
 			{% set src_file = path('app_file_manager_serve', { 'filename': file.filename, 'folder': current_folder }) %}
+			{# {{ dump(file) }} #}
 			{# {% set src_file = asset('uploads' ~ file.relative) %} #}
 			
-			<tr>
+			<tr class="task task-files draggable" data-filesearch="{{ file.filename }}" draggable="true" data-action="dblclick->preview#dblClick">
 				<th scope="row" class="text-center">
 					<div class="form-check">
 						<label class="form-check-label right-checkbox">
@@ -17,8 +19,12 @@
 					</div>
 				</th>
 				<td class="image">
-					{% if file.dimensions.width or file.dimensions.height %}
-						<img loading="lazy" src="{{ src_file }}" alt="{{ file.filename }}" class="img-fluid img-thumbnail rounded-2" width="100" height="100" />
+					{% if (file.dimensions.width and file.dimensions.height) or file.extension == 'svg' %}
+						{# {{ dump(file) }} #}
+						{# {{ dump(path('app_file_manager_serve', { 'filename': file.filename, 'folder': current_folder })) }} #}
+						<img loading="lazy" src="{{ path('app_file_manager_serve', { 'filename': file.filename, 'folder': current_folder }) }}" alt="{{ file.filename }}"
+							class="img-fluid img-thumbnail rounded-2"
+							width="100" height="100" />
 					{% else %}
 						{# Fichier <strong>{{ file.extension }}</strong> #}
 						<div class="img-fluid text-center w-100px img-thumbnail rounded-2">
@@ -54,8 +60,8 @@
 						</button>
 						<ul class="dropdown-menu dropdown-menu-end dropdown-file pl-5" _data-popper-placement="bottom-start">
 							<li class="mb-1">
-								<a href="#{# {{ path('services.product.copy', {'filename': dive.filename}) }} #}" class="dropdown-item download-item" title="Download {{ file.filename }}" context="download">
-									Download
+								<a href="{{ path('app_file_manager_download_file', {'filename': file.filename, 'folder': current_folder}) }}" class="dropdown-item download-item" title="Download {{ file.filename }}" data-turbo="false" context="download">
+									<i class="bi bi-download me-2"></i>Download
 								</a>
 							</li>
 							{# <li class="my-1">
@@ -65,32 +71,40 @@
 							</li> #}
 							<li class="my-1">
 								<a href="#" class="dropdown-item move-item" data-bs-toggle="modal" data-bs-target="#modal_move_file{# _{{ loop.index }} #}" data-name="{{ file.filename }}" title="Move {{ file.filename }}" context="move">
-									Move
+									<i class="bi bi-arrows-move me-2"></i>Move
 								</a>
 							</li>
 							<li class="my-1">
 								<a href="#" class="dropdown-item rename-item" data-bs-toggle="modal" data-bs-target="#modal_rename_file_{{ loop.index }}" title="Rename {{ file.filename }}" context="rename">
-									Rename
+									<i class="bi bi-cursor-text me-2"></i>Rename
 								</a>
 							</li>
-							{% if file.dimensions.width or file.dimensions.height %}
-								<li class="my-1">
-									<a href="#" class="dropdown-item insight-item" data-bs-toggle="modal" data-bs-target="#modal_viewer" title="Preview de {{ file.filename }}" context="insight" data-insight-path="/1234.png" data-path="L3VwbG9hZHMvZGF0YXMvYzRjYTQyMzhhMGI5MjM4MjBkY2M1MDlhNmY3NTg0OWItMQ==" data-filename="{{ file.filename }}" data-ext="png">
-										Crop
-									</a>
-								</li>
-							{% endif %}
+							{# {% if file.dimensions.width or file.dimensions.height %}
+								<a href="#" class="dropdown-item preview-item" data-bs-toggle="modal" data-bs-target="#modal_viewer" title="Preview de {{ file.filename }}" context="insight" data-insight-path="/1234.png" data-path="L3VwbG9hZHMvZGF0YXMvYzRjYTQyMzhhMGI5MjM4MjBkY2M1MDlhNmY3NTg0OWItMQ==" data-filename="{{ file.filename }}" data-ext="png">
+									Crop
+								</a>
+							{% endif %} #}
 							<li><div class="dropdown-divider my-0"></div></li>
-							{# <li class="my-1">
-								<a href="#" class="dropdown-item insight-item" data-bs-toggle="modal" data-bs-target="#modal_viewer" title="Preview de {{ file.filename }}" context="insight" data-insight-path="/1234.png" data-path="L3VwbG9hZHMvZGF0YXMvYzRjYTQyMzhhMGI5MjM4MjBkY2M1MDlhNmY3NTg0OWItMQ==" data-filename="{{ file.filename }}" data-ext="png">
-									Preview
+							<li class="my-1">
+								<a href="#" class="dropdown-item preview-item"
+									title="Preview of {{ file.filename }}"
+									data-src-file="{{ src_file }}"
+									data-filename="{{ file.filename }}"
+									data-ext="{{ file.extension }}"
+									data-preview-target="previewItem"
+									data-action="preview#showItem:prevent"
+									context="preview"
+								>
+									<i class="bi bi-eye me-2"></i>File preview
 								</a>
 							</li>
-							<li><div class="dropdown-divider my-0"></div></li> #}
+							<li><div class="dropdown-divider my-0"></div></li>
 							<li class="mt-1">
 								<form action="{{ path('app_file_manager_delete_file', {'filename': file.filename, 'folder': current_folder}) }}" method="post" class="d-inline">
 									<input type="hidden" name="_method" value="DELETE" />
-									<button type="submit" class="dropdown-item delete-item" title="Delete" onclick="return confirm('Delete {{ file.filename }} ?');" title="Delete {{ file.filename }}" context="delete">Delete</button>
+									<button type="submit" class="dropdown-item delete-item" title="Delete" onclick="return confirm('Delete {{ file.filename }} ?');" title="Delete {{ file.filename }}" context="delete">
+										<i class="bi bi-trash me-2"></i>Delete
+									</button>
 								</form>
 							</li>
 						</ul>
