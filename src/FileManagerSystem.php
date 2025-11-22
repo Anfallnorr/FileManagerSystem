@@ -5,11 +5,11 @@ namespace Anfallnorr\FileManagerSystem;
 
 use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\DependencyInjection\Extension\Extension;
-use Symfony\Component\DependencyInjection\Extension\ExtensionInterface;
+// use Symfony\Component\DependencyInjection\Extension\Extension;
+// use Symfony\Component\DependencyInjection\Extension\ExtensionInterface;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\HttpKernel\Bundle\AbstractBundle;
-use Symfony\Component\Routing\Loader\Configurator\RoutingConfigurator;
+// use Symfony\Component\Routing\Loader\Configurator\RoutingConfigurator;
 
 final class FileManagerSystem extends AbstractBundle
 {
@@ -74,13 +74,14 @@ final class FileManagerSystem extends AbstractBundle
 		// $builder->register(AsciiSlugger::class)->setAutowired(true)->setPublic(true);
 	}
 
-	public function configureRoutes(RoutingConfigurator $routes, array $config): void
+	/* public function configureRoutes(RoutingConfigurator $routes, array $config): void
 	{
-		// Importer le fichier routes.yaml du bundle
-		$routes->import(resource: $this->getPath() . '/config/routes.yaml');
-	}
+		// Charger les routes depuis les controllers avec attributs
+		$routes->import(resource: $this->getPath() . '/src/Controller/', type: 'attribute')
+			->prefix(prefix: '/files-manager');
+	} */
 
-	public function getContainerExtension(): ?ExtensionInterface
+	/* public function getContainerExtension(): ?ExtensionInterface
 	{
 		if (null === $this->extension) {
 			$this->extension = new class extends Extension {
@@ -96,10 +97,10 @@ final class FileManagerSystem extends AbstractBundle
 			};
 		}
 		return $this->extension;
-	}
+	} */
 
 	public function getPath(): string
 	{
-		return \dirname(__DIR__);
+		return \dirname(path: __DIR__);
 	}
 }
