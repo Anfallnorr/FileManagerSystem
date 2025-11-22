@@ -53,12 +53,12 @@ use Symfony\Component\String\Slugger\AsciiSlugger;
 
 class FileManagerService
 {
-	const EXTENSIONS = array(
-		'documents' => array('doc', 'docx', 'odf', 'odp', 'ods', 'odt', 'otf', 'ppt', 'csv', 'pps', 'pptx', 'xls', 'xlsx', 'rtf', 'txt', 'pdf'),
-		'images' => array('jpg', 'jpeg', 'png', 'tif', 'webp', 'bmp', 'ico', 'svg', 'gif'),
-		'audios' => array('mp3', 'wav', 'wave', 'wma', 'aac', 'mid', 'midi', 'ogg', 'aif', 'aiff'),
-		'videos' => array('mp4', 'mpg', 'mpeg', 'mov', '3gp', 'avi')
-	);
+	const EXTENSIONS = [
+		'documents' => ['doc', 'docx', 'odf', 'odp', 'ods', 'odt', 'otf', 'ppt', 'csv', 'pps', 'pptx', 'xls', 'xlsx', 'rtf', 'txt', 'pdf'],
+		'images' => ['jpg', 'jpeg', 'png', 'tif', 'webp', 'bmp', 'ico', 'svg', 'gif'],
+		'audios' => ['mp3', 'wav', 'wave', 'wma', 'aac', 'mid', 'midi', 'ogg', 'aif', 'aiff'],
+		'videos' => ['mp4', 'mpg', 'mpeg', 'mov', '3gp', 'avi']
+	];
 
 	private array $mimeTypes;
 	private array $unite;
@@ -76,60 +76,60 @@ class FileManagerService
 		// Initialisation des types MIME pour différents formats de fichiers
 		$this->mimeTypes = [
 			// Formats graphiques vectoriels et images
-			'ai'   => 'application/postscript', // Adobe Illustrator
-			'eps'  => 'application/postscript', // Encapsulated PostScript
-			'svg'  => 'image/svg+xml',          // SVG
-			'psd'  => 'image/vnd.adobe.photoshop', // Photoshop
+			'ai' => 'application/postscript', // Adobe Illustrator
+			'eps' => 'application/postscript', // Encapsulated PostScript
+			'svg' => 'image/svg+xml',          // SVG
+			'psd' => 'image/vnd.adobe.photoshop', // Photoshop
 			'indd' => 'application/x-indesign', // InDesign
-			'cdr'  => 'application/coreldraw',  // CorelDRAW (non standard, peut varier)
+			'cdr' => 'application/coreldraw',  // CorelDRAW (non standard, peut varier)
 			'sketch' => 'application/sketch',   // Sketch (non standard, peut varier)
-			'fig'  => 'application/fig',        // Figma (non standard, peut varier)
+			'fig' => 'application/fig',        // Figma (non standard, peut varier)
 
 			// Formats d'image courants
-			'jpg'  => 'image/jpeg',
+			'jpg' => 'image/jpeg',
 			'jpeg' => 'image/jpeg',
-			'png'  => 'image/png',
-			'gif'  => 'image/gif',
+			'png' => 'image/png',
+			'gif' => 'image/gif',
 			'webp' => 'image/webp',
-			'bmp'  => 'image/bmp',
+			'bmp' => 'image/bmp',
 			'tiff' => 'image/tiff',
-			'ico'  => 'image/x-icon',
+			'ico' => 'image/x-icon',
 
 			// Formats de développement web
 			'html' => 'text/html',
-			'htm'  => 'text/html',
-			'css'  => 'text/css',
-			'js'   => 'application/javascript',
+			'htm' => 'text/html',
+			'css' => 'text/css',
+			'js' => 'application/javascript',
 			'json' => 'application/json',
-			'xml'  => 'application/xml',
-			'php'  => 'application/x-httpd-php', // PHP
+			'xml' => 'application/xml',
+			'php' => 'application/x-httpd-php', // PHP
 
 			// Formats texte
-			'txt'  => 'text/plain', // Fichier texte brut
+			'txt' => 'text/plain', // Fichier texte brut
 
 			// Formats de documents
-			'pdf'  => 'application/pdf',
-			'doc'  => 'application/msword',
+			'pdf' => 'application/pdf',
+			'doc' => 'application/msword',
 			'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-			'xls'  => 'application/vnd.ms-excel',
+			'xls' => 'application/vnd.ms-excel',
 			'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-			'ppt'  => 'application/vnd.ms-powerpoint',
+			'ppt' => 'application/vnd.ms-powerpoint',
 			'pptx' => 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
 
 			// Archives
-			'zip'  => 'application/zip',
-			'rar'  => 'application/x-rar-compressed',
-			'tar'  => 'application/x-tar',
-			'gz'   => 'application/gzip',
-			'7z'   => 'application/x-7z-compressed',
+			'zip' => 'application/zip',
+			'rar' => 'application/x-rar-compressed',
+			'tar' => 'application/x-tar',
+			'gz' => 'application/gzip',
+			'7z' => 'application/x-7z-compressed',
 
 			// Formats audio et vidéo
-			'mp3'  => 'audio/mpeg',
-			'wav'  => 'audio/wav',
-			'ogg'  => 'audio/ogg',
-			'mp4'  => 'video/mp4',
-			'avi'  => 'video/x-msvideo',
-			'mov'  => 'video/quicktime',
+			'mp3' => 'audio/mpeg',
+			'wav' => 'audio/wav',
+			'ogg' => 'audio/ogg',
+			'mp4' => 'video/mp4',
+			'avi' => 'video/x-msvideo',
+			'mov' => 'video/quicktime',
 			'webm' => 'video/webm',
 		];
 	}
@@ -174,86 +174,86 @@ class FileManagerService
 
 	public function getMimeContent(string $relativeFile): string
 	{
-		return mime_content_type($this->getKernelDirectory() . $relativeFile);
+		return mime_content_type(filename: $this->getKernelDirectory() . $relativeFile);
 	}
 
 	public function getFileContent(string $relativeFile): string
 	{
 		// return $this->filesystem->readFile($this->getKernelDirectory() . $relativeFile);
-		return file_get_contents($this->getKernelDirectory() . $relativeFile);
+		return file_get_contents(filename: $this->getKernelDirectory() . $relativeFile);
 	}
 
 	public function exists(string $filePath, bool $absolute = false): bool
 	{
 		if ($absolute) {
-			return $this->filesystem->exists($filePath);
+			return $this->filesystem->exists(files: $filePath);
 		} else {
 			$exist = $this->getDefaultDirectory() . '/' . $filePath;
-			return $this->filesystem->exists($exist);
+			return $this->filesystem->exists(files: $exist);
 		}
 	}
 
 	public function createSlug(string $string): string
 	{
-		return $this->slugger->slug($string)->lower();
+		return $this->slugger->slug(string: $string)->lower();
 	}
 
 	public function createFile(string $filename, string $content = '<!DOCTYPE html><html lang="en"><body style="background: #ffffff;"></body></html>'): void
 	{
-		$extension = pathinfo($filename, PATHINFO_EXTENSION);
-		$filename = pathinfo($filename, PATHINFO_FILENAME);
+		$extension = pathinfo(path: $filename, flags: PATHINFO_EXTENSION);
+		$filename = pathinfo(path: $filename, flags: PATHINFO_FILENAME);
 
-		$this->filesystem->dumpFile($this->getDefaultDirectory() . '/' . $this->createSlug($filename) . '.' . $extension, $content);
+		$this->filesystem->dumpFile(filename: $this->getDefaultDirectory() . '/' . $this->createSlug(string: $filename) . '.' . $extension, content: $content);
 	}
 
 	public function createDir(string $directory, bool $return = false): array
 	{
 		$outputDirectories = [];
 
-		if (str_contains($directory, '+')) {
-			$directories = explode('+', $directory);
+		if (str_contains(haystack: $directory, needle: '+')) {
+			$directories = explode(separator: '+', string: $directory);
 
 			foreach ($directories as $dir) {
-				$dirs = $this->createSlug($dir);
-				$this->filesystem->mkdir($this->getDefaultDirectory() . '/' . $dirs);
+				$dirs = $this->createSlug(string: $dir);
+				$this->filesystem->mkdir(dirs: $this->getDefaultDirectory() . '/' . $dirs);
 
-				$relative = substr($this->getDefaultDirectory() . '/' . $dirs, strlen($this->getKernelDirectory() . $this->getRelativeDirectory()));
+				$relative = substr(string: $this->getDefaultDirectory() . '/' . $dirs, offset: strlen(string: $this->getKernelDirectory() . $this->getRelativeDirectory()));
 				$outputDirectories[] = [
 					'absolute' => $this->getDefaultDirectory() . '/' . $dirs,
 					'relative' => $relative,
-					'ltrimed_relative' => ltrim($relative, '/'),
+					'ltrimed_relative' => ltrim(string: $relative, characters: '/'),
 					'foldername' => $dirs
 				];
 			}
-		} elseif (str_contains($directory, '/')) {
+		} elseif (str_contains(haystack: $directory, needle: '/')) {
 			$nestedDirectories = "";
-			$directories = explode('/', $directory);
-			$firstDir = $this->createSlug($directories[0]);
+			$directories = explode(separator: '/', string: $directory);
+			$firstDir = $this->createSlug(string: $directories[0]);
 
 			foreach ($directories as $dir) {
-				$nestedDirectories .= '/' . $this->createSlug($dir);
+				$nestedDirectories .= '/' . $this->createSlug(string: $dir);
 			}
 
 			if (!empty($nestedDirectories)) {
-				$this->filesystem->mkdir($this->getDefaultDirectory() . $nestedDirectories);
+				$this->filesystem->mkdir(dirs: $this->getDefaultDirectory() . $nestedDirectories);
 
-				$relative = substr($this->getDefaultDirectory() . '/' . $firstDir, strlen($this->getKernelDirectory() . $this->getRelativeDirectory()));
+				$relative = substr(string: $this->getDefaultDirectory() . '/' . $firstDir, offset: strlen(string: $this->getKernelDirectory() . $this->getRelativeDirectory()));
 				$outputDirectories[] = [
 					'absolute' => $this->getDefaultDirectory() . '/' . $firstDir,
 					'relative' => $relative,
-					'ltrimed_relative' => ltrim($relative, '/'),
+					'ltrimed_relative' => ltrim(string: $relative, characters: '/'),
 					'foldername' => $firstDir
 				];
 			}
 		} else {
-			$dir = $this->createSlug($directory);
-			$this->filesystem->mkdir($this->getDefaultDirectory() . '/' . $dir);
+			$dir = $this->createSlug(string: $directory);
+			$this->filesystem->mkdir(dirs: $this->getDefaultDirectory() . '/' . $dir);
 
-			$relative = substr($this->getDefaultDirectory() . '/' . $dir, strlen($this->getKernelDirectory() . $this->getRelativeDirectory()));
+			$relative = substr(string: $this->getDefaultDirectory() . '/' . $dir, offset: strlen(string: $this->getKernelDirectory() . $this->getRelativeDirectory()));
 			$outputDirectories[] = [
 				'absolute' => $this->getDefaultDirectory() . '/' . $dir,
 				'relative' => $relative,
-				'ltrimed_relative' => ltrim($relative, '/'),
+				'ltrimed_relative' => ltrim(string: $relative, characters: '/'),
 				'foldername' => $dir
 			];
 		}
@@ -271,11 +271,11 @@ class FileManagerService
 		} elseif (str_contains($directory, '/')) {
 			$nestedDirectories = "";
 			$directories = explode('/', $directory);
-			
+
 			foreach ($directories as $dir) {
 				$nestedDirectories .= '/' . $this->createSlug($dir);
 			}
-			
+
 			if (!empty($nestedDirectories)) {
 				$this->filesystem->mkdir($this->getDefaultDirectory() . $nestedDirectories);
 			}
@@ -300,23 +300,23 @@ class FileManagerService
 	public static function categorizeFiles(array $files, bool $basename = false, bool $path = false): array
 	{
 		/* // Initialisation du tableau des catégories de fichiers avec les tableaux vides pour chaque catégorie
-		$categories = array(
-			'documents' => array(
-				'src' => array(), 'basename' => array(), 'path' => array()
-			),
-			'images' => array(
-				'src' => array(), 'basename' => array(), 'path' => array()
-			),
-			'audios' => array(
-				'src' => array(), 'basename' => array(), 'path' => array()
-			),
-			'videos' => array(
-				'src' => array(), 'basename' => array(), 'path' => array()
-			),
-			'other' => array(
-				'src' => array(), 'basename' => array(), 'path' => array()
-			)
-		);
+		$categories = [
+			'documents' => [
+				'src' => [], 'basename' => [], 'path' => []
+			],
+			'images' => [
+				'src' => [], 'basename' => [], 'path' => []
+			],
+			'audios' => [
+				'src' => [], 'basename' => [], 'path' => []
+			],
+			'videos' => [
+				'src' => [], 'basename' => [], 'path' => []
+			],
+			'other' => [
+				'src' => [], 'basename' => [], 'path' => []
+			]
+		];
 
 		// Boucle sur chaque fichier dans le tableau des fichiers
 		foreach ($files as $file) {
@@ -418,38 +418,38 @@ class FileManagerService
 			return self::EXTENSIONS[$type];
 		} */
 
-		return array();
+		return [];
 	}
 
 	public function getDirs(string $path = '/', string $excludeDir = "", string|null $depth = '== 0'): array
 	{
-		$realPath = realpath($this->getDefaultDirectory() . '/' . trim($path, '/'));
+		$realPath = realpath(path: $this->getDefaultDirectory() . '/' . trim(string: $path, characters: '/'));
 
-		if (!$realPath || !is_dir($realPath)) {
+		if (!$realPath || !is_dir(filename: $realPath)) {
 			return [];
 		}
 
 		$finder = new Finder();
 		if ($depth) {
-			$finder->depth($depth); // Search only folders at the given depth $depth
+			$finder->depth(levels: $depth); // Search only folders at the given depth $depth
 		}
-		$finder->directories()->in($realPath); // Search only folders at the root
+		$finder->directories()->in(dirs: $realPath); // Search only folders at the root
 
 		$directories = [];
 		foreach ($finder as $dir) {
 			$dirPath = $dir->getRealPath();
 
-			if ($excludeDir && str_contains($dirPath, $excludeDir)) {
+			if ($excludeDir && str_contains(haystack: $dirPath, needle: $excludeDir)) {
 				continue;
 			}
 
-			$relative = str_replace($this->getDefaultDirectory(), '', $dirPath);
+			$relative = str_replace(search: $this->getDefaultDirectory(), replace: '', subject: $dirPath);
 			// $relative = str_replace($this->getKernelDirectory(), '', $dirPath);
 
 			$directories[] = [
 				'absolute' => $dirPath,
 				'relative' => $relative,
-				'ltrimed_relative' => ltrim($relative, '/'),
+				'ltrimed_relative' => ltrim(string: $relative, characters: '/'),
 				'foldername' => $dir->getFilename(),
 			];
 		}
@@ -459,17 +459,17 @@ class FileManagerService
 
 	public function getDirsTree(string $path = '/', string $excludeDir = "", string|null $depth = '== 0'): array
 	{
-		$realPath = realpath($this->getDefaultDirectory() . '/' . trim($path, '/'));
+		$realPath = realpath(path: $this->getDefaultDirectory() . '/' . trim(string: $path, characters: '/'));
 
-		if (!$realPath || !is_dir($realPath)) {
+		if (!$realPath || !is_dir(filename: $realPath)) {
 			return [];
 		}
 
 		$finder = new Finder();
 		if ($depth) {
-			$finder->depth($depth); // Search only folders at the given depth $depth
+			$finder->depth(levels: $depth); // Search only folders at the given depth $depth
 		}
-		$finder->directories()->in($realPath); // Search only folders at the root
+		$finder->directories()->in(dirs: $realPath); // Search only folders at the root
 		// $finder->directories()->in($realPath)->depth('== 0'); // seulement 1er niveau
 
 		$directories = [];
@@ -477,19 +477,19 @@ class FileManagerService
 		foreach ($finder as $dir) {
 			$dirPath = $dir->getRealPath();
 
-			if ($excludeDir && str_contains($dirPath, $excludeDir)) {
+			if ($excludeDir && str_contains(haystack: $dirPath, needle: $excludeDir)) {
 				continue;
 			}
 
-			$relative = str_replace($this->getDefaultDirectory(), '', $dirPath);
+			$relative = str_replace(search: $this->getDefaultDirectory(), replace: '', subject: $dirPath);
 
 			$directories[] = [
-				'absolute'   => $dirPath,
-				'relative'   => $relative,
-				'ltrimed_relative' => ltrim($relative, '/'),
+				'absolute' => $dirPath,
+				'relative' => $relative,
+				'ltrimed_relative' => ltrim(string: $relative, characters: '/'),
 				'foldername' => $dir->getFilename(),
 				// appel récursif pour sous-dossiers
-				'children'   => $this->getDirsTree($relative, $excludeDir),
+				'children' => $this->getDirsTree(path: $relative, excludeDir: $excludeDir),
 			];
 		}
 
@@ -508,7 +508,7 @@ class FileManagerService
 	public static function getSliceDirs(string|array $dirs, int $slice, bool $implode = false): string|array
 	{
 		/* if (is_array($dirs)) {
-			$tree_structure = array();
+			$tree_structure = [];
 
 			foreach ($dirs as $dir) {
 				// Divise le répertoire en parties en utilisant le séparateur "/" et extrait les parties à partir de l'index $slice
@@ -521,7 +521,7 @@ class FileManagerService
 		// Si l'option $implode est activée et la structure n'est pas vide
 		if ($implode === true && !empty($tree_structure)) {
 			if (is_array($dirs)) {
-				$tree_structure_imploded = array();
+				$tree_structure_imploded = [];
 
 				// Parcourt chaque structure d'arbre et concatène les parties en utilisant le séparateur "/"
 				foreach ($tree_structure as $implode_structure) {
@@ -545,7 +545,7 @@ class FileManagerService
 		}
 
 		// Définit le chemin du répertoire pour les méthodes getDirs et getFiles
-		$this->setDefaultDirectory($dir);
+		$this->setDefaultDirectory(directory: $dir);
 
 		// Récupère les sous-dossiers et fichiers
 		$dirs = $this->getDirs();
@@ -556,9 +556,9 @@ class FileManagerService
 			$this->remove();
 
 			// Appelle récursivement la fonction sur le dossier parent
-			$parentDir = dirname($dir);
+			$parentDir = dirname(path: $dir);
 			if ($parentDir !== $dir) { // Évite la récursion infinie
-				$this->cleanDir($parentDir);
+				$this->cleanDir(dir: $parentDir);
 			}
 		}
 	}
@@ -572,17 +572,17 @@ class FileManagerService
 	 */
 	public function getFiles(string $path = '/', string|null $depth = '== 0'): array|bool
 	{
-		$realPath = realpath(rtrim($this->getDefaultDirectory(), '/') . '/' . trim($path, '/'));
+		$realPath = realpath(path: rtrim(string: $this->getDefaultDirectory(), characters: '/') . '/' . trim(string: $path, characters: '/'));
 
-		if (!$realPath || !is_dir($realPath)) {
+		if (!$realPath || !is_dir(filename: $realPath)) {
 			return false;
 		}
 
 		$finder = new Finder();
 		if ($depth) {
-			$finder->depth($depth); // $finder->depth(['== 0']);
+			$finder->depth(levels: $depth); // $finder->depth(['== 0']);
 		}
-		$finder->files()->in($realPath); // $finder->files()->in($realPath)->depth('== 0');
+		$finder->files()->in(dirs: $realPath); // $finder->files()->in($realPath)->depth('== 0');
 
 		if (!$finder->hasResults()) {
 			return false;
@@ -591,7 +591,7 @@ class FileManagerService
 		$fileList = [];
 
 		foreach ($finder as $file) {
-			$fileList[] = $this->getFileInfo($file);
+			$fileList[] = $this->getFileInfo(file: $file);
 		}
 
 		return $fileList;
@@ -600,9 +600,9 @@ class FileManagerService
 	public function getImageSize(string $filePath, bool $absolute = false): ?array
 	{
 		if ($absolute) {
-			$imageSize = @getimagesize($filePath);
+			$imageSize = @getimagesize(filename: $filePath);
 		} else {
-			$imageSize = @getimagesize($this->getKernelDirectory() . $filePath);
+			$imageSize = @getimagesize(filename: $this->getKernelDirectory() . $filePath);
 		}
 
 		if ($imageSize) {
@@ -632,24 +632,24 @@ class FileManagerService
 
 		return [
 			'absolute' => $filePath,
-			'relative' => substr($filePath, strlen($this->getKernelDirectory() . $this->getRelativeDirectory())), // 'relative' => str_replace($this->getKernelDirectory() . $this->getRelativeDirectory(), '', $filePath), // 'relative' => strstr($filePath, $this->getRelativeDirectory(), false),
+			'relative' => substr(string: $filePath, offset: strlen(string: $this->getKernelDirectory() . $this->getRelativeDirectory())), // 'relative' => str_replace($this->getKernelDirectory() . $this->getRelativeDirectory(), '', $filePath), // 'relative' => strstr($filePath, $this->getRelativeDirectory(), false),
 			'filename' => $file->getFilename(),
-			'filesize' => $this->getSizeName($file->getSize()),
+			'filesize' => $this->getSizeName(size: $file->getSize()),
 			'filemtime' => $file->getMTime(),
 			/* 'dimensions' => [
 				'width' => $imageSize[0] ?? null,
 				'height' => $imageSize[1] ?? null
 			], */
-			'dimensions' => $this->getDimensionsFileInfo($filePath),
+			'dimensions' => $this->getDimensionsFileInfo(filePath: $filePath),
 			'extension' => $file->getExtension(),
-			'mime' => mime_content_type($file->getPathname()) // 'mime' => $imageSize['mime'] ?? null
+			'mime' => mime_content_type(filename: $file->getPathname()) // 'mime' => $imageSize['mime'] ?? null
 		];
 	}
 
 	private function getDimensionsFileInfo(string $filePath): array
 	{
 		// $filePath = $file->getRealPath();
-		$imageSize = @getimagesize($filePath); // Avoid error if it is not an image
+		$imageSize = @getimagesize(filename: $filePath); // Avoid error if it is not an image
 
 		return [
 			'width' => $imageSize[0] ?? null,
@@ -691,14 +691,14 @@ class FileManagerService
 			return $size . ' ' . $this->unite['o'];
 		} else {
 			if ($size < 10485760) { // Ko
-				$ko = round($size / 1024, 2);
+				$ko = round(num: $size / 1024, precision: 2);
 				return $ko . ' ' . $this->unite['ko'];
 			} else {
 				if ($size < 1073741824) { // Mo
-					$mo = round($size / (1024 * 1024), 2);
+					$mo = round(num: $size / (1024 * 1024), precision: 2);
 					return $mo . ' ' . $this->unite['mo'];
 				} else { // Go
-					$go = round($size / (1024 * 1024 * 1024), 2);
+					$go = round(num: $size / (1024 * 1024 * 1024), precision: 2);
 					return $go . ' ' . $this->unite['go'];
 				}
 			}
@@ -721,9 +721,9 @@ class FileManagerService
 		$multiple = null;
 
 		// Check if $files is an array (multiple upload) or a single file
-		$files = is_array($files) ? $files : [$files];
+		$files = is_array(value: $files) ? $files : [$files];
 
-		if (!empty($newName) && count($files) > 1) {
+		if (!empty($newName) && count(value: $files) > 1) {
 			$multiple = true;
 		}
 
@@ -738,24 +738,24 @@ class FileManagerService
 					'extension' => $file->getClientOriginalExtension()
 				];
 			} else {
-				$fileInfo = pathinfo($file->getClientOriginalName());
+				$fileInfo = pathinfo(path: $file->getClientOriginalName());
 			}
 
-			$filename = $this->createSlug($fileInfo['filename']) . '.' . strtolower($fileInfo['extension']);
+			$filename = $this->createSlug(string: $fileInfo['filename']) . '.' . strtolower(string: $fileInfo['extension']);
 
 			$output = [
 				'absolute' => $folder . '/' . $filename,
-				'relative' => substr($folder . '/' . $filename, strlen($this->getKernelDirectory() . $this->getRelativeDirectory())), // 'relative' => str_replace($this->getKernelDirectory(), '', $folder . '/' . $filename),
+				'relative' => substr(string: $folder . '/' . $filename, offset: strlen(string: $this->getKernelDirectory() . $this->getRelativeDirectory())), // 'relative' => str_replace($this->getKernelDirectory(), '', $folder . '/' . $filename),
 				'filename' => $filename,
-				'filesize' => $this->getSizeName($file->getSize()),
+				'filesize' => $this->getSizeName(size: $file->getSize()),
 				'filemtime' => $file->getMTime(),
-				'extension' => (!empty($file->getExtension())) ? $file->getExtension() : pathinfo($filename, PATHINFO_EXTENSION),
-				'mime' => mime_content_type($file->getPathname())
+				'extension' => (!empty($file->getExtension())) ? $file->getExtension() : pathinfo(path: $filename, flags: PATHINFO_EXTENSION),
+				'mime' => mime_content_type(filename: $file->getPathname())
 			];
 
 			// Upload file
-			if (!$file->move($folder, $filename)) {
-				throw new \Exception("A problem occurred while uploading this file: " . $filename);
+			if (!$file->move(directory: $folder, name: $filename)) {
+				throw new \Exception(message: "A problem occurred while uploading this file: " . $filename);
 			}
 
 			/* $imageSize = @getimagesize($folder . '/' . $filename); // Avoid error if it is not an image
@@ -763,7 +763,7 @@ class FileManagerService
 				'width' => $imageSize[0] ?? null,
 				'height' => $imageSize[1] ?? null
 			]; */
-			$output['dimensions'] = $this->getDimensionsFileInfo($folder . '/' . $filename);
+			$output['dimensions'] = $this->getDimensionsFileInfo(filePath: $folder . '/' . $filename);
 
 			$uploadedFiles[] = $output;
 		}
@@ -894,7 +894,7 @@ class FileManagerService
 		}
 	}
 
-/* **************************************************************************************************************************************************************** */
+	/* **************************************************************************************************************************************************************** */
 	/**
 	 * Télécharge un fichier depuis le répertoire par défaut ou un sous-répertoire spécifique.
 	 *
@@ -913,7 +913,7 @@ class FileManagerService
 	{
 		// Si aucun répertoire n'est fourni, on prend le defaultDirectory
 		$baseDir = $directory
-			? $this->getDefaultDirectory() . DIRECTORY_SEPARATOR . ltrim($directory, DIRECTORY_SEPARATOR)
+			? $this->getDefaultDirectory() . DIRECTORY_SEPARATOR . ltrim(string: $directory, characters: DIRECTORY_SEPARATOR)
 			: $this->getDefaultDirectory();
 
 		$filePath = $baseDir . DIRECTORY_SEPARATOR . $filename;
@@ -921,14 +921,14 @@ class FileManagerService
 		// dump($this->getDefaultDirectory());
 		// dd($filePath);
 
-		if (!file_exists($filePath)) {
-			throw new \RuntimeException(sprintf('Le fichier "%s" est introuvable.', str_replace($this->getDefaultDirectory(), "", $filePath)));
+		if (!file_exists(filename: $filePath)) {
+			throw new \RuntimeException(message: sprintf(format: 'Le fichier "%s" est introuvable.', values: str_replace(search: $this->getDefaultDirectory(), replace: "", subject: $filePath)));
 		}
 
-		$response = new BinaryFileResponse($filePath);
+		$response = new BinaryFileResponse(file: $filePath);
 		$response->setContentDisposition(
-			ResponseHeaderBag::DISPOSITION_ATTACHMENT,
-			basename($filePath)
+			disposition: ResponseHeaderBag::DISPOSITION_ATTACHMENT,
+			filename: basename(path: $filePath)
 		);
 
 		return $response;
@@ -954,36 +954,36 @@ class FileManagerService
 	public function downloadBulk(array $filenames, array $folders, ?string $directory = null): BinaryFileResponse
 	{
 		$baseDir = $directory
-			? $this->getDefaultDirectory() . DIRECTORY_SEPARATOR . ltrim($directory, DIRECTORY_SEPARATOR)
+			? $this->getDefaultDirectory() . DIRECTORY_SEPARATOR . ltrim(string: $directory, characters: DIRECTORY_SEPARATOR)
 			: $this->getDefaultDirectory();
 
 		// Créer un fichier zip temporaire
 		$zipPath = sys_get_temp_dir() . '/files_' . uniqid() . '.zip';
 		$zip = new \ZipArchive();
 
-		if ($zip->open($zipPath, \ZipArchive::CREATE) !== true) {
-			throw new \RuntimeException('Impossible de créer le ZIP.');
+		if ($zip->open(filename: $zipPath, flags: \ZipArchive::CREATE) !== true) {
+			throw new \RuntimeException(message: 'Impossible de créer le ZIP.');
 		}
 
 		foreach ($filenames as $filename) {
 			$filePath = $baseDir . DIRECTORY_SEPARATOR . $filename;
 
-			if (!file_exists($filePath)) {
-				throw new \RuntimeException(sprintf('Le fichier "%s" est introuvable.', $filePath));
+			if (!file_exists(filename: $filePath)) {
+				throw new \RuntimeException(message: sprintf(format: 'Le fichier "%s" est introuvable.', values: $filePath));
 			}
 
 			// Ajouter le fichier au zip
-			$zip->addFile($filePath, basename($filePath));
+			$zip->addFile(filepath: $filePath, entryname: basename(path: $filePath));
 		}
 
 		$zip->close();
 
 		// Retourner le zip en téléchargement
-		$response = new BinaryFileResponse($zipPath);
-		$response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, 'files.zip');
+		$response = new BinaryFileResponse(file: $zipPath);
+		$response->setContentDisposition(disposition: ResponseHeaderBag::DISPOSITION_ATTACHMENT, filename: 'files.zip');
 
 		// Supprimer le zip après envoi
-		$response->deleteFileAfterSend(true);
+		$response->deleteFileAfterSend(shouldDelete: true);
 
 		return $response;
 	}
@@ -992,17 +992,17 @@ class FileManagerService
 	public function remove(string $relativePath = ''): bool
 	{
 		if (empty($relativePath)) {
-			$this->filesystem->remove($this->getDefaultDirectory());
+			$this->filesystem->remove(files: $this->getDefaultDirectory());
 
-			if ($this->exists($this->getDefaultDirectory(), true)) {
+			if ($this->exists(filePath: $this->getDefaultDirectory(), absolute: true)) {
 				return false;
 			} else {
 				return true;
 			}
 		} else {
-			$this->filesystem->remove($this->getDefaultDirectory() . '/' . $relativePath);
+			$this->filesystem->remove(files: $this->getDefaultDirectory() . '/' . $relativePath);
 
-			if ($this->exists($relativePath)) {
+			if ($this->exists(filePath: $relativePath)) {
 				return false;
 			} else {
 				return true;
@@ -1028,40 +1028,55 @@ class FileManagerService
 	 */
 	public function copy(string $source, string $destination, bool $override = false): bool
 	{
-		$this->filesystem->copy($this->getKernelDirectory() . $source, $this->getKernelDirectory() . $destination, $override);
+		$this->filesystem->copy(originFile: $this->getKernelDirectory() . $source, targetFile: $this->getKernelDirectory() . $destination, overwriteNewerFiles: $override);
 		return true;
 	}
 
-	/* public function rename(string $source, string $destination, bool $override = false): bool
+	public function rename(string $source, string $destination, bool $override = false): bool
 	{
-		dump($source);
-		dd($destination);
-		// renames a file
-		$filesystem->rename('/tmp/processed_video.ogg', '/path/to/store/video_647.ogg');
+		dump(vars: $source);
+		dump(vars: $destination);
+		dd(vars: $override);
+		/* // renames a file
+		$filesystem->rename(source: '/tmp/processed_video.ogg', destination: '/path/to/store/video_647.ogg', override: false);
 		// renames a directory
-		$filesystem->rename('/tmp/files', '/path/to/store/files');
+		$filesystem->rename(source: '/tmp/files', destination: '/path/to/store/files', override: false);
 
 		// if ($this->filesystem->rename($this->getDefaultDirectory() . '/' . $relativePath)) {
 		// 	return true;
 		// } else {
 		// 	return false;
-		// }
+		// } */
 		return true;
-	} */
+	}
 
-	public function move(string $newName, bool $override = false): bool
+	public function move(string $origine, string $target, bool $overwrite = false): bool
 	{
-		dd($newName);
-		// renames a file
-		$filesystem->rename('/tmp/processed_video.ogg', '/path/to/store/video_647.ogg');
-		// renames a directory
-		$filesystem->rename('/tmp/files', '/path/to/store/files');
+		dump(vars: $origine);
+		dump(vars: $target);
+		dd(vars: $overwrite);
 
-		// if ($this->filesystem->rename($this->getDefaultDirectory() . '/' . $relativePath)) {
-		// 	return true;
-		// } else {
-		// 	return false;
-		// }
+		/* $origineFile = "/tmp/processed_video.ogg";
+		$targetFile = "/path/to/store/video_647.ogg";
+
+		$origineDir = "/tmp/files";
+		$targetDir = "/path/to/store/files";
+
+		$overwrite = true; */
+
+		// renames a file
+		$this->filesystem->rename(origin: '/tmp/processed_video.ogg', target: '/path/to/store/video_647.ogg');
+		// renames a directory
+		$this->filesystem->rename(origin: '/tmp/files', target: '/path/to/store/files');
+		// if the target already exists, a third boolean argument is available to overwrite.
+		$this->filesystem->rename(origin: '/tmp/processed_video2.ogg', target: '/path/to/store/video_647.ogg', overwrite: true);
+
+		/* $origine = "";
+		$target = "";
+		$iterator = null;
+		$options = [];
+		$this->filesystem->mirror(originDir: $origine, targetDir: $target, iterator: $iterator, options: $options); */
+
 		return true;
 	}
 }
