@@ -151,7 +151,7 @@
 									<td colspan="7" class="text-center"><h5>Aucun fichiers</h5></td>
 								</tr>
 							{% else %}
-								{{ dump(files) }}
+								{# {{ dump(files) }} #}
 								{% include '@FileManagerSystem/_partials/elements/files-list.html.twig' with {'files': files} %}
 							{% endif %}
 						</tbody>
