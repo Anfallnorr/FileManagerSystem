@@ -68,33 +68,33 @@
 				<div class="btn-group ms-0 ms-sm-auto mt-1 mt-sm-0">
 					<button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" title="Bulk action">Bulk action</button>
 					<div class="dropdown-menu dropdown-menu-right dropdown-menu-lg-end">
-						{# <a href="#" class="dropdown-item massdownload-item" data-bs-toggle="modal" data-bs-target="#modal_download" title="Download the selection" context="massDownload">Download the selection</a> #}
+						{# <a href="#" class="dropdown-item massdownload-item" data-bs-toggle="modal" data-bs-target="#modal_download" title="Download the selection" context="massDownload"><i class="bi bi-download me-2"></i>Download the selection</a> #}
 						<div class="dropdown-item">
 							<form action="{{ path('app_file_manager_download_bulk_file', {'folder': current_folder}) }}" method="post" class="d-inline" data-turbo="false">
 								<input type="hidden" name="foldersToDownload" value="[]" data-table-check-target="itemDirDownload" />
 								<input type="hidden" name="filesToDownload" value="[]" data-table-check-target="itemDownload" />
 								<button type="submit" class="dropdown-item download-item p-0" title="Download selection" context="massDownload">
-									Download the selection
+									<i class="bi bi-download me-2"></i>Download the selection
 								</button>
 							</form>
 						</div>
-						<a href="#" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#modal_mass_move" title="Move selection" context="massMove">Move selection</a>
+						<a href="#" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#modal_mass_move" title="Move selection" context="massMove"><i class="bi bi-arrows-move me-2"></i>Move selection</a>
 						{# <div class="dropdown-item">
 							<form action="{{ path('app_file_manager_Move_bulk_file', {'folder': current_folder}) }}" method="post" class="d-inline" data-turbo="false">
 								<input type="hidden" name="foldersToMove" value="[]" data-table-check-target="itemDirMove" />
 								<input type="hidden" name="filesToMove" value="[]" data-table-check-target="itemMove" />
 								<button type="submit" class="dropdown-item move-item p-0" data-bs-toggle="modal" data-bs-target="#modal_mass_move" title="Move selection" context="massMove">
-									Move selection
+									<i class="bi bi-arrows-move me-2"></i>Move selection
 								</button>
 							</form>
 						</div> #}
-						<a href="#" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#modal_mass_renamer" title="Rename selection" context="massRename">Rename selection</a>
+						<a href="#" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#modal_mass_renamer" title="Rename selection" context="massRename"><i class="bi bi-cursor-text me-2"></i>Rename selection</a>
 						{# <div class="dropdown-item">
 							<form action="{{ path('app_file_manager_rename_bulk_file', {'folder': current_folder}) }}" method="post" class="d-inline" data-turbo="false">
 								<input type="hidden" name="foldersToRename" value="[]" data-table-check-target="itemDirRename" />
 								<input type="hidden" name="filesToRename" value="[]" data-table-check-target="itemRename" />
 								<button type="submit" class="dropdown-item rename-item p-0" data-bs-toggle="modal" data-bs-target="#modal_mass_renamer" title="Rename selection" context="massRename">
-									Rename selection
+									<i class="bi bi-cursor-text me-2"></i>Rename selection
 								</button>
 							</form>
 						</div> #}
@@ -105,7 +105,7 @@
 								<input type="hidden" name="foldersToDelete" value="[]" data-table-check-target="itemDirDelete" />
 								<input type="hidden" name="filesToDelete" value="[]" data-table-check-target="itemDelete" />
 								<button type="submit" class="dropdown-item delete-item p-0" title="Delete selection" onclick="return confirm('Do you really want to delete these items?');" context="massDelete">
-									Delete selection
+									<i class="bi bi-trash me-2"></i>Delete selection
 								</button>
 							</form>
 						</div>
@@ -147,7 +147,7 @@
 						</thead>
 						<tbody id="file-list" data-controller="preview confirms">
 							{% if files is empty %}
-								<tr>
+								<tr class="no-files">
 									<td colspan="7" class="text-center"><h5>Aucun fichiers</h5></td>
 								</tr>
 							{% else %}
