@@ -8,13 +8,11 @@ export default class extends Controller {
 	// 	checkDir: Array
 	// }
 
-	connect()
-	{
+	connect() {
 		console.log("Contrôleur preview connecté avec Anfallnorr/file-manager-system !");
 
 		// Ajoute la modal au DOM si elle n'existe pas encore
 		if (!document.getElementById('modal_viewer')) {
-			console.log('toto');
 			document.body.insertAdjacentHTML('beforeend', this.getModal());
 		}
 
@@ -29,8 +27,7 @@ export default class extends Controller {
 		});
 	}
 
-	dblClick(event)
-	{
+	dblClick(event) {
 		const row = event.currentTarget; // Récupère le <tr> cliqué
 		const previewItem = row.querySelector('[data-preview-target="previewItem"]'); // Cherche l'élément enfant
 
@@ -39,17 +36,15 @@ export default class extends Controller {
 		}
 	}
 
-	showItem(event)
-	{
+	showItem(event) {
 		const element = event.target; // Récupère l'élément cliqué
-		
+
 		if (element) {
 			this.preview(element); // Vérifie la ligne cliquée
 		}
 	}
 
-	preview(data)
-	{
+	preview(data) {
 		// Sélectionne l'élément de la modal
 		const modalViewer = new bootstrap.Modal(document.getElementById('modal_viewer')),
 			modalContent = document.querySelector('#modal_viewer .modal-body #content_result');
@@ -91,8 +86,8 @@ export default class extends Controller {
 				<div class="d-flex align-items-center">
 					<div class="font-35 text-white"><i class="bx bx-info-circle"></i></div>
 					<div class="ms-3">
-						<h6 class="mb-0 text-white">Warning</h6>
-						<div class="text-white">Aucun aperçu disponible pour <strong>${filename}</strong></div>
+						<h6 class="mb-0 text-white">${lang.warning}</h6>
+						<div class="text-white">${lang.no_preview_available} <strong>${filename}</strong></div>
 					</div>
 				</div>
 			</div>`;
@@ -109,8 +104,7 @@ export default class extends Controller {
 	 * @param classImg
 	 * @return Promise
 	 */
-	getImageFromUrl(url, classImg = '')
-	{
+	getImageFromUrl(url, classImg = '') {
 		url = window.location.origin + url;
 
 		return new Promise((resolve, reject) => {
@@ -123,7 +117,7 @@ export default class extends Controller {
 				canvas.width = img.width;
 				canvas.height = img.height;
 				ctx.drawImage(img, 0, 0);
-				
+
 				const dataURL = canvas.toDataURL('image/png');
 				const imgElement = document.createElement('img');
 				imgElement.src = dataURL;
@@ -136,14 +130,13 @@ export default class extends Controller {
 		});
 	}
 
-	getModal(id = 'modal_viewer')
-	{
+	getModal(id = 'modal_viewer') {
 		return `<div class="modal fade" id="${id}" tabindex="-1" aria-labelledby="${id}_label" aria-hidden="true">
 			<div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
 				<div class="modal-content">
 					<div class="modal-header">
-						<h5 class="modal-title h4" id="${id}_label">Aperçu</h5>
-						<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+						<h5 class="modal-title h4" id="${id}_label">${lang.preview}</h5>
+						<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="${lang.close}"></button>
 					</div>
 					<div class="modal-body">
 						<div id="content_result"></div>
