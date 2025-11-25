@@ -1,5 +1,4 @@
 # vendor/anfallnorr/file-manager-system/config/services.yaml
-
 services:
     _defaults:
         autowire: true      # Automatically injects dependencies in your services.
@@ -20,6 +19,7 @@ services:
             $kernelDirectory: '%fms.kernel_directory%'
             $defaultDirectory: '%fms.default_directory%'
             $relativeDirectory: '%fms.relative_directory%'
+            $mime: '@Symfony\Component\Mime\MimeTypes'
             $filesystem: '@Symfony\Component\Filesystem\Filesystem'
             $slugger: '@Symfony\Component\String\Slugger\AsciiSlugger'
         public: true
@@ -28,5 +28,6 @@ services:
         arguments:
             $translator: '@translator'
 
+    Symfony\Component\Mime\MimeTypes: ~
     Symfony\Component\Filesystem\Filesystem: ~
     Symfony\Component\String\Slugger\AsciiSlugger: ~
