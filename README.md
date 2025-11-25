@@ -1,106 +1,132 @@
 # FileManagerSystem
 [//]: # (FileManagerSystem est un bundle Symfony permettant de gérer facilement les fichiers et répertoires : création, suppression, déplacement, redimensionnement d'images, gestion des MIME types, etc.)
-FileManagerSystem is a Symfony bundle to easily manage files and directories: creation, deletion, moving, resizing images, managing MIME types, etc.
+FileManagerSystem is a Symfony bundle that provides easy and intuitive management of files and directories: creation, deletion, moving, MIME type handling, image resizing, and more.
+
+It is designed to simplify file management within any Symfony application.
 
 [//]: # (**Demo:** https://symfotest.js-info.fr/home)
 
-## Installation
+## 🚀 Installation
 
-Install FileManagerSystem via Composer
+Install the bundle via Composer:
 
 ```sh
 composer require anfallnorr/file-manager-system
 ```
 
-## Configuration
+## ⚙️ Configuration
 
-### Add to /config/bundles.php
+### 1. Register the Bundle
 
-Register the bundle in config/bundles.php
+Add the bundle to your `config/bundles.php` file:
 
 ```php
-# config/bundles.php
 return [
-    ...
+    // ...
     Anfallnorr\FileManagerSystem\FileManagerSystem::class => ['all' => true],
 ];
 ```
 
-### AssetMapper
+### 2. AssetMapper Configuration (Optional)
 
-Create config/packages/file_manager_system.yaml
+**If you want to use the built-in controller and assets provided by the bundle, create the following configuration files.**
 
+Create `config/packages/file_manager_system.yaml`
 ```yaml
-# config/packages/file_manager_system.yaml
 framework:
     asset_mapper:
         paths:
             - '%kernel.project_dir%/vendor/anfallnorr/file-manager-system/assets'
 ```
 
-## Usage
+Create `config/routes/file_manager_system.yaml`
+```yaml
+file_manager_system:
+    resource: '../../vendor/anfallnorr/file-manager-system/src/Controller/'
+    type: attribute
+    prefix: /files-manager 
+```
 
-### Initialize in a Controller
+## 💡 Usage
+
+### Injecting the Service
 
 ```php
 public function __construct(
     private FileManagerService $fmService
 ) {
-    $fmService
+    $this->fmService
         ->setDefaultDirectory('/var/uploads')
         ->setRelativeDirectory('/var/uploads');
 }
 ```
+
 ```php
 $fmService = $this->fmService;
 ```
 
-### Examples
+### 📚 Examples
 
+#### Get the default upload directory
 ```php
-// Get the default upload directory path
-$defaultDirectory = $fmService->getDefaultDirectory(); // /path/to/folder/public/uploads
-
-// Change the default upload directory
-$directory = $fmService->setDefaultDirectory(directory: '/var/www/uploads')->getDefaultDirectory(); // /path/to/folder/var/www/uploads
-
-// Retrieve available MIME types
-$mimeTypes = $fmService->getMimeTypes(); // array
-
-// Get the MIME type of a specific extension
-$mimeType = $fmService->getMimeType(key: 'pdf'); // application/pdf
-
-// Create a URL-friendly slug from a string
-$string = $fmService->createSlug(string: 'Hello World !'); // hello-world
-
-// Create a directory named "hello-world" inside the default directory
-$fmService->createDir(directory: 'Hello World !', return: false);
-// if $return is `true`, then an array will be returned:
-[
-    'absolute' => $this->getDefaultDirectory() . '/hello-world', // Absolute path
-    'relative' => $relative, // Relative path of the folder
-    'ltrimed_relative' => ltrim($relative, '/'), // Relative path of the folder minus a slash at the beginning of the string
-    'foldername' => $dir // The name of the folder created
-]
-
-// Create a file named "hello-world.html" inside the default directory with content
-$fmService->createFile(filename: 'Hello World.html', content: 'Hello World! I\'m Js info'); // $content is optional
-
-// This method allows you to download a file located in a specified directory (or in the default directory if none is provided).
-// It checks for the file's existence and returns a BinaryFileResponse configured to force the download.
-$fmService->download(filename: $filename, directory: $folder);
-
-// This method generates a ZIP file containing a list of files from a given directory (or the default directory).
-// It checks for the existence of each file, temporarily constructs the ZIP, and returns a BinaryFileResponse allowing the file to be downloaded.
-$fmService->downloadBulk(filenames: $files, folders: $folders);
+$defaultDirectory = $fmService->getDefaultDirectory();
+// e.g. /path/to/project/public/uploads
 ```
 
-### Optional Configuration
+#### Change the default upload directory
+```php
+$directory = $fmService
+	->setDefaultDirectory(directory: '/var/www/uploads')
+	->getDefaultDirectory();
+// e.g. /path/to/project/var/www/uploads
+```
 
-If you are using Twig, add Bootstrap form themes in config/packages/twig.yaml
+#### Retrieve all available MIME types
+```php
+$mimeTypes = $fmService->getMimeTypes();
+// returns an array
+```
 
+#### Get the MIME type for a specific extension
+```php
+$mimeType = $fmService->getMimeType(key: 'pdf');
+// application/pdf
+```
+
+#### Create a URL-friendly slug
+```php
+$slug = $fmService->createSlug(string: 'Hello World !');
+// hello-world
+```
+
+#### Create a directory
+```php
+$fmService->createDir(directory: 'Hello World !', return: false);
+```
+If return is set to true, the method returns:
+```php
+[
+    'absolute' => "/absolute/path/hello-world",
+    'relative' => $relative,
+    'ltrimmed_relative' => \ltrim($relative, '/'),
+    'foldername' => $dir
+]
+```
+
+#### Create a file with optional content
+```php
+$fmService->createFile(
+	filename: 'Hello World.html',
+	content: 'Hello World! I\'m Js Info'
+);
+```
+
+### 🧩 Optional (Twig Integration)
+
+If you are using Twig and want Bootstrap-styled forms, add this in:
+
+`config/packages/twig.yaml`
 ```yaml
-# app/config/packages/twig.yaml
 twig:
     form_themes: ['bootstrap_5_layout.html.twig']
 ```
