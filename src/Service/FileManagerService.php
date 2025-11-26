@@ -252,11 +252,11 @@ class FileManagerService
 		return self::MIME_TYPES[$key] ?? null;
 	}
 
-	public function getMimeContent(string $file, bool $absolute = false): string
+	public function getMimeContent(string $filename, bool $absolute = false): string
 	{
 		// return \mime_content_type(filename: $this->getKernelDirectory() . $relativeFile);
 		// return \mime_content_type(filename: $this->abs(relative: $relativeFile));
-		return $this->mime->guessMimeType(path: (!$absolute) ? $this->abs(relative: $file) : $file);
+		return $this->mime->guessMimeType(path: (!$absolute) ? $this->abs(relative: $filename) : $filename);
 	}
 
 	public function getFileContent(string $relativeFile): string
@@ -1251,3 +1251,4 @@ class FileManagerService
 		return true;
 	}
 }
+
