@@ -28,7 +28,7 @@ use Symfony\Component\String\Slugger\AsciiSlugger;
  * @method public setRelativeDirectory(@var string $directory): @return static
  * @method public getMimeTypes(): @return array
  * @method public getMimeType(@var string $key): @return string|array|null
- * @method public getMimeContent(@var string $file, @var bool $absolute = false): @return string
+ * @method public getMimeContent(@var string $filename, @var bool $absolute = false): @return string
  * @method public getFileContent(@var string $relativeFile): @return string
  * @method public exists(@var string $filePath, @var bool $absolute = false): @return bool
  * @method public createSlug(@var string $string): @return string
@@ -798,7 +798,7 @@ class FileManagerService
 			'extension' => $file->getExtension(),
 			// 'mime' => \mime_content_type(filename: $file->getPathname()) // 'mime' => $imageSize['mime'] ?? null
 			// 'mime' => $this->mime->guessMimeType(path: $file->getPathname())
-			'mime' => $this->getMimeContent(file: $file->getPathname(), absolute: true)
+			'mime' => $this->getMimeContent(filename: $file->getPathname(), absolute: true)
 		];
 	}
 
@@ -916,7 +916,7 @@ class FileManagerService
 				'filemtime' => $file->getMTime(),
 				'extension' => (!empty($file->getExtension())) ? $file->getExtension() : \pathinfo(path: $filename, flags: PATHINFO_EXTENSION),
 				// 'mime' => \mime_content_type(filename: $file->getPathname())
-				'mime' => $this->getMimeContent(file: $file->getPathname(), absolute: true)
+				'mime' => $this->getMimeContent(filename: $file->getPathname(), absolute: true)
 			];
 
 			// Upload file
@@ -1251,4 +1251,5 @@ class FileManagerService
 		return true;
 	}
 }
+
 
