@@ -17,10 +17,10 @@ class MoveFileType extends AbstractType
 		$builder
 			->add(child: 'currentPath', type: HiddenType::class)
 			->add(child: 'newPath', type: TextType::class, options: [
-				'label' => new TranslatableMessage('file_manager.new_path')
+				'label' => new TranslatableMessage(message: 'file_manager.new_path')
 			])
 			->add(child: 'submit', type: SubmitType::class, options: [
-				'label' => new TranslatableMessage('file_manager.move')
+				'label' => new TranslatableMessage(message: 'file_manager.move')
 			]);
 	}
 
