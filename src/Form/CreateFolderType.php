@@ -15,13 +15,13 @@ class CreateFolderType extends AbstractType
 	{
 		$builder
 			->add(child: 'folderName', type: TextType::class, options: [
-				'label' => new TranslatableMessage('file_manager.folder_name'),
-				'help' => new TranslatableMessage('file_manager.folder_name_help')
+				'label' => new TranslatableMessage(message: 'file_manager.folder_name'),
+				'help' => new TranslatableMessage(message: 'file_manager.folder_name_help')
 				// 'help' => "Utilisez `+` pour ajouter plusieurs dossiers de même niveau, `>` pour ajouter des dossiers imbriqués. Exemple : `folder1+folder2`, `folder1-1>folder1-2`"
 				// 'help' => new TranslatableMessage('file_manager.folder_name_help', ['%example%' => "`folder1+folder2`, `folder1-1>folder1-2`"], 'forms')
 			])
 			->add(child: 'submit', type: SubmitType::class, options: [
-				'label' => new TranslatableMessage('file_manager.create')
+				'label' => new TranslatableMessage(message: 'file_manager.create')
 			]);
 	}
 
