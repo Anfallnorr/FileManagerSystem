@@ -31,7 +31,8 @@ return [
 
 ### 2. AssetMapper Configuration (Optional)
 
-If you want to use the built-in controller and assets provided by the bundle, create the following configuration files.
+> [!WARNING]
+> If you want to use the built-in controller and assets provided by the bundle, create the following configuration files.
 
 **Create** `config/packages/file_manager_system.yaml`:
 
