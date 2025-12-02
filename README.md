@@ -29,7 +29,9 @@ return [
 
 ### 2. AssetMapper Configuration (Optional)
 
-**If you want to use the built-in controller and assets provided by the bundle, create the following configuration files.**
+[//]: # (**If you want to use the built-in controller and assets provided by the bundle, create the following configuration files.**)
+> [!WARNING]
+> If you want to use the built-in controller and assets provided by the bundle, create the following configuration files.
 
 Create `config/packages/file_manager_system.yaml`
 ```yaml
@@ -106,10 +108,10 @@ $fmService->createDir(directory: 'Hello World !', return: false);
 If return is set to true, the method returns:
 ```php
 [
-    'absolute' => "/absolute/path/hello-world",
-    'relative' => $relative,
-    'ltrimmed_relative' => \ltrim($relative, '/'),
-    'foldername' => $dir
+    'absolute' => "/var/www/absolute/path/hello-world",
+    'relative' => "/path/hello-world",
+    'ltrimmed_relative' => "path/hello-world",
+    'foldername' => "hello-world"
 ]
 ```
 
