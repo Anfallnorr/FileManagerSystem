@@ -34,15 +34,15 @@ use Symfony\Component\String\Slugger\AsciiSlugger;
  * @method public exists(@var string $filePath, @var bool $absolute = false): @return bool
  * @method public createSlug(@var string $string): @return string
  * @method public createFile(@var string $filename, @var string $content = '<!DOCTYPE html><html lang="en"><body style="background: #ffffff;"></body></html>'): @return void
- * @method public createDir(@var string $directory, @var bool $return = false): @return array
+ * @method public createDir(@var string $directory, @var bool $returnDetails = false): @return array
  * @method static categorizeFiles(@var array $files, @var bool $basename = false, @var bool $path = false): @return array
  * @method static getExtractedFolder(@var string $folder): @return string
  * @method static getExtByType(@var string $type): @return array
- * @method public getDirs(@var string $path = '/', @var string $excludeDir = "", @var string|null $depth = '== 0'): @return array
- * @method public getDirsTree(@var string $path = '/', @var string $excludeDir = "", @var string|null $depth = '== 0'): @return array
+ * @method public getDirs(@var string $path = '/', @var string $excludeDir = "", @var string|array|null $depth = '== 0'): @return array
+ * @method public getDirsTree(@var string $path = '/', @var string $excludeDir = "", @var string|array|null $depth = '== 0'): @return array
  * @method static getSliceDirs(@var string|array $dirs, @var int $slice, @var bool $implode = false): @return string|array
  * @method public cleanDir(@var string $dir = ''): @return void
- * @method public getFiles(@var string $path = '/', @var ?string $depth = '== 0', @var ?string $folder = null, @var ?string $ext = null): @return array|bool
+ * @method public getFiles(@var string $path = '/', @var string|array|null $depth = '== 0', @var ?string $folder = null, @var ?string $ext = null): @return array|bool
  * @method public getImageSize(@var string $filePath, @var bool $absolute = false): @return ?array
  * @method private getFileInfo(@var SplFileInfo $file): @return array
  * @method private getDimensionsFileInfo(@var string $filePath): @return array
@@ -517,7 +517,8 @@ class FileManagerService
 	 *
 	 * @return array Un tableau des répertoires créés avec leurs chemins absolus, relatifs et noms.
 	 */
-	public function createDir(string $directory, bool $return = false): array
+	// public function createDir(string $directory, bool $return = false): array
+	public function createDir(string $directory, bool $returnDetails = false): array
 	{
 		$outputDirectories = [];
 
@@ -816,7 +817,8 @@ class FileManagerService
 	 *
 	 * @return array Tableau des dossiers trouvés avec informations absolues et relatives.
 	 */
-	public function getDirs(string $path = '/', string $excludeDir = "", string|null $depth = '== 0'): array
+	// public function getDirs(string $path = '/', string $excludeDir = "", string|null $depth = '== 0'): array
+	public function getDirs(string $path = '/', string $excludeDir = "", string|array|null $depth = '== 0'): array
 	{
 		$realPath = \realpath($this->getDefaultDirectory() . '/' . \trim($path, '/'));
 
@@ -825,7 +827,8 @@ class FileManagerService
 		}
 
 		$finder = new Finder();
-		if ($depth) {
+		// if ($depth) {
+		if ($depth !== null) {
 			$finder->depth($depth); // Search only folders at the given depth $depth
 		}
 		$finder->directories()->in($realPath); // Search only folders at the root
@@ -884,7 +887,8 @@ class FileManagerService
 	 *
 	 * @return array Tableau arborescent des dossiers avec informations absolues, relatives et enfants.
 	 */
-	public function getDirsTree(string $path = '/', string $excludeDir = "", string|null $depth = '== 0'): array
+	// public function getDirsTree(string $path = '/', string $excludeDir = "", string|null $depth = '== 0'): array
+	public function getDirsTree(string $path = '/', string $excludeDir = "", string|array|null $depth = '== 0'): array
 	{
 		// $trimedPath = \trim($path, '/');
 		// $realPath = \realpath($this->getDefaultDirectory() . '/' . $trimedPath);
@@ -895,7 +899,8 @@ class FileManagerService
 		}
 
 		$finder = new Finder();
-		if ($depth) {
+		// if ($depth) {
+		if ($depth !== null) {
 			$finder->depth($depth); // Search only folders at the given depth $depth
 		}
 		$finder->directories()->in($realPath); // Search only folders at the root
@@ -1039,7 +1044,8 @@ class FileManagerService
 	 *
 	 * @return array|bool Tableau des fichiers avec informations détaillées, ou false si aucun fichier trouvé.
 	 */
-	public function getFiles(string $path = '/', ?string $depth = '== 0', ?string $folder = null, ?string $ext = null): array|bool
+	// public function getFiles(string $path = '/', ?string $depth = '== 0', ?string $folder = null, ?string $ext = null): array|bool
+	public function getFiles(string $path = '/', string|array|null $depth = '== 0', ?string $folder = null, ?string $ext = null): array|bool
 	{
 		// $trimedPath = \trim($path, '/');
 		// $realPath = \realpath(\rtrim($this->getDefaultDirectory(), '/') . '/' . $trimedPath);
@@ -1050,7 +1056,8 @@ class FileManagerService
 		}
 
 		$finder = new Finder();
-		if ($depth) {
+		// if ($depth) {
+		if ($depth !== null) {
 			$finder->depth($depth); // $finder->depth(['== 0']);
 		}
 		$finder->files()->in($realPath); // $finder->files()->in($realPath)->depth('== 0');
