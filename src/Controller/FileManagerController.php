@@ -38,8 +38,8 @@ final class FileManagerController extends AbstractController
 	) {
 		// $fmService
 		$this->fmService
-			->setDefaultDirectory(directory: '/var/uploads') // ->setDefaultDirectory($directory = '/var/uploads')
-			->setRelativeDirectory(directory: '/var/uploads'); // ->setRelativeDirectory($directory = '/var/uploads');
+			->setDefaultDirectory('/var/uploads')
+			->setRelativeDirectory('/var/uploads');
 		// $fmService->setDefaultDirectory('/var/uploads');
 		// $fmService->setRelativeDirectory('/var/uploads');
 		/* if (!is_dir($fmService->getDefaultDirectory())) {
@@ -129,7 +129,7 @@ final class FileManagerController extends AbstractController
 		);
 
 		return $response; */
-		return $this->fmService->download(filename: $filename, directory: $folder);
+		return $this->fmService->download($filename, $folder);
 		/* if ($this->fmService->download($filename, $folder)) {
 			return $this->redirectToRoute(self::FILE_MANAGER, [
 				'folder' => $folder
@@ -162,7 +162,7 @@ final class FileManagerController extends AbstractController
 		dump(vars: $files);
 		dd(vars: $folders);
 
-		return $this->fmService->downloadBulk(filenames: $files, folders: $folders);
+		return $this->fmService->downloadBulk($files, $folders);
 	}
 
 	/* #[Route('/file/move/{filename}/{folder}', name: 'app_file_manager_move', defaults: ['folder' => ''], requirements: ['folder' => '.+'])]
@@ -214,9 +214,9 @@ final class FileManagerController extends AbstractController
 		// dump($filename);
 		// dump($folder);
 		// dd($filePath);
-		if ($this->fmService->exists(filePath: $filePath, absolute: false)) { // if ($this->fmService->exists($filePath = $filePath, $absolute = false)) { 
+		if ($this->fmService->exists($filePath, false)) {
 			// dd($filePath);
-			$this->fmService->remove(relativePath: $filePath); // $this->fmService->remove($relativePath = $filePath);
+			$this->fmService->remove($filePath);
 
 			$this->addFlash(
 				type: 'success',
@@ -252,8 +252,8 @@ final class FileManagerController extends AbstractController
 			? "{$folder}/{$dirname}"
 			: $dirname;
 
-		if ($this->fmService->exists(filePath: $filePath)) { // if ($this->fmService->exists($filePath = $filePath, $absolute = false)) {
-			$this->fmService->remove(relativePath: $filePath); // $this->fmService->remove($relativePath = $filePath);
+		if ($this->fmService->exists($filePath)) {
+			$this->fmService->remove($filePath);
 
 			$this->addFlash(
 				type: 'success',
@@ -292,8 +292,8 @@ final class FileManagerController extends AbstractController
 						? "{$folder}/{$file}"
 						: $file;
 
-					if ($this->fmService->exists(filePath: $folderPath)) { // if ($this->fmService->exists($filePath = $folderPath, $absolute = false)) {
-						$this->fmService->remove(relativePath: $folderPath); // $this->fmService->remove($relativePath = $folderPath);
+					if ($this->fmService->exists($folderPath)) {
+						$this->fmService->remove($folderPath);
 					}
 				}
 
@@ -315,8 +315,8 @@ final class FileManagerController extends AbstractController
 						? "{$folder}/{$file}"
 						: $file;
 
-					if ($this->fmService->exists(filePath: $filePath)) { // if ($this->fmService->exists($filePath = $filePath, $absolute = false)) {
-						$this->fmService->remove(relativePath: $filePath); // $this->fmService->remove($relativePath = $filePath);
+					if ($this->fmService->exists($filePath)) {
+						$this->fmService->remove($filePath);
 					}
 				}
 
@@ -364,12 +364,12 @@ final class FileManagerController extends AbstractController
 
 		// Retrieve global files and folders first before changing the default path
 		// $allFolders = $this->fmService->getDirs($path = '/', $excludeDir = "", $depth = null);
-		$allFolders = $this->fmService->getDirsTree(path: '/', excludeDir: "", depth: null);
-		$allFiles = $this->fmService->getFiles(path: '/', depth: null);
+		$allFolders = $this->fmService->getDirsTree('/', "", null);
+		$allFiles = $this->fmService->getFiles('/', null);
 
 		if (!empty($folder)) {
 			// $this->fmService->setDefaultDirectory('/public/uploads/' . $folder); // Example for personnal folder space: '/var/uploads/' . $his->getUser()->getId()
-			$this->fmService->setDefaultDirectory(directory: $this->fmService->getRelativeDirectory() . '/' . $folder); // $this->fmService->setDefaultDirectory($directory = $this->fmService->getRelativeDirectory() . '/' . $folder); // Example for personnal folder space: '/var/uploads/' . $his->getUser()->getId()
+			$this->fmService->setDefaultDirectory($this->fmService->getRelativeDirectory() . '/' . $folder); // Example for personnal folder space: '/var/uploads/' . $his->getUser()->getId()
 		}
 		// dump($this->fmService->getDefaultDirectory());
 		// dump($this->getParameter('kernel.project_dir'));
@@ -398,9 +398,9 @@ final class FileManagerController extends AbstractController
 		if ($createFolderForm->isSubmitted() && $createFolderForm->isValid()) {
 			$folderName = $createFolderForm->get(name: 'folderName')->getData();
 
-			if (!$this->fmService->exists(filePath: $folderName, absolute: false)) { // if (!$this->fmService->exists($filePath = $folderName, $absolute = false)) {
+			if (!$this->fmService->exists($folderName, false)) {
 				// $this->fmService->createDir($folderName);
-				$created = $this->fmService->createDir($folderName, true); // $created = $this->fmService->createDir($directory = $folderName, $return = true);
+				$created = $this->fmService->createDir($folderName, true);
 
 				$flashType = 'success';
 				$flashMessage = $this->translator->trans(id: 'file_manager.folder_created_successfully');
@@ -442,7 +442,7 @@ final class FileManagerController extends AbstractController
 			if ($files) {
 				try {
 					// $uploaded = $this->fmService->upload($files, $this->fmService->getDefaultDirectory(), "", false);
-					$uploaded = $this->fmService->upload(files: $files, folder: $this->fmService->getDefaultDirectory(), newName: "", return: true); // $uploaded = $this->fmService->upload($files = $files, $folder = $this->fmService->getDefaultDirectory(), $newName = "", $return = true);
+					$uploaded = $this->fmService->upload($files, $this->fmService->getDefaultDirectory(), "", true);
 
 					$this->addFlash(
 						type: 'success',
@@ -527,4 +527,3 @@ final class FileManagerController extends AbstractController
 		]);
 	}
 }
-
