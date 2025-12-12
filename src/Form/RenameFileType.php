@@ -8,23 +8,34 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type\HiddenType;
+use Symfony\Component\Translation\TranslatableMessage;
 
 class RenameFileType extends AbstractType
 {
 	public function buildForm(FormBuilderInterface $builder, array $options): void
 	{
 		$builder
-			->add(child: 'currentFileName', type: HiddenType::class)
+			->add(child: 'currentPath', type: HiddenType::class, options: [
+				'data' => $options['current_folder']
+				// 'data' => '/toto'
+			])
+			->add(child: 'currentFileName', type: HiddenType::class, options: [
+				'attr' => [
+					'data-rename-modal-target' => "currentFileInput"
+				]
+			])
 			->add(child: 'newFileName', type: TextType::class, options: [
-				'label' => 'Nouveau nom du fichier'
+				'label' => new TranslatableMessage(message: 'file_manager.new_file_name') // 'Nouveau nom du fichier'
 			])
 			->add(child: 'submit', type: SubmitType::class, options: [
-				'label' => 'Renommer'
+				'label' => new TranslatableMessage(message: 'file_manager.rename') // 'Renommer'
 			]);
 	}
 
 	public function configureOptions(OptionsResolver $resolver): void
 	{
-		$resolver->setDefaults(defaults: []);
+		$resolver->setDefaults(defaults: [
+			'current_folder' => null
+		]);
 	}
 }
