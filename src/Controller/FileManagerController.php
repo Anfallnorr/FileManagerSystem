@@ -7,6 +7,7 @@ use Anfallnorr\FileManagerSystem\Form\CreateFolderType;
 use Anfallnorr\FileManagerSystem\Form\MoveFileType;
 // use Anfallnorr\FileManagerSystem\Form\MoveFileType;
 // use Anfallnorr\FileManagerSystem\Form\RenameFileType;
+use Anfallnorr\FileManagerSystem\Form\RenameFileType;
 use Anfallnorr\FileManagerSystem\Form\UploadFileType;
 use Anfallnorr\FileManagerSystem\Service\FileManagerService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -473,7 +474,10 @@ final class FileManagerController extends AbstractController
 
 
 		// Move File
-		$moveFileForm = $this->createForm(type: MoveFileType::class, data: null);
+		// dd($folder);
+		$moveFileForm = $this->createForm(type: MoveFileType::class, data: null, options: [
+			'current_folder' => $folder
+		]);
 		$moveFileForm->handleRequest(request: $request);
 
 		/* $moveFileForms = [];
@@ -511,11 +515,52 @@ final class FileManagerController extends AbstractController
 		}
 
 
+		// Rename File
+		$renameFileForm = $this->createForm(type: RenameFileType::class, data: null, options: [
+			'current_folder' => $folder
+		]);
+		$renameFileForm->handleRequest(request: $request);
+		// dd($renameFileForm);
+		if ($renameFileForm->isSubmitted() && $renameFileForm->isValid()) {
+			$renameFileData = $renameFileForm->getData();
+			/* $basePath = ($renameFileData['currentPath'])
+				? $renameFileData['currentPath'] . '/'
+				: '/'; */
+
+			// dump($renameFileData);
+			// dump("{$basePath}{$renameFileData['currentFileName']}");
+			// dump("{$basePath}{$renameFileData['newFileName']}");
+			// dd($basePath);
+			// $renamed = $this->fmService->rename("{$basePath}{$renameFileData['currentFileName']}", "{$basePath}{$renameFileData['newFileName']}", true);
+			$renamed = $this->fmService->rename("{$renameFileData['currentFileName']}", "{$renameFileData['newFileName']}", true);
+			// dd($renameFileData);
+
+			if ($renamed) {
+				$this->addFlash(
+					type: 'success',
+					// message: $this->translator->trans(id: 'file_manager.file_uploaded_successfully')
+					message: "Le fichier à été renommé avec succès"
+				);
+			} else {
+				$this->addFlash(
+					type: 'danger',
+					// message: $this->translator->trans(id: 'file_manager.error_while_uploading')
+					message: "Le fichier n'a pas pu être renommé"
+				);
+			}
+
+			return $this->redirectToRoute(route: self::FILE_MANAGER, parameters: [
+				'folder' => $folder
+			]);
+		}
+
+
 		// return $this->render(view: 'home/index.html.twig', [
 		return $this->render(view: '@FileManagerSystem/file-manager/index.html.twig', parameters: [
 			'folder_form' => $createFolderForm,
 			'file_form' => $uploadFileForm,
 			'move_file_form' => $moveFileForm,
+			'rename_file_form' => $renameFileForm,
 			// 'move_file_forms' => $moveFileForms,
 			'breadcrumb' => $breadcrumb,
 			'breadcrumb_link' => '',
