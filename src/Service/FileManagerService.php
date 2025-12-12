@@ -1814,20 +1814,27 @@ class FileManagerService
 
 	public function rename(string $source, string $destination, bool $override = false): bool
 	{
-		dump($source);
-		dump($destination);
-		dd($override);
+		$ext = pathinfo($source, PATHINFO_EXTENSION);
+		$slugDestination = $this->createSlug($destination);
+
+		/* $origin = "{$this->getDefaultDirectory()}/{$source}";
+		$target = "{$this->getDefaultDirectory()}/{$slugDestination}.{$ext}"; */
+		// dump($origin);
+		// dump($target);
+		// dd($override);
 		/* // renames a file
 		$filesystem->rename('/tmp/processed_video.ogg', '/path/to/store/video_647.ogg', false);
 		// renames a directory
-		$filesystem->rename('/tmp/files', '/path/to/store/files', false);
+		$filesystem->rename('/tmp/files', '/path/to/store/files', false); */
+		// $this->filesystem->rename($origin, $target, $override);
+		$this->filesystem->rename("{$this->getDefaultDirectory()}/{$source}", "{$this->getDefaultDirectory()}/{$slugDestination}.{$ext}", $override);
 
-		// if ($this->filesystem->rename($this->getDefaultDirectory() . '/' . $relativePath)) {
-		// 	return true;
-		// } else {
-		// 	return false;
-		// } */
-		return true;
+		// if (!$this->exists($origin, true)) {
+		if (!$this->exists("{$this->getDefaultDirectory()}/{$source}", true)) {
+			return true;
+		} else {
+			return false;
+		}
 	}
 
 	public function move(string $origine, string $target, bool $overwrite = false): bool
