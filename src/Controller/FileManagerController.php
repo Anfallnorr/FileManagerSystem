@@ -23,12 +23,13 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 
 final class FileManagerController extends AbstractController
 {
-	protected const string FILE_MANAGER = 'app_file_manager';											// self::FILE_MANAGER
-	protected const string FILE_MANAGER_SERVE = 'app_file_manager_serve';								// self::FILE_MANAGER_SERVE
-	protected const string FILE_MANAGER_DOWNLOAD_FILE = 'app_file_manager_download_file';				// self::FILE_MANAGER_DOWNLOAD_FILE
+	protected const string FILE_MANAGER = 'app_file_manager';										// self::FILE_MANAGER
+	protected const string FILE_MANAGER_SERVE = 'app_file_manager_serve';							// self::FILE_MANAGER_SERVE
+	protected const string FILE_MANAGER_DOWNLOAD_FILE = 'app_file_manager_download_file';			// self::FILE_MANAGER_DOWNLOAD_FILE
+	protected const string FILE_MANAGER_DOWNLOAD_FOLDER = 'app_file_manager_download_folder';		// self::FILE_MANAGER_DOWNLOAD_FOLDER
 	protected const string FILE_MANAGER_DOWNLOAD_BULK_FILE = 'app_file_manager_download_bulk_file';	// self::FILE_MANAGER_DOWNLOAD_BULK_FILE
-	protected const string FILE_MANAGER_DELETE_FILE = 'app_file_manager_delete_file';					// self::FILE_MANAGER_DELETE_FILE
-	protected const string FILE_MANAGER_DELETE_FOLDER = 'app_file_manager_delete_folder';				// self::FILE_MANAGER_DELETE_FOLDER
+	protected const string FILE_MANAGER_DELETE_FILE = 'app_file_manager_delete_file';				// self::FILE_MANAGER_DELETE_FILE
+	protected const string FILE_MANAGER_DELETE_FOLDER = 'app_file_manager_delete_folder';			// self::FILE_MANAGER_DELETE_FOLDER
 	protected const string FILE_MANAGER_MASS_DELETE_FOLDER = 'app_file_manager_mass_delete_folder';	// self::FILE_MANAGER_MASS_DELETE_FOLDER
 
 	public function __construct(
@@ -102,7 +103,7 @@ final class FileManagerController extends AbstractController
 	}
 
 	// #[Route(path: '/file/download/{filename}/{folder}', name: self::FILE_MANAGER_DOWNLOAD_FILE, defaults: ['folder' => ''], requirements: ['folder' => '.+'])]
-	#[Route(path: '/file/download/{filename}/{folder}', name: self::FILE_MANAGER_DOWNLOAD_FILE, defaults: ['folder' => ''], requirements: ['folder' => Requirement::CATCH_ALL])]
+	#[Route(path: '/file/download/{filename}/{folder}', name: self::FILE_MANAGER_DOWNLOAD_FILE, defaults: ['folder' => ''], methods: ['GET'], requirements: ['folder' => Requirement::CATCH_ALL])]
 	public function appFileManagerDownloadFile(string $filename, string $folder): BinaryFileResponse
 	{
 		/* // File directory
@@ -134,6 +135,18 @@ final class FileManagerController extends AbstractController
 				'folder' => $folder
 			]);
 		} */
+	}
+
+	// app_file_manager_download_folder
+	#[Route(path: '/folder/download/{dirname}/{folder}', name: self::FILE_MANAGER_DOWNLOAD_FOLDER, defaults: ['folder' => ''], methods: ['GET'], requirements: ['folder' => Requirement::CATCH_ALL])]
+	public function appFileManagerDownloadFolder(string $dirname, string $folder): BinaryFileResponse
+	// public function appFileManagerDownloadFolder(string $dirname, string $folder): Response
+	{
+		// dump($dirname);
+		// dd($folder);
+
+
+		return $this->fmService->download($dirname, $folder);
 	}
 
 	// #[Route('/file/download/bulk/{folder}', name: 'app_file_manager_download_bulk_file', methods: ['POST'], defaults: ['folder' => ''], requirements: ['folder' => '.+'])]
@@ -387,7 +400,7 @@ final class FileManagerController extends AbstractController
 
 			if (!$this->fmService->exists(filePath: $folderName, absolute: false)) { // if (!$this->fmService->exists($filePath = $folderName, $absolute = false)) {
 				// $this->fmService->createDir($folderName);
-				$created = $this->fmService->createDir(directory: $folderName, return: true); // $created = $this->fmService->createDir($directory = $folderName, $return = true);
+				$created = $this->fmService->createDir($folderName, true); // $created = $this->fmService->createDir($directory = $folderName, $return = true);
 
 				$flashType = 'success';
 				$flashMessage = $this->translator->trans(id: 'file_manager.folder_created_successfully');
@@ -514,3 +527,4 @@ final class FileManagerController extends AbstractController
 		]);
 	}
 }
+
