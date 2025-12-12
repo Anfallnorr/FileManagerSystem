@@ -1592,17 +1592,73 @@ class FileManagerService
 
 		$filePath = $baseDir . DIRECTORY_SEPARATOR . $filename;
 		// dump($this->getKernelDirectory());
+
+		if (\is_dir(filename: $filePath)) {
+			// dump(\is_dir($filePath));
+			$tmpDir = $this->getKernelDirectory() . '/var/tmp';
+			if (!\is_dir(filename: $tmpDir)) {
+				\mkdir(directory: $tmpDir, permissions: 0775, recursive: true);
+			}
+
+			$zipName = \basename(path: $filePath) . '.zip';
+			$zipPath = $tmpDir . DIRECTORY_SEPARATOR . $zipName;
+
+			$zip = new \ZipArchive();
+			if ($zip->open(filename: $zipPath, flags: \ZipArchive::CREATE | \ZipArchive::OVERWRITE) !== true) {
+				throw new \RuntimeException(message: "Impossible de créer l'archive ZIP : {$zipName}");
+			}
+
+			$iterator = new \RecursiveIteratorIterator(
+				iterator: new \RecursiveDirectoryIterator(directory: $filePath, flags: \RecursiveDirectoryIterator::SKIP_DOTS),
+				mode: \RecursiveIteratorIterator::SELF_FIRST
+			);
+			// dump($zipName);
+			// dump(\basename($zipName));
+			// dd($iterator);
+
+			foreach ($iterator as $item) {
+				$localPath = \substr(string: $item->getRealPath(), offset: \strlen(string: $filePath) + 1);
+
+				if ($item->isDir()) {
+					$zip->addEmptyDir(dirname: $localPath);
+				} else {
+					$zip->addFile(filepath: $item->getRealPath(), entryname: $localPath);
+				}
+			}
+
+			$zip->close();
+
+			if (!\file_exists(filename: $zipPath)) {
+				throw new \RuntimeException(
+					message: \sprintf("Le fichier \"%s\" est introuvable.", \str_replace(search: $this->getDefaultDirectory(), replace: "", subject: $zipPath))
+				);
+			}
+
+			$response = new BinaryFileResponse(file: $zipPath);
+			$response->setContentDisposition(
+				disposition: ResponseHeaderBag::DISPOSITION_ATTACHMENT,
+				filename: $zipName
+			);
+
+			// Supprime le fichier ZIP après envoi (clean)
+			$response->deleteFileAfterSend(shouldDelete: true);
+
+			return $response;
+		}
+		// dump(is_file($filePath));
 		// dump($this->getDefaultDirectory());
 		// dd($filePath);
 
-		if (!\file_exists($filePath)) {
-			throw new \RuntimeException(\sprintf("Le fichier \"%s\" est introuvable.", \str_replace($this->getDefaultDirectory(), "", $filePath)));
+		if (!\file_exists(filename: $filePath)) {
+			throw new \RuntimeException(
+				message: \sprintf("Le fichier \"%s\" est introuvable.", \str_replace(search: $this->getDefaultDirectory(), replace: "", subject: $filePath))
+			);
 		}
 
-		$response = new BinaryFileResponse($filePath);
+		$response = new BinaryFileResponse(file: $filePath);
 		$response->setContentDisposition(
-			ResponseHeaderBag::DISPOSITION_ATTACHMENT,
-			\basename($filePath)
+			disposition: ResponseHeaderBag::DISPOSITION_ATTACHMENT,
+			filename: \basename(path: $filePath)
 		);
 
 		return $response;
@@ -1959,3 +2015,4 @@ if($files){
 
 </body>
 </html> */
+
