@@ -163,7 +163,7 @@ class FileManagerService
 	private function abs(string $relative): string
 	{
 		/* $return = (!$absolute)
-			? \rtrim($this->kernelDirectory, characters: '/') . '/' . \ltrim($path, characters: '/')
+			? \rtrim($this->kernelDirectory, '/') . '/' . \ltrim($path, '/')
 			: $path;
 
 		return $return; */
@@ -383,7 +383,7 @@ class FileManagerService
 	public function getFileContent(string $relativeFile): string
 	{
 		// return $this->filesystem->readFile($this->getKernelDirectory() . $relativeFile);
-		// return \file_get_contents(filename: $this->getKernelDirectory() . $relativeFile);
+		// return \file_get_contents($this->getKernelDirectory() . $relativeFile);
 		return \file_get_contents($this->abs($relativeFile));
 	}
 
@@ -479,7 +479,7 @@ class FileManagerService
 		$this->filesystem->dumpFile($this->getDefaultDirectory() . '/' . $slug . '.' . $extension, $content);
 		// $this->filesystem->dumpFile("{$this->getDefaultDirectory()}/{$slug}.{$extension}", $content);
 		// $this->filesystem->dumpFile($this->getDefaultDirectory() . '/' . $this->createSlug($filename) . '.' . $extension, $content);
-		// $this->filesystem->dumpFile(filename: "{$this->getDefaultDirectory()}/{$this->createSlug($filename)}.{$extension}", $content);
+		// $this->filesystem->dumpFile("{$this->getDefaultDirectory()}/{$this->createSlug($filename)}.{$extension}", $content);
 	}
 
 	/**
@@ -1593,55 +1593,55 @@ class FileManagerService
 		$filePath = $baseDir . DIRECTORY_SEPARATOR . $filename;
 		// dump($this->getKernelDirectory());
 
-		if (\is_dir(filename: $filePath)) {
+		if (\is_dir($filePath)) {
 			// dump(\is_dir($filePath));
 			$tmpDir = $this->getKernelDirectory() . '/var/tmp';
-			if (!\is_dir(filename: $tmpDir)) {
-				\mkdir(directory: $tmpDir, permissions: 0775, recursive: true);
+			if (!\is_dir($tmpDir)) {
+				\mkdir($tmpDir, 0775, true);
 			}
 
-			$zipName = \basename(path: $filePath) . '.zip';
+			$zipName = \basename($filePath) . '.zip';
 			$zipPath = $tmpDir . DIRECTORY_SEPARATOR . $zipName;
 
 			$zip = new \ZipArchive();
-			if ($zip->open(filename: $zipPath, flags: \ZipArchive::CREATE | \ZipArchive::OVERWRITE) !== true) {
-				throw new \RuntimeException(message: "Impossible de créer l'archive ZIP : {$zipName}");
+			if ($zip->open($zipPath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) !== true) {
+				throw new \RuntimeException("Impossible de créer l'archive ZIP : {$zipName}");
 			}
 
 			$iterator = new \RecursiveIteratorIterator(
-				iterator: new \RecursiveDirectoryIterator(directory: $filePath, flags: \RecursiveDirectoryIterator::SKIP_DOTS),
-				mode: \RecursiveIteratorIterator::SELF_FIRST
+				new \RecursiveDirectoryIterator($filePath, \RecursiveDirectoryIterator::SKIP_DOTS),
+				\RecursiveIteratorIterator::SELF_FIRST
 			);
 			// dump($zipName);
 			// dump(\basename($zipName));
 			// dd($iterator);
 
 			foreach ($iterator as $item) {
-				$localPath = \substr(string: $item->getRealPath(), offset: \strlen(string: $filePath) + 1);
+				$localPath = \substr($item->getRealPath(), \strlen($filePath) + 1);
 
 				if ($item->isDir()) {
-					$zip->addEmptyDir(dirname: $localPath);
+					$zip->addEmptyDir($localPath);
 				} else {
-					$zip->addFile(filepath: $item->getRealPath(), entryname: $localPath);
+					$zip->addFile($item->getRealPath(), $localPath);
 				}
 			}
 
 			$zip->close();
 
-			if (!\file_exists(filename: $zipPath)) {
+			if (!\file_exists($zipPath)) {
 				throw new \RuntimeException(
-					message: \sprintf("Le fichier \"%s\" est introuvable.", \str_replace(search: $this->getDefaultDirectory(), replace: "", subject: $zipPath))
+					\sprintf("Le fichier \"%s\" est introuvable.", \str_replace($this->getDefaultDirectory(), "", $zipPath))
 				);
 			}
 
-			$response = new BinaryFileResponse(file: $zipPath);
+			$response = new BinaryFileResponse($zipPath);
 			$response->setContentDisposition(
-				disposition: ResponseHeaderBag::DISPOSITION_ATTACHMENT,
-				filename: $zipName
+				ResponseHeaderBag::DISPOSITION_ATTACHMENT,
+				$zipName
 			);
 
 			// Supprime le fichier ZIP après envoi (clean)
-			$response->deleteFileAfterSend(shouldDelete: true);
+			$response->deleteFileAfterSend(true);
 
 			return $response;
 		}
@@ -1649,16 +1649,16 @@ class FileManagerService
 		// dump($this->getDefaultDirectory());
 		// dd($filePath);
 
-		if (!\file_exists(filename: $filePath)) {
+		if (!\file_exists($filePath)) {
 			throw new \RuntimeException(
-				message: \sprintf("Le fichier \"%s\" est introuvable.", \str_replace(search: $this->getDefaultDirectory(), replace: "", subject: $filePath))
+				\sprintf("Le fichier \"%s\" est introuvable.", \str_replace($this->getDefaultDirectory(), "", $filePath))
 			);
 		}
 
-		$response = new BinaryFileResponse(file: $filePath);
+		$response = new BinaryFileResponse($filePath);
 		$response->setContentDisposition(
-			disposition: ResponseHeaderBag::DISPOSITION_ATTACHMENT,
-			filename: \basename(path: $filePath)
+			ResponseHeaderBag::DISPOSITION_ATTACHMENT,
+			\basename($filePath)
 		);
 
 		return $response;
@@ -1721,7 +1721,10 @@ class FileManagerService
 
 		// Retourner le zip en téléchargement
 		$response = new BinaryFileResponse($zipPath);
-		$response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, 'files.zip');
+		$response->setContentDisposition(
+			ResponseHeaderBag::DISPOSITION_ATTACHMENT,
+			'files.zip'
+		);
 
 		// Supprimer le zip après envoi
 		$response->deleteFileAfterSend(true);
@@ -2015,4 +2018,3 @@ if($files){
 
 </body>
 </html> */
-
