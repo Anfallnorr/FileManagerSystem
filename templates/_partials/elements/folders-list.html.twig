@@ -16,7 +16,16 @@
 											&Xi;
 										</button>
 										<ul class="dropdown-menu dropdown-folder">
-											<li><a href="#" class="dropdown-item download-item" data-url="?action=download" data-bs-toggle="modal" data-bs-target="#modal_download" title="Download {{ folder.foldername }}" context="download">Download</a></li>
+											<li>
+												<a href="{{ path('app_file_manager_download_folder', {'dirname': folder.foldername, 'folder': current_folder}) }}"
+													class="dropdown-item download-item"
+													title="Download {{ folder.foldername }}"
+													data-turbo="false"
+													context="download"
+												>
+													Download
+												</a>
+											</li>
 											<li><a href="#" class="dropdown-item compress-item" data-url="?action=archive" data-bs-toggle="modal" data-bs-target="#modal_compress" title="Compress {{ folder.foldername }}" context="zip">Zip</a></li>
 											<li><a href="#" class="dropdown-item share-item" data-filetarget="{{ folder.foldername }}" data-bs-toggle="modal" data-bs-target="#modal_share" title="Share {{ folder.foldername }}" context="share">Share</a></li>
 											<li><a href="#" class="dropdown-item move-item" data-bs-toggle="modal" data-bs-target="#modal_move_file{# _{{ loop.index }} #}" data-name="{{ folder.foldername }}" title="Move {{ folder.foldername }}" context="move">Move</a></li>
@@ -105,3 +114,4 @@
 		{% endfor %}
 	</template>
 </turbo-stream>
+
