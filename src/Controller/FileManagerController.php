@@ -150,20 +150,20 @@ final class FileManagerController extends AbstractController
 		return $this->fmService->download($dirname, $folder);
 	}
 
-	// #[Route('/file/download/bulk/{folder}', name: 'app_file_manager_download_bulk_file', methods: ['POST'], defaults: ['folder' => ''], requirements: ['folder' => '.+'])]
-	// #[Route(path: '/file/mass-download/{folder}', name: self::FILE_MANAGER_DOWNLOAD_BULK_FILE, methods: ['POST'], defaults: ['folder' => ''], requirements: ['folder' => '.+'])]
+	// app_file_manager_download_bulk_file
 	#[Route(path: '/file/mass-download/{folder}', name: self::FILE_MANAGER_DOWNLOAD_BULK_FILE, methods: ['POST'], defaults: ['folder' => ''], requirements: ['folder' => Requirement::CATCH_ALL])]
-	public function appFileManagerDownloadBulkFile(Request $request): BinaryFileResponse
+	public function appFileManagerDownloadBulkFile(Request $request, string $folder): BinaryFileResponse
 	{
-		$files = \json_decode(json: $request->get(key: 'filesToDownload'));
-		$folders = \json_decode(json: $request->get(key: 'foldersToDownload'));
-		// $files = $request->request->get('files', []); // tableau de noms de fichiers
-		// $folders = $request->request->get('folder', null);
+		$files = \json_decode(json: $request->getPayload()->get(key: 'filesToDownload'));
+		$folders = \json_decode(json: $request->getPayload()->get(key: 'foldersToDownload'));
 		// dd($files);
-		dump(vars: $files);
-		dd(vars: $folders);
+		// dump($folder);
+		// dump($files);
+		// dd($folders);
+		// dd([...$files, ...$folders]);
 
-		return $this->fmService->downloadBulk($files, $folders);
+		// return $this->fmService->downloadBulk($files, $folders);
+		return $this->fmService->downloadBulk([...$files, ...$folders], $folder);
 	}
 
 	/* #[Route('/file/move/{filename}/{folder}', name: 'app_file_manager_move', defaults: ['folder' => ''], requirements: ['folder' => '.+'])]
