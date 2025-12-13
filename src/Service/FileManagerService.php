@@ -51,8 +51,10 @@ use Symfony\Component\String\Slugger\AsciiSlugger;
  * @method public upload(@var UploadedFile|array $files, @var string $folder, @var bool $return = false): @return array|bool
  * @method static resizeImages(@var array $files, @var string $sourceDir, @var string $targetDir, @var int $width, @var int $quality = 100): @return array|bool
  * @method public hasDir(): @return bool
- * @method public download(@var string $filename, @var ?string $directory = null): @return BinaryFileResponse
- * @method public downloadBulk(@var array $filenames, @var array $folders, @var ?string $directory = null): @return BinaryFileResponse
+ * @method public download(@var string $name, @var ?string $directory = null): @return BinaryFileResponse
+ * @method public downloadBulk(@var array $names, @var ?string $directory = null): @return BinaryFileResponse
+ * @method private prepareDownload(@var array $paths, @var string $baseDir): @return array
+ * @method private addDirectoryToZip(@var \ZipArchive $zip, @var string $dir, @var string $baseName): @return void
  * @method public remove(@var string $relativePath = ''): @return bool
  * @method public copy(@var string $source, @var string $destination, @var bool $override = false): @return bool
  * @method public rename(@var string $source, @var string $destination, @var bool $override = false): @return bool
@@ -168,6 +170,25 @@ class FileManagerService
 
 		return $return; */
 		return \rtrim($this->kernelDirectory, '/') . '/' . \ltrim($relative, '/');
+		/* $basePath = \realpath($this->kernelDirectory);
+
+		if ($basePath === false) {
+			throw new \RuntimeException("Kernel directory introuvable");
+		}
+
+		$fullPath = \realpath(
+			$basePath . DIRECTORY_SEPARATOR . \ltrim($relative, '/')
+		);
+
+		if ($fullPath === false) {
+			throw new \RuntimeException("Chemin introuvable");
+		}
+
+		if (!\str_starts_with($fullPath, $basePath)) {
+			throw new \RuntimeException("Accès interdit");
+		}
+
+		return $fullPath; */
 	}
 
 	/**
@@ -1560,40 +1581,45 @@ class FileManagerService
 
 	/* **************************************************************************************************************************************************************** */
 	/**
-	 * Télécharge un fichier depuis le répertoire par défaut ou un sous-répertoire spécifique.
+	 * Télécharge un fichier ou délègue vers un téléchargement groupé si nécessaire.
 	 *
-	 * Cette méthode construit le chemin complet du fichier à partir du répertoire fourni
-	 * ou du répertoire par défaut si aucun répertoire n'est précisé. Elle vérifie ensuite
-	 * si le fichier existe et renvoie une réponse HTTP (`BinaryFileResponse`) configurée
-	 * pour forcer le téléchargement par le navigateur.
+	 * Cette méthode permet de télécharger un fichier unique situé dans le répertoire
+	 * par défaut ou dans un sous-répertoire donné. Si le nom fourni ne correspond pas
+	 * directement à un fichier, la méthode délègue automatiquement au mécanisme de
+	 * téléchargement groupé (`downloadBulk`) afin de gérer les dossiers ou une logique
+	 * d’extension future (multi-sélection).
 	 *
 	 * Exemple d'utilisation :
 	 * ```php
-	 * // Téléchargement d'un fichier dans le répertoire par défaut
+	 * // Téléchargement d'un fichier unique
 	 * return $service->download('document.pdf');
 	 *
 	 * // Téléchargement d'un fichier dans un sous-dossier
 	 * return $service->download('image.png', 'uploads/images');
 	 * ```
 	 *
-	 * @param string      $filename   Nom du fichier à télécharger.
+	 * @param string      $name       Nom du fichier à télécharger.
 	 * @param string|null $directory  Sous-répertoire optionnel dans lequel se trouve le fichier.
 	 *
-	 * @return BinaryFileResponse     Réponse Symfony configurée pour le téléchargement.
+	 * @return BinaryFileResponse     Réponse Symfony configurée pour forcer le téléchargement.
 	 *
 	 * @throws \RuntimeException      Si le fichier est introuvable.
 	 */
-	public function download(string $filename, ?string $directory = null): BinaryFileResponse
+	public function download(string $name, ?string $directory = null): BinaryFileResponse
 	{
-		// Si aucun répertoire n'est fourni, on prend le defaultDirectory
+		// if (!\is_file($name)) {
+			return $this->downloadBulk([$name], $directory);
+		// }
+
+		/* // Si aucun répertoire n'est fourni, on prend le defaultDirectory
 		$baseDir = $directory
 			? $this->getDefaultDirectory() . DIRECTORY_SEPARATOR . \ltrim($directory, DIRECTORY_SEPARATOR)
 			: $this->getDefaultDirectory();
 
-		$filePath = $baseDir . DIRECTORY_SEPARATOR . $filename;
-		// dump($this->getKernelDirectory());
+		$filePath = $baseDir . DIRECTORY_SEPARATOR . $name;
+		// dump($this->getKernelDirectory()); */
 
-		if (\is_dir($filePath)) {
+		/* if (\is_dir($filePath)) {
 			// dump(\is_dir($filePath));
 			$tmpDir = $this->getKernelDirectory() . '/var/tmp';
 			if (!\is_dir($tmpDir)) {
@@ -1644,12 +1670,12 @@ class FileManagerService
 			$response->deleteFileAfterSend(true);
 
 			return $response;
-		}
+		} */
 		// dump(is_file($filePath));
 		// dump($this->getDefaultDirectory());
 		// dd($filePath);
 
-		if (!\file_exists($filePath)) {
+		/* if (!\file_exists($filePath)) {
 			throw new \RuntimeException(
 				\sprintf("Le fichier \"%s\" est introuvable.", \str_replace($this->getDefaultDirectory(), "", $filePath))
 			);
@@ -1661,75 +1687,163 @@ class FileManagerService
 			\basename($filePath)
 		);
 
-		return $response;
+		return $response; */
 	}
 
 	/**
-	 * Télécharge plusieurs fichiers regroupés dans une archive ZIP.
+	 * Télécharge plusieurs fichiers et/ou dossiers regroupés dans une archive ZIP.
 	 *
-	 * Cette méthode permet de créer une archive ZIP temporaire contenant plusieurs fichiers
-	 * situés dans le répertoire par défaut ou dans un sous-répertoire spécifique. Chaque fichier
-	 * est vérifié pour son existence avant d'être ajouté au ZIP. Une fois l'archive créée, une
-	 * réponse HTTP `BinaryFileResponse` est renvoyée pour forcer le téléchargement du ZIP.
-	 * Le fichier ZIP temporaire est automatiquement supprimé après l'envoi.
+	 * Cette méthode construit une archive ZIP temporaire contenant un ou plusieurs
+	 * fichiers et dossiers situés dans le répertoire par défaut ou dans un sous-répertoire
+	 * spécifique. Chaque élément est vérifié avant traitement afin de garantir son
+	 * existence. Une fois l’archive générée, une réponse HTTP de type
+	 * `BinaryFileResponse` est renvoyée pour déclencher le téléchargement.
+	 *
+	 * Le fichier ZIP temporaire est automatiquement supprimé après l’envoi de la réponse.
 	 *
 	 * Exemple d'utilisation :
 	 * ```php
-	 * // Téléchargement de plusieurs fichiers dans un sous-dossier
+	 * // Téléchargement de plusieurs fichiers
 	 * return $service->downloadBulk(
 	 *     ['document.pdf', 'image.png'],
-	 *     [],
 	 *     'uploads/documents'
 	 * );
 	 * ```
 	 *
-	 * @param array       $filenames  Liste des noms de fichiers à inclure dans l'archive ZIP.
-	 * @param array       $folders    Liste des dossiers associés aux fichiers (non utilisé actuellement).
-	 * @param string|null $directory  Sous-répertoire optionnel contenant les fichiers.
+	 * @param array       $names      Liste des noms de fichiers ou dossiers à inclure.
+	 * @param string|null $directory  Sous-répertoire optionnel contenant les éléments.
 	 *
 	 * @return BinaryFileResponse     Réponse Symfony contenant l’archive ZIP à télécharger.
 	 *
-	 * @throws \RuntimeException      Si un fichier est introuvable ou si l’archive ZIP
+	 * @throws \RuntimeException      Si un élément est introuvable ou si l’archive ZIP
 	 *                                ne peut pas être créée.
 	 */
-	public function downloadBulk(array $filenames, array $folders, ?string $directory = null): BinaryFileResponse
+	public function downloadBulk(array $names, ?string $directory = null): BinaryFileResponse
 	{
 		$baseDir = $directory
-			? $this->getDefaultDirectory() . DIRECTORY_SEPARATOR . \ltrim($directory, DIRECTORY_SEPARATOR)
+			? $this->getDefaultDirectory() . DIRECTORY_SEPARATOR . ltrim($directory, DIRECTORY_SEPARATOR)
 			: $this->getDefaultDirectory();
 
-		// Créer un fichier zip temporaire
-		$zipPath = \sys_get_temp_dir() . '/files_' . \uniqid() . '.zip';
-		$zip = new \ZipArchive();
+		$paths = [];
 
-		if ($zip->open($zipPath, \ZipArchive::CREATE) !== true) {
-			throw new \RuntimeException('Impossible de créer le ZIP.');
-		}
+		foreach ($names as $name) {
+			$path = $baseDir . DIRECTORY_SEPARATOR . $name;
 
-		foreach ($filenames as $filename) {
-			$filePath = $baseDir . DIRECTORY_SEPARATOR . $filename;
-
-			if (!\file_exists($filePath)) {
-				throw new \RuntimeException(\sprintf("Le fichier \"%s\" est introuvable.", $filePath));
+			if (!\file_exists($path)) {
+				throw new \RuntimeException(
+					\sprintf("`%s` est introuvable.", $name)
+				);
 			}
 
-			// Ajouter le fichier au zip
-			$zip->addFile($filePath, \basename($filePath));
+			$paths[] = $path;
+		}
+
+		[$finalPath, $finalName, $deleteAfter] = $this->prepareDownload($paths, $baseDir);
+
+		$response = new BinaryFileResponse($finalPath);
+		$response->setContentDisposition(
+			ResponseHeaderBag::DISPOSITION_ATTACHMENT,
+			$finalName
+		);
+
+		if ($deleteAfter) {
+			$response->deleteFileAfterSend(true);
+		}
+
+		return $response;
+	}
+
+	/**
+	 * Prépare le téléchargement final à partir d’un ensemble de chemins.
+	 *
+	 * Cette méthode centralise la logique de décision entre un téléchargement direct
+	 * d’un fichier unique et la création d’une archive ZIP lorsque plusieurs éléments
+	 * (fichiers et/ou dossiers) sont fournis. Elle retourne les informations nécessaires
+	 * à la construction de la réponse HTTP finale.
+	 *
+	 * - Si un seul fichier est présent, celui-ci est retourné tel quel.
+	 * - Sinon, une archive ZIP temporaire est créée.
+	 *
+	 * @param array  $paths    Liste des chemins absolus des fichiers ou dossiers à traiter.
+	 * @param string $baseDir  Répertoire de base utilisé pour la résolution des chemins.
+	 *
+	 * @return array{
+	 *     0: string,  // Chemin du fichier final (fichier ou ZIP)
+	 *     1: string,  // Nom du fichier à présenter au téléchargement
+	 *     2: bool     // Indique si le fichier doit être supprimé après l’envoi
+	 * }
+	 *
+	 * @throws \RuntimeException Si l’archive ZIP ne peut pas être créée.
+	 */
+	private function prepareDownload(array $paths, string $baseDir): array
+	{
+		// Cas simple : un seul fichier
+		if (\count($paths) === 1 && \is_file($paths[0])) {
+			return [
+				$paths[0],
+				\basename($paths[0]),
+				false,
+			];
+		}
+
+		// Sinon → ZIP
+		$tmpDir = $this->getKernelDirectory() . '/var/tmp';
+		if (!\is_dir($tmpDir)) {
+			\mkdir($tmpDir, 0775, true);
+		}
+
+		$zipName = 'download_' . \date('Ymd_His') . '.zip';
+		$zipPath = $tmpDir . DIRECTORY_SEPARATOR . $zipName;
+
+		$zip = new \ZipArchive();
+		if ($zip->open($zipPath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) !== true) {
+			throw new \RuntimeException('Impossible de créer l’archive ZIP.');
+		}
+
+		foreach ($paths as $path) {
+			if (\is_dir($path)) {
+				$this->addDirectoryToZip($zip, $path, \basename($path));
+			} else {
+				$zip->addFile($path, \basename($path));
+			}
 		}
 
 		$zip->close();
 
-		// Retourner le zip en téléchargement
-		$response = new BinaryFileResponse($zipPath);
-		$response->setContentDisposition(
-			ResponseHeaderBag::DISPOSITION_ATTACHMENT,
-			'files.zip'
+		return [$zipPath, $zipName, true];
+	}
+
+	/**
+	 * Ajoute récursivement le contenu d’un dossier dans une archive ZIP.
+	 *
+	 * Cette méthode parcourt l’arborescence complète d’un dossier et ajoute
+	 * chaque sous-dossier et fichier dans l’archive ZIP fournie, tout en
+	 * conservant la structure relative du dossier d’origine.
+	 *
+	 * @param \ZipArchive $zip       Instance de l’archive ZIP cible.
+	 * @param string      $dir       Chemin absolu du dossier à ajouter.
+	 * @param string      $baseName  Nom racine utilisé dans l’archive ZIP.
+	 *
+	 * @return void
+	 */
+	private function addDirectoryToZip(\ZipArchive $zip, string $dir, string $baseName): void
+	{
+		$iterator = new \RecursiveIteratorIterator(
+			new \RecursiveDirectoryIterator($dir, \RecursiveDirectoryIterator::SKIP_DOTS),
+			\RecursiveIteratorIterator::SELF_FIRST
 		);
+		// dd($iterator);
 
-		// Supprimer le zip après envoi
-		$response->deleteFileAfterSend(true);
+		foreach ($iterator as $item) {
+			// $localPath = $baseName . '/' . \substr($item->getRealPath(), \strlen($dir) + 1);
+			$localPath = $baseName . DIRECTORY_SEPARATOR . \substr($item->getRealPath(), \strlen($dir) + 1);
 
-		return $response;
+			if ($item->isDir()) {
+				$zip->addEmptyDir($localPath);
+			} else {
+				$zip->addFile($item->getRealPath(), $localPath);
+			}
+		}
 	}
 	/* **************************************************************************************************************************************************************** */
 
