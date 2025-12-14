@@ -25,7 +25,10 @@ class RenameFileType extends AbstractType
 				]
 			])
 			->add(child: 'newFileName', type: TextType::class, options: [
-				'label' => new TranslatableMessage(message: 'file_manager.new_file_name') // 'Nouveau nom du fichier'
+				'label' => new TranslatableMessage(message: 'file_manager.new_file_name'), // 'Nouveau nom du fichier'
+				'attr' => [
+					'data-rename-fmmodal-target' => "newFileInput"
+				]
 			])
 			->add(child: 'submit', type: SubmitType::class, options: [
 				'label' => new TranslatableMessage(message: 'file_manager.rename') // 'Renommer'
