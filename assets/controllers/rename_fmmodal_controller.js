@@ -1,7 +1,8 @@
 import { Controller } from '@hotwired/stimulus';
 
 export default class extends Controller {
-	static targets = ['filenameTitle', 'currentFileInput'];
+	// static targets = ['filenameTitle', 'filenameTitle', 'currentFileInput'];
+	static targets = ['filenameTitle', 'currentFileInput', 'newFileInput'];
 	/* static values = {
 		name: String
 	} */
@@ -34,5 +35,14 @@ export default class extends Controller {
 		// Met à jour le champ du formulaire
 		this.currentFileInputTarget.value = filename;
 		// this.currentFileInputTarget.value = this.nameValue;
+
+		// console.log(newFilename);
+		// console.log(filename.lastIndexOf("."));
+		if (filename.lastIndexOf(".") > 0) {
+			const newFilename = filename.substr(0, filename.lastIndexOf("."));
+			this.newFileInputTarget.value = newFilename;
+		} else {
+			this.newFileInputTarget.value = filename;
+		}
 	}
 }
