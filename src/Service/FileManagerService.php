@@ -1928,8 +1928,13 @@ class FileManagerService
 
 	public function rename(string $source, string $destination, bool $override = false): bool
 	{
-		$ext = pathinfo($source, PATHINFO_EXTENSION);
-		$slugDestination = $this->createSlug($destination);
+		$ext = \pathinfo($source, PATHINFO_EXTENSION);
+		// dd($ext);
+		$slug = $this->createSlug($destination);
+
+		$newSource = (empty($ext))
+			? $slug
+			: "{$slug}.{$ext}";
 
 		/* $origin = "{$this->getDefaultDirectory()}/{$source}";
 		$target = "{$this->getDefaultDirectory()}/{$slugDestination}.{$ext}"; */
@@ -1941,7 +1946,7 @@ class FileManagerService
 		// renames a directory
 		$filesystem->rename('/tmp/files', '/path/to/store/files', false); */
 		// $this->filesystem->rename($origin, $target, $override);
-		$this->filesystem->rename("{$this->getDefaultDirectory()}/{$source}", "{$this->getDefaultDirectory()}/{$slugDestination}.{$ext}", $override);
+		$this->filesystem->rename("{$this->getDefaultDirectory()}/{$source}", "{$this->getDefaultDirectory()}/{$newSource}", $override);
 
 		// if (!$this->exists($origin, true)) {
 		if (!$this->exists("{$this->getDefaultDirectory()}/{$source}", true)) {
@@ -2139,3 +2144,4 @@ if($files){
 
 </body>
 </html> */
+
