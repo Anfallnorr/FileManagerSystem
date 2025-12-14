@@ -60,7 +60,12 @@
 						</button>
 						<ul class="dropdown-menu dropdown-menu-end dropdown-file pl-5" _data-popper-placement="bottom-start">
 							<li class="mb-1">
-								<a href="{{ path('app_file_manager_download_file', {'filename': file.filename, 'folder': current_folder}) }}" class="dropdown-item download-item" title="Download {{ file.filename }}" data-turbo="false" context="download">
+								<a href="{{ path('app_file_manager_download_file', {'filename': file.filename, 'folder': current_folder}) }}"
+									class="dropdown-item download-item"
+									title="Download {{ file.filename }}"
+									data-turbo="false"
+									context="download"
+								>
 									<i class="bi bi-download me-2"></i>Download
 								</a>
 							</li>
@@ -70,13 +75,25 @@
 								</a>
 							</li> #}
 							<li class="my-1">
-								<a href="#" class="dropdown-item move-item" data-bs-toggle="modal" data-bs-target="#modal_move_file{# _{{ loop.index }} #}" data-name="{{ file.filename }}" title="Move {{ file.filename }}" context="move">
+								<a href="#" class="dropdown-item move-item"
+									data-bs-toggle="modal"
+									data-bs-target="#modal_move_file{# _{{ loop.index }} #}"
+									title="Move {{ file.filename }}"
+									data-name="{{ file.filename }}"
+									context="move"
+								>
 									<i class="bi bi-arrows-move me-2"></i>Move
 								</a>
 							</li>
 							<li class="my-1">
 								{# <a href="#" class="dropdown-item rename-item" data-bs-toggle="modal" data-bs-target="#modal_rename_file_{{ loop.index }}" title="Rename {{ file.filename }}" context="rename"> #}
-								<a href="#" class="dropdown-item rename-item" data-bs-toggle="modal" data-bs-target="#modal_rename_file" title="Rename {{ file.filename }}" context="rename">
+								<a href="#" class="dropdown-item rename-item"
+									data-bs-toggle="modal"
+									data-bs-target="#modal_rename_file"
+									title="Rename {{ file.filename }}"
+									data-name="{{ file.filename }}"
+									context="rename"
+								>
 									<i class="bi bi-cursor-text me-2"></i>Rename
 								</a>
 							</li>
