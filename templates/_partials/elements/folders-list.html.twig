@@ -29,7 +29,17 @@
 											<li><a href="#" class="dropdown-item compress-item" data-url="?action=archive" data-bs-toggle="modal" data-bs-target="#modal_compress" title="Compress {{ folder.foldername }}" context="zip">Zip</a></li>
 											<li><a href="#" class="dropdown-item share-item" data-filetarget="{{ folder.foldername }}" data-bs-toggle="modal" data-bs-target="#modal_share" title="Share {{ folder.foldername }}" context="share">Share</a></li>
 											<li><a href="#" class="dropdown-item move-item" data-bs-toggle="modal" data-bs-target="#modal_move_file{# _{{ loop.index }} #}" data-name="{{ folder.foldername }}" title="Move {{ folder.foldername }}" context="move">Move</a></li>
-											<li><a href="#" class="dropdown-item rename-item" data-bs-toggle="modal" data-bs-target="#modal_rename_{{ loop.index }}" title="Rename {{ folder.foldername }}" context="rename">Rename</a></li>
+											<li>
+												<a href="#" class="dropdown-item rename-item"
+													title="Rename {{ folder.foldername }}"
+													data-bs-toggle="modal"
+													data-bs-target="#modal_rename_file{# _{{ loop.index }} #}"
+													data-name="{{ folder.foldername }}"
+													context="rename"
+												>
+													Rename
+												</a>
+											</li>
 											<li><div class="dropdown-divider mb-1"></div></li>
 											<li>
 												<form action="{{ path('app_file_manager_delete_folder', {'dirname': folder.foldername, 'folder': current_folder}) }}" method="post" class="d-inline">
@@ -114,4 +124,3 @@
 		{% endfor %}
 	</template>
 </turbo-stream>
-
