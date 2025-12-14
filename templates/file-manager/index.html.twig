@@ -39,7 +39,7 @@
 	</div>
 
 	<div id="files_zone" class="card mt-5 mb-3">
-		<div class="card-body" data-controller="table-check rename-modal">
+		<div class="card-body" data-controller="table-check rename-fmmodal">
 
 			<div id="data_breadcrumb" class="mb-3">
 				<ol class="breadcrumb _d-none _d-lg-flex d-flex">
@@ -185,11 +185,11 @@
 				</div>
 			</div>
 
-			<div class="modal fade" id="modal_rename_file" tabindex="-1" aria-labelledby="modal_rename_fileLabel" aria-hidden="true" data-action="show.bs.modal->rename-modal#open">
+			<div class="modal fade" id="modal_rename_file" tabindex="-1" aria-labelledby="modal_rename_fileLabel" aria-hidden="true" data-action="show.bs.modal->rename-fmmodal#open">
 				<div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
 					<div class="modal-content">
 						<div class="modal-header">
-							<h5 class="modal-title h4" id="modal_rename_fileLabel">Rename <span data-rename-modal-target="filenameSpan">file.ext or direname</span></h5>
+							<h5 class="modal-title h4" id="modal_rename_fileLabel">Rename <span data-rename-fmmodal-target="filenameTitle">file.ext or direname</span></h5>
 							<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 						</div>
 						{{ form_start(rename_file_form) }}
