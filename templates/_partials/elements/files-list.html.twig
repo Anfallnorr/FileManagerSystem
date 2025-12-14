@@ -76,9 +76,9 @@
 							</li> #}
 							<li class="my-1">
 								<a href="#" class="dropdown-item move-item"
+									title="Move {{ file.filename }}"
 									data-bs-toggle="modal"
 									data-bs-target="#modal_move_file{# _{{ loop.index }} #}"
-									title="Move {{ file.filename }}"
 									data-name="{{ file.filename }}"
 									context="move"
 								>
@@ -88,9 +88,9 @@
 							<li class="my-1">
 								{# <a href="#" class="dropdown-item rename-item" data-bs-toggle="modal" data-bs-target="#modal_rename_file_{{ loop.index }}" title="Rename {{ file.filename }}" context="rename"> #}
 								<a href="#" class="dropdown-item rename-item"
+									title="Rename {{ file.filename }}"
 									data-bs-toggle="modal"
 									data-bs-target="#modal_rename_file"
-									title="Rename {{ file.filename }}"
 									data-name="{{ file.filename }}"
 									context="rename"
 								>
