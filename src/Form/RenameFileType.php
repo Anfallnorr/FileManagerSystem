@@ -21,7 +21,7 @@ class RenameFileType extends AbstractType
 			])
 			->add(child: 'currentFileName', type: HiddenType::class, options: [
 				'attr' => [
-					'data-rename-modal-target' => "currentFileInput"
+					'data-rename-fmmodal-target' => "currentFileInput"
 				]
 			])
 			->add(child: 'newFileName', type: TextType::class, options: [
