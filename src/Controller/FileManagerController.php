@@ -425,7 +425,7 @@ final class FileManagerController extends AbstractController
 			);
 			/* return $this->redirectToRoute(route: self::FILE_MANAGER, parameters: [
 				'folder' => $folder
-			]); */
+			], status: Response::HTTP_SEE_OTHER); */
 		}
 
 
@@ -469,7 +469,7 @@ final class FileManagerController extends AbstractController
 			);
 			/* return $this->redirectToRoute(route: self::FILE_MANAGER, parameters: [
 				'folder' => $folder
-			]); */
+			], status: Response::HTTP_SEE_OTHER); */
 		}
 
 
@@ -511,7 +511,7 @@ final class FileManagerController extends AbstractController
 
 			return $this->redirectToRoute(route: self::FILE_MANAGER, parameters: [
 				'folder' => $folder
-			]); */
+			], status: Response::HTTP_SEE_OTHER); */
 		}
 
 
@@ -551,7 +551,7 @@ final class FileManagerController extends AbstractController
 
 			return $this->redirectToRoute(route: self::FILE_MANAGER, parameters: [
 				'folder' => $folder
-			]);
+			], status: Response::HTTP_SEE_OTHER);
 		}
 
 
