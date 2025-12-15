@@ -277,8 +277,8 @@ final class FileManagerController extends AbstractController
 	#[Route(path: '/files/mass-delete/{folder}', name: self::FILE_MANAGER_MASS_DELETE_FOLDER, defaults: ['folder' => ''], methods: ['DELETE'], requirements: ['folder' => Requirement::CATCH_ALL])]
 	public function appFileManagerMassDeleteFolder(Request $request, string $folder): Response
 	{
-		$foldersToDelete = \json_decode(json: $request->get(key: 'foldersToDelete'));
-		$filesToDelete = \json_decode(json: $request->get(key: 'filesToDelete'));
+		$foldersToDelete = \json_decode(json: $request->getPayload()->get(key: 'foldersToDelete'));
+		$filesToDelete = \json_decode(json: $request->getPayload()->get(key: 'filesToDelete'));
 
 		if (!empty($foldersToDelete) || !empty($filesToDelete)) {
 			if (!empty($foldersToDelete)) {
@@ -572,3 +572,4 @@ final class FileManagerController extends AbstractController
 		]);
 	}
 }
+
