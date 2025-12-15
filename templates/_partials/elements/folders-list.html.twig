@@ -44,7 +44,7 @@
 											<li>
 												<form action="{{ path('app_file_manager_delete_folder', {'dirname': folder.foldername, 'folder': current_folder}) }}" method="post" class="d-inline">
 													<input type="hidden" name="_method" value="DELETE" />
-													<button type="submit" class="dropdown-item delete-item" title="{{ 'user.folders.delete' | trans({}, 'pages') }}" onclick="return confirm('Delete {{ folder.foldername }} ?');" title="Delete {{ folder.foldername }}" context="delete">
+													<button type="submit" class="dropdown-item delete-item" title="{{ 'file_manager.folders.delete' | trans() }}" onclick="return confirm('Delete {{ folder.foldername }} ?');" title="Delete {{ folder.foldername }}" context="delete">
 														Delete
 													</button>
 												</form>
@@ -124,3 +124,4 @@
 		{% endfor %}
 	</template>
 </turbo-stream>
+
