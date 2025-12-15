@@ -29,6 +29,7 @@ final class FileManagerController extends AbstractController
 	protected const string FILE_MANAGER_DOWNLOAD_FILE = 'app_file_manager_download_file';			// self::FILE_MANAGER_DOWNLOAD_FILE
 	protected const string FILE_MANAGER_DOWNLOAD_FOLDER = 'app_file_manager_download_folder';		// self::FILE_MANAGER_DOWNLOAD_FOLDER
 	protected const string FILE_MANAGER_DOWNLOAD_BULK_FILE = 'app_file_manager_download_bulk_file';	// self::FILE_MANAGER_DOWNLOAD_BULK_FILE
+	protected const string FILE_MANAGER_RENAME_BULK_FILE = 'app_file_manager_rename_bulk_file';		// self::FILE_MANAGER_RENAME_BULK_FILE
 	protected const string FILE_MANAGER_DELETE_FILE = 'app_file_manager_delete_file';				// self::FILE_MANAGER_DELETE_FILE
 	protected const string FILE_MANAGER_DELETE_FOLDER = 'app_file_manager_delete_folder';			// self::FILE_MANAGER_DELETE_FOLDER
 	protected const string FILE_MANAGER_MASS_DELETE_FOLDER = 'app_file_manager_mass_delete_folder';	// self::FILE_MANAGER_MASS_DELETE_FOLDER
@@ -193,6 +194,22 @@ final class FileManagerController extends AbstractController
 			'Content-Disposition' => ResponseHeaderBag::DISPOSITION_INLINE, // Online display (for images)
 		]);
 	} */
+
+	// app_file_manager_rename_bulk_file
+	#[Route(path: '/file/mass-rename/{folder}', name: self::FILE_MANAGER_RENAME_BULK_FILE, methods: ['POST'], defaults: ['folder' => ''], requirements: ['folder' => Requirement::CATCH_ALL])]
+	public function appFileManagerRenameBulkFile(Request $request, string $folder): BinaryFileResponse
+	{
+		$files = \json_decode(json: $request->getPayload()->get(key: 'filesToRename'));
+		$folders = \json_decode(json: $request->getPayload()->get(key: 'foldersToRename'));
+		// dd($files);
+		// dump($folder);
+		dump(vars: $files);
+		dd($folders);
+		dd([...$files, ...$folders]);
+
+		// return $this->fmService->downloadBulk($files, $folders);
+		// return $this->fmService->renameBulk([...$files, ...$folders], $folder);
+	}
 
 	// #[Route(path: '/file/delete/{filename}/{folder}', name: self::FILE_MANAGER_DELETE_FILE, defaults: ['folder' => ''], methods: ['DELETE'], requirements: ['folder' => '.+'])]
 	#[Route(path: '/file/delete/{filename}/{folder}', name: self::FILE_MANAGER_DELETE_FILE, defaults: ['folder' => ''], methods: ['DELETE'], requirements: ['folder' => Requirement::CATCH_ALL])]
@@ -572,4 +589,3 @@ final class FileManagerController extends AbstractController
 		]);
 	}
 }
-
