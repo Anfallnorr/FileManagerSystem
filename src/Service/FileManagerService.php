@@ -19,46 +19,61 @@ use Symfony\Component\String\Slugger\AsciiSlugger;
 // use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
+ * ============================================================================
+ * METHODS INDEX (for navigation & quick search)
+ * ============================================================================
  *
- * METHODS :
- * @method private abs(@var string $relative): @return string
- * @method private getKernelDirectory(): @return string
- * @method public getDefaultDirectory(): @return string
- * @method public setDefaultDirectory(@var string $directory): @return static
- * @method public getRelativeDirectory(@var string $directory): @return string
- * @method public setRelativeDirectory(@var string $directory): @return static
- * @method public getMimeTypes(): @return array
- * @method public getMimeType(@var string $key): @return string|array|null
- * @method public getMimeContent(@var string $filename, @var bool $absolute = false): @return string
- * @method public getFileContent(@var string $relativeFile): @return string
- * @method public exists(@var string $filePath, @var bool $absolute = false): @return bool
- * @method public createSlug(@var string $string): @return string
- * @method public createFile(@var string $filename, @var string $content = '<!DOCTYPE html><html lang="en"><body style="background: #ffffff;"></body></html>'): @return void
- * @method public createDir(@var string $directory, @var bool $returnDetails = false): @return array
- * @method static categorizeFiles(@var array $files, @var bool $basename = false, @var bool $path = false): @return array
- * @method static getExtractedFolder(@var string $folder): @return string
- * @method static getExtByType(@var string $type): @return array
- * @method public getDirs(@var string $path = '/', @var string $excludeDir = "", @var string|array|null $depth = '== 0'): @return array
- * @method public getDirsTree(@var string $path = '/', @var string $excludeDir = "", @var string|array|null $depth = '== 0'): @return array
- * @method static getSliceDirs(@var string|array $dirs, @var int $slice, @var bool $implode = false): @return string|array
- * @method public cleanDir(@var string $dir = ''): @return void
- * @method public getFiles(@var string $path = '/', @var string|array|null $depth = '== 0', @var ?string $folder = null, @var ?string $ext = null): @return array|bool
- * @method public getImageSize(@var string $filePath, @var bool $absolute = false): @return ?array
- * @method private getFileInfo(@var SplFileInfo $file): @return array
- * @method private getDimensionsFileInfo(@var string $filePath): @return array
- * @method static getSize(@var string|array $files, @var int $totalFileSize = 0): @return int|float
- * @method public getSizeName(@var int|float $size): @return string
- * @method public upload(@var UploadedFile|array $files, @var string $folder, @var bool $return = false): @return array|bool
- * @method static resizeImages(@var array $files, @var string $sourceDir, @var string $targetDir, @var int $width, @var int $quality = 100): @return array|bool
- * @method public hasDir(): @return bool
- * @method public download(@var string $name, @var ?string $directory = null): @return BinaryFileResponse
- * @method public downloadBulk(@var array $names, @var ?string $directory = null): @return BinaryFileResponse
- * @method private prepareDownload(@var array $paths, @var string $baseDir): @return array
- * @method private addDirectoryToZip(@var \ZipArchive $zip, @var string $dir, @var string $baseName): @return void
- * @method public remove(@var string $relativePath = ''): @return bool
- * @method public copy(@var string $source, @var string $destination, @var bool $override = false): @return bool
- * @method public rename(@var string $source, @var string $destination, @var bool $override = false): @return bool
- * @method public move(@var string $origine, @var string $target, @var bool $overwrite = false): @return bool
+ * private abs(string $relative): string
+ * private getKernelDirectory(): string
+ * public getDefaultDirectory(): string
+ * public setDefaultDirectory(string $directory): static
+ * public getRelativeDirectory(string $directory): string
+ * public setRelativeDirectory(string $directory): static
+ *
+ * public getMimeTypes(): array
+ * public getMimeType(string $key): string|array|null
+ * public getMimeContent(string $filename, bool $absolute = false): string
+ * public getFileContent(string $relativeFile): string
+ * public exists(string $filePath, bool $absolute = false): bool
+ *
+ * public createSlug(string $string): string
+ * public createFile(string $filename, string $content = '<!DOCTYPE html><html lang="en"><body style="background: #ffffff;"></body></html>'): void
+ * public createDir(string $directory, bool $returnDetails = false): array
+ *
+ * static categorizeFiles(array $files, bool $basename = false, bool $path = false): array
+ * static getExtractedFolder(string $folder): string
+ * static getExtByType(string $type): array
+ *
+ * public getDirs(string $path = '/', string $excludeDir = "", string|array|null $depth = '== 0'): array
+ * public getDirsTree(string $path = '/', string $excludeDir = "", string|array|null $depth = '== 0'): array
+ * static getSliceDirs(string|array $dirs, int $slice, bool $implode = false): string|array
+ *
+ * public cleanDir(string $dir = ''): void
+ * public getFiles(string $path = '/', string|array|null $depth = '== 0', ?string $folder = null, ?string $ext = null): array|bool
+ *
+ * public getImageSize(string $filePath, bool $absolute = false): ?array
+ * private getFileInfo(SplFileInfo $file): array
+ * private getDimensionsFileInfo(string $filePath): array
+ *
+ * static getSize(string|array $files, int $totalFileSize = 0): int|float
+ * public getSizeName(int|float $size): string
+ *
+ * public upload(UploadedFile|array $files, string $folder, bool $return = false): array|bool
+ * static resizeImages(array $files, string $sourceDir, string $targetDir, int $width, int $quality = 100): array|bool
+ *
+ * public hasDir(): bool
+ *
+ * public download(string $name, ?string $directory = null): BinaryFileResponse
+ * public downloadBulk(array $names, ?string $directory = null): BinaryFileResponse
+ * private prepareDownload(array $paths, string $baseDir): array
+ * private addDirectoryToZip(\ZipArchive $zip, string $dir, string $baseName): void
+ *
+ * public remove(string $relativePath = ''): bool
+ * public copy(string $source, string $destination, bool $override = false): bool
+ * public rename(string $source, string $destination, bool $override = false): bool
+ * public move(string $origine, string $target, bool $overwrite = false): bool
+ *
+ * ============================================================================
  */
 
 class FileManagerService
@@ -2144,4 +2159,5 @@ if($files){
 
 </body>
 </html> */
+
 
