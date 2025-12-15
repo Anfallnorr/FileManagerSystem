@@ -23,3 +23,6 @@ file_manager:
     files_successfully_mass_deleted: "Fichiers supprimés avec succès"
     no_files_selected: "Aucun fichier sélectionné"
     no_files_or_folders_selected: "Aucun fichier/dossier sélectionné"
+    # forms
+    new_file_name: "Nouveau nom du fichier"
+    rename: "Renommer"
