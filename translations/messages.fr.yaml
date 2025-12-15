@@ -1,15 +1,7 @@
 file_manager:
     error: "Une erreur s'est produite lors du traitement du fichier."
-    folder_name: "Nom du dossier"
-    folder_name_help: "Utilisez `+` pour ajouter plusieurs dossiers de même niveau, `/` pour ajouter des dossiers imbriqués. Exemple : `folder1-1+folder1-2`, `folder1-1/folder2-1`"
-    create: "Créer"
-    select_a_file: "Sélectionner des fichiers"
-    drag_and_drop_or_browse: "Glissez-déposez ou parcourez"
-    new_path: "Nouveau chemin"
-    move: "Déplacer"
     cancel: "Annuler"
     clear: "Effacer"
-    send: "Envoyer"
     folder_created_successfully: "Dossier créé avec succès."
     the_folder_already_exists: "Le dossier `%foldername%` éxist déjà"
     file_uploaded_successfully: "Fichier uploadé avec succès."
@@ -23,6 +15,21 @@ file_manager:
     files_successfully_mass_deleted: "Fichiers supprimés avec succès"
     no_files_selected: "Aucun fichier sélectionné"
     no_files_or_folders_selected: "Aucun fichier/dossier sélectionné"
-    # forms
+    files:
+        delete: "Supprimer"
+    folders:
+        delete: "Supprimer"
+# forms create folder
+    folder_name: "Nom du dossier"
+    folder_name_help: "Utilisez `+` pour ajouter plusieurs dossiers de même niveau, `/` pour ajouter des dossiers imbriqués. Exemple : `folder1-1+folder1-2`, `folder1-1/folder2-1`"
+    create: "Créer"
+# forms upload
+    select_a_file: "Sélectionner des fichiers"
+    drag_and_drop_or_browse: "Glissez-déposez ou parcourez"
+    send: "Envoyer"
+# forms rename
     new_file_name: "Nouveau nom du fichier"
     rename: "Renommer"
+# forms move
+    new_path: "Nouveau chemin"
+    move: "Déplacer"
