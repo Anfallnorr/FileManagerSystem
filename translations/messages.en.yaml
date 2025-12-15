@@ -1,15 +1,7 @@
 file_manager:
     error: "An error occurred while processing the file."
-    folder_name: "Folder name"
-    folder_name_help: "Use `+` to add multiple folders at the same level, `/` to add nested folders. Example: `folder1-1+folder1-2`, `folder1-1/folder2-1`"
-    create: "Create"
-    select_a_file: "Select Files"
-    drag_and_drop_or_browse: "Drag and drop or browse"
-    new_path: "New path"
-    move: "Move"
     cancel: "Cancel"
     clear: "Clear"
-    send: "Send"
     folder_created_successfully: "Folder created successfully."
     the_folder_already_exists: "The folder `%foldername%` already exists"
     file_uploaded_successfully: "File uploaded successfully."
@@ -23,6 +15,21 @@ file_manager:
     files_successfully_mass_deleted: "Files deleted successfully"
     no_files_selected: "No files selected"
     no_files_or_folders_selected: "No file/folder selected"
-    # forms
+    files:
+        delete: "Delete"
+    folders:
+        delete: "Delete"
+# forms create folder
+    folder_name: "Folder name"
+    folder_name_help: "Use `+` to add multiple folders at the same level, `/` to add nested folders. Example: `folder1-1+folder1-2`, `folder1-1/folder2-1`"
+    create: "Create"
+# forms upload
+    select_a_file: "Select Files"
+    drag_and_drop_or_browse: "Drag and drop or browse"
+    send: "Send"
+# forms rename
     new_file_name: "New file name"
     rename: "Rename"
+# forms move
+    new_path: "New path"
+    move: "Move"
