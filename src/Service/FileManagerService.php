@@ -1220,11 +1220,15 @@ class FileManagerService
 		// echo "</pre>";
 		// dd($this->getRelativeDirectory());
 		// dd($this->getParameter('kernel.project_dir'));
+		// dd($file);
 
 
 		return [
 			'absolute' => $filePath,
 			'relative' => \substr($filePath, \strlen($this->getKernelDirectory() . $this->getRelativeDirectory())), // 'relative' => str_replace($this->getKernelDirectory() . $this->getRelativeDirectory(), '', $filePath), // 'relative' => strstr($filePath, $this->getRelativeDirectory(), false),
+			'absolute_dir' => $this->getDefaultDirectory(),
+			'relative_dir' => $this->getRelativeDirectory(),
+			'dirname' => \basename(\dirname($filePath)),
 			'filename' => $file->getFilename(),
 			'filesize' => $this->getSizeName($file->getSize()),
 			'filemtime' => $file->getMTime(),
@@ -2159,5 +2163,6 @@ if($files){
 
 </body>
 </html> */
+
 
 
