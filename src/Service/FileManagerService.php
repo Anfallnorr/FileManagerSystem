@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Update 20251125
+ * Update 20251221
  * Gestionnaire de fichiers pour récupérer les informations des fichiers et dossiers.
  * 
  */
@@ -2145,16 +2145,15 @@ if($files){
 </div>
 
 <div class="method">
-<h2>downloadBulk(array $filenames, array $folders, ?string $directory = null)</h2>
+<h2>downloadBulk(array $filenames, ?string $directory = null)</h2>
 <div class="params"><strong>Paramètres:</strong></div>
 <ul class="params">
 <li><code>$filenames</code> : liste des fichiers</li>
-<li><code>$folders</code> : dossiers (actuellement non utilisés)</li>
 <li><code>$directory</code> : sous-dossier optionnel</li>
 </ul>
 <div class="return"><strong>Retour:</strong> <code>BinaryFileResponse</code> réponse HTTP ZIP</div>
 <div class="example">
-<pre><code>return $service->downloadBulk(['file1.pdf','file2.pdf'], [], 'docs');
+<pre><code>return $service->downloadBulk(['file1.pdf','file2.pdf'], 'docs');
 </code></pre>
 </div>
 </div>
@@ -2163,6 +2162,3 @@ if($files){
 
 </body>
 </html> */
-
-
-
