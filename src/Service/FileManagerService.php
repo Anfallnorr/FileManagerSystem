@@ -454,7 +454,8 @@ class FileManagerService
 		if ($absolute) {
 			return $this->filesystem->exists($filePath);
 		} else {
-			$exist = $this->getDefaultDirectory() . '/' . $filePath;
+			// $exist = $this->getDefaultDirectory() . '/' . $filePath;
+			$exist = $this->getDefaultDirectory() . '/' . \ltrim($filePath, '/');
 			// $exist = "{$this->getDefaultDirectory()}/{$filePath}";
 			return $this->filesystem->exists($exist);
 		}
@@ -2164,4 +2165,5 @@ if($files){
 
 </body>
 </html> */
+
 
