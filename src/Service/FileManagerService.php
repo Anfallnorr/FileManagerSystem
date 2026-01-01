@@ -1899,8 +1899,10 @@ class FileManagerService
 				return true;
 			}
 		} else {
+			$path = \ltrim($relativePath, '/');
 			// $this->filesystem->remove($this->getDefaultDirectory() . '/' . $relativePath);
-			$this->filesystem->remove("{$this->getDefaultDirectory()}/{$relativePath}");
+			// $this->filesystem->remove("{$this->getDefaultDirectory()}/{$relativePath}");
+			$this->filesystem->remove("{$this->getDefaultDirectory()}/{$path}");
 
 			if ($this->exists($relativePath)) {
 				return false;
@@ -2162,3 +2164,4 @@ if($files){
 
 </body>
 </html> */
+
