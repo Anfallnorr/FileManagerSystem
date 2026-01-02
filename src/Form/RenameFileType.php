@@ -21,13 +21,15 @@ class RenameFileType extends AbstractType
 			])
 			->add(child: 'currentFileName', type: HiddenType::class, options: [
 				'attr' => [
-					'data-rename-fmmodal-target' => "currentFileInput"
+					'data-rename-fmmodal-target' => "currentFileInput",
+					'data-fmmodal-rename-target' => "currentFileInput"
 				]
 			])
 			->add(child: 'newFileName', type: TextType::class, options: [
 				'label' => new TranslatableMessage(message: 'file_manager.new_file_name'), // 'Nouveau nom du fichier'
 				'attr' => [
-					'data-rename-fmmodal-target' => "newFileInput"
+					'data-rename-fmmodal-target' => "newFileInput",
+					'data-fmmodal-rename-target' => "newFileInput"
 				]
 			])
 			->add(child: 'submit', type: SubmitType::class, options: [
