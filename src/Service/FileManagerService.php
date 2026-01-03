@@ -957,6 +957,7 @@ class FileManagerService
 
 			$relative = \str_replace($this->getDefaultDirectory(), '', $dirPath);
 			$children = $this->getDirsTree($relative, $excludeDir);
+			$files = $this->getFiles($relative) ?: [];
 
 			$directories[] = [
 				'absolute' => $dirPath,
@@ -966,7 +967,8 @@ class FileManagerService
 				'foldername' => $dir->getFilename(),
 				// appel récursif pour sous-dossiers
 				'children' => $children,
-				'length' => \count($children),
+				'dirs_length' => \count($children),
+				'files_length' => \count($files),
 			];
 		}
 
@@ -2170,6 +2172,7 @@ if($files){
 
 </body>
 </html> */
+
 
 
 
