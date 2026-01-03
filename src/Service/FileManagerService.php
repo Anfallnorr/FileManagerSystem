@@ -45,7 +45,7 @@ use Symfony\Component\String\Slugger\AsciiSlugger;
  * static getExtByType(string $type): array
  *
  * public getDirs(string $path = '/', string $excludeDir = "", string|array|null $depth = '== 0'): array
- * public getDirsTree(string $path = '/', string $excludeDir = "", string|array|null $depth = '== 0'): array
+ * public getDirsTree(string $path = '/', string $excludeDir = ""): array
  * static getSliceDirs(string|array $dirs, int $slice, bool $implode = false): string|array
  *
  * public cleanDir(string $dir = ''): void
@@ -925,7 +925,8 @@ class FileManagerService
 	 * @return array Tableau arborescent des dossiers avec informations absolues, relatives et enfants.
 	 */
 	// public function getDirsTree(string $path = '/', string $excludeDir = "", string|null $depth = '== 0'): array
-	public function getDirsTree(string $path = '/', string $excludeDir = "", string|array|null $depth = '== 0'): array
+	// public function getDirsTree(string $path = '/', string $excludeDir = "", string|array|null $depth = '== 0'): array
+	public function getDirsTree(string $path = '/', string $excludeDir = ""): array
 	{
 		// $trimedPath = \trim($path, '/');
 		// $realPath = \realpath($this->getDefaultDirectory() . '/' . $trimedPath);
@@ -936,12 +937,14 @@ class FileManagerService
 		}
 
 		$finder = new Finder();
-		// if ($depth) {
-		if ($depth !== null) {
+		/* if ($depth !== null) {
 			$finder->depth($depth); // Search only folders at the given depth $depth
 		}
-		$finder->directories()->in($realPath); // Search only folders at the root
-		// $finder->directories()->in($realPath)->depth('== 0'); // seulement 1er niveau
+		$finder->directories()->in($realPath); // Search only folders at the root */
+		$finder
+			->directories()
+			->in($realPath)
+			->depth('== 0'); // seulement 1er niveau
 
 		$directories = [];
 
@@ -2165,5 +2168,6 @@ if($files){
 
 </body>
 </html> */
+
 
 
