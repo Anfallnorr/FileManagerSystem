@@ -382,7 +382,7 @@ final class FileManagerController extends AbstractController
 
 		// Retrieve global files and folders first before changing the default path
 		// $allFolders = $this->fmService->getDirs($path = '/', $excludeDir = "", $depth = null);
-		$allFolders = $this->fmService->getDirsTree('/', "", null);
+		$allFolders = $this->fmService->getDirsTree('/', "");
 		$allFiles = $this->fmService->getFiles('/', null);
 
 		if (!empty($folder)) {
@@ -589,3 +589,4 @@ final class FileManagerController extends AbstractController
 		]);
 	}
 }
+
