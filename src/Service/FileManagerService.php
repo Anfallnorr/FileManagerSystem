@@ -33,7 +33,7 @@ use Symfony\Component\String\Slugger\AsciiSlugger;
  *
  * public getMimeTypes(): array
  * public getMimeType(string $key): string|array|null
- * public getMimeContent(string $filename, bool $absolute = false): string
+ * public getMimeContent(string $filename): string
  * public getFileContent(string $relativeFile): string
  * public exists(string $filePath): bool
  *
@@ -52,7 +52,7 @@ use Symfony\Component\String\Slugger\AsciiSlugger;
  * public cleanDir(string $dir = ''): void
  * public getFiles(string $path = '/', string|array|null $depth = '== 0', ?string $folder = null, ?string $ext = null): array|bool
  *
- * public getImageSize(string $filePath, bool $absolute = false): ?array
+ * public getImageSize(string $filePath): ?array
  * private getFileInfo(SplFileInfo $file): array
  * private getDimensionsFileInfo(string $filePath): array
  *
@@ -398,15 +398,17 @@ class FileManagerService
 	 * ```
 	 *
 	 * @param string $filename Le chemin du fichier (relatif ou absolu selon $absolute).
-	 * @param bool   $absolute Indique si le chemin fourni est absolu. false par défaut.
+	 * @//param bool   $absolute Indique si le chemin fourni est absolu. false par défaut.
 	 *
 	 * @return string Le type MIME détecté pour le fichier.
 	 */
-	public function getMimeContent(string $filename, bool $absolute = false): string
+	// public function getMimeContent(string $filename, bool $absolute = false): string
+	public function getMimeContent(string $filename): string
 	{
 		// return \mime_content_type($this->getKernelDirectory() . $relativeFile);
 		// return \mime_content_type($this->abs($relativeFile));
-		return $this->mime->guessMimeType((!$absolute)
+		// return $this->mime->guessMimeType((!$absolute)
+		return $this->mime->guessMimeType((!$this->isAbsolute($filename))
 			? $this->abs($filename)
 			: $filename
 		);
@@ -471,7 +473,7 @@ class FileManagerService
 	{
 		$filePath ??= $this->getDefaultDirectory();
 		// $absolute = str_starts_with($filePath, $this->getKernelDirectory());
-		$absolute = $this->isAbsolute($filePath);
+		// $absolute = $this->isAbsolute($filePath);
 
 		// dump($this->getKernelDirectory());
 		// dump($absolute);
@@ -489,7 +491,8 @@ class FileManagerService
 			// dump($exist);
 			return $this->filesystem->exists($exist);
 		} */
-		if ($absolute) {
+		// if ($absolute) {
+		if ($this->isAbsolute($filePath)) {
 			return $this->filesystem->exists($filePath);
 		}
 
@@ -1208,11 +1211,12 @@ class FileManagerService
 	 * ```
 	 *
 	 * @param string $filePath Chemin du fichier image.
-	 * @param bool   $absolute Si true, `$filePath` est considéré comme absolu. Sinon, relatif au répertoire par défaut.
+	 * @//param bool   $absolute Si true, `$filePath` est considéré comme absolu. Sinon, relatif au répertoire par défaut.
 	 *
 	 * @return array|null Tableau associatif ['width' => int, 'height' => int] si l’image existe, ou null sinon.
 	 */
-	public function getImageSize(string $filePath, bool $absolute = false): ?array
+	// public function getImageSize(string $filePath, bool $absolute = false): ?array
+	public function getImageSize(string $filePath): ?array
 	{
 		/* if ($absolute) {
 			$imageSize = @\getimagesize($filePath);
@@ -1220,7 +1224,8 @@ class FileManagerService
 			// $imageSize = @\getimagesize($this->getKernelDirectory() . $filePath);
 			$imageSize = @\getimagesize($this->abs($filePath));
 		} */
-		$imageSize = ($absolute)
+		// $imageSize = ($absolute)
+		$imageSize = ($this->isAbsolute($filePath))
 			? @\getimagesize($filePath)
 			: @\getimagesize($this->abs($filePath));
 
@@ -1302,7 +1307,8 @@ class FileManagerService
 			'extension' => $file->getExtension(),
 			// 'mime' => \mime_content_type($file->getPathname()) // 'mime' => $imageSize['mime'] ?? null
 			// 'mime' => $this->mime->guessMimeType($file->getPathname())
-			'mime' => $this->getMimeContent($file->getPathname(), true)
+			// 'mime' => $this->getMimeContent($file->getPathname(), true)
+			'mime' => $this->getMimeContent($file->getPathname())
 		];
 	}
 
@@ -1495,7 +1501,8 @@ class FileManagerService
 					? $file->getExtension()
 					: \pathinfo($filename, PATHINFO_EXTENSION),
 				// 'mime' => \mime_content_type($file->getPathname())
-				'mime' => $this->getMimeContent($file->getPathname(), true)
+				// 'mime' => $this->getMimeContent($file->getPathname(), true)
+				'mime' => $this->getMimeContent($file->getPathname())
 			];
 
 			// Upload file
@@ -2228,4 +2235,3 @@ if($files){
 
 </body>
 </html> */
-
