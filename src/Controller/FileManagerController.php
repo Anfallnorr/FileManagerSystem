@@ -232,7 +232,8 @@ final class FileManagerController extends AbstractController
 		// dump($filename);
 		// dump($folder);
 		// dd($filePath);
-		if ($this->fmService->exists($filePath, false)) {
+		// if ($this->fmService->exists($filePath, false)) {
+		if ($this->fmService->exists($filePath)) {
 			// dd($filePath);
 			$this->fmService->remove($filePath);
 
@@ -400,13 +401,20 @@ final class FileManagerController extends AbstractController
 		$allFolders = $this->fmService->getDirsTree('/', "");
 		$allFiles = $this->fmService->getFiles('/', null);
 
+		// dump($this->fmService->getDefaultDirectory());
 		if (!empty($folder)) {
 			// $this->fmService->setDefaultDirectory('/public/uploads/' . $folder); // Example for personnal folder space: '/var/uploads/' . $his->getUser()->getId()
-			$this->fmService->setDefaultDirectory($this->fmService->getRelativeDirectory() . '/' . $folder); // Example for personnal folder space: '/var/uploads/' . $his->getUser()->getId()
+			// $this->fmService->setDefaultDirectory($this->fmService->getRelativeDirectory() . '/' . $folder); // Example for personnal folder space: '/var/uploads/' . $his->getUser()->getId()
+			// $this->fmService->setDefaultDirectory($folder); // Example for personnal folder space: '/var/uploads/' . $his->getUser()->getId()
+			$this->fmService
+				->setDefaultDirectory($this->fmService->getRelativeDirectory() . '/' . $folder)
+				->setRelativeDirectory($this->fmService->getRelativeDirectory() . '/' . $folder);
 		}
+		// dump($folder);
 		// dump($this->fmService->getDefaultDirectory());
 		// dump($this->getParameter('kernel.project_dir'));
 		// dump($this->getParameter('kernel.project_dir') . $this->fmService->getRelativeDirectory());
+		// dump($this->fmService->getRelativeDirectory());
 		// dd($this->fmService->getRelativeDirectory());
 
 
@@ -430,8 +438,10 @@ final class FileManagerController extends AbstractController
 
 		if ($createFolderForm->isSubmitted() && $createFolderForm->isValid()) {
 			$folderName = $createFolderForm->get(name: 'folderName')->getData();
+			// dd($this->fmService->exists($folderName));
 
-			if (!$this->fmService->exists($folderName, false)) {
+			// if (!$this->fmService->exists($folderName, false)) {
+			if (!$this->fmService->exists($folderName)) {
 				// $this->fmService->createDir($folderName);
 				$created = $this->fmService->createDir($folderName, true);
 
@@ -475,9 +485,13 @@ final class FileManagerController extends AbstractController
 
 		if ($uploadFileForm->isSubmitted() && $uploadFileForm->isValid()) {
 			$files = $uploadFileForm->get(name: 'file')->getData();
+			// dd($files);
+			// dd($this->fmService->getDefaultDirectory());
+			// dd($this->fmService->exists($this->fmService->getDefaultDirectory()));
 
 			if ($files) {
 				try {
+					// dd($this->fmService->getDefaultDirectory());
 					// $uploaded = $this->fmService->upload($files, $this->fmService->getDefaultDirectory(), "", false);
 					$uploaded = $this->fmService->upload($files, $this->fmService->getDefaultDirectory(), "", true);
 
