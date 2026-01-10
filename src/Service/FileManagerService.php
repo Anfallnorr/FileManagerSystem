@@ -24,6 +24,7 @@ use Symfony\Component\String\Slugger\AsciiSlugger;
  * ============================================================================
  *
  * private abs(string $relative): string
+ * private isAbsolute(string $path): bool
  * private getKernelDirectory(): string
  * public getDefaultDirectory(): string
  * public setDefaultDirectory(string $directory): static
@@ -34,7 +35,7 @@ use Symfony\Component\String\Slugger\AsciiSlugger;
  * public getMimeType(string $key): string|array|null
  * public getMimeContent(string $filename, bool $absolute = false): string
  * public getFileContent(string $relativeFile): string
- * public exists(string $filePath, bool $absolute = false): bool
+ * public exists(string $filePath): bool
  *
  * public createSlug(string $string): string
  * public createFile(string $filename, string $content = '<!DOCTYPE html><html lang="en"><body style="background: #ffffff;"></body></html>'): void
@@ -184,7 +185,8 @@ class FileManagerService
 			: $path;
 
 		return $return; */
-		return \rtrim($this->kernelDirectory, '/') . '/' . \ltrim($relative, '/');
+		// return \rtrim($this->kernelDirectory, '/') . '/' . \ltrim($relative, '/');
+		return $this->getKernelDirectory() . '/' . \ltrim($relative, '/');
 		/* $basePath = \realpath($this->kernelDirectory);
 
 		if ($basePath === false) {
@@ -207,13 +209,25 @@ class FileManagerService
 	}
 
 	/**
+	 * Un chemin est considéré comme "absolu" uniquement s'il se situe
+	 * sous la racine du projet (kernel directory).
+	 * 
+	 * Les chemins système externes (/tmp, /var/log, etc.) sont volontairement rejetés.
+	 */
+	private function isAbsolute(string $path): bool
+	{
+		return str_starts_with($path, $this->getKernelDirectory());
+	}
+
+	/**
 	 * Retourne le répertoire principal (kernel) de l'application Symfony.
 	 *
 	 * @return string Le chemin absolu du répertoire du kernel.
 	 */
 	private function getKernelDirectory(): string
 	{
-		return $this->kernelDirectory;
+		// return $this->kernelDirectory;
+		return \rtrim($this->kernelDirectory, '/');
 	}
 
 	/**
@@ -233,7 +247,8 @@ class FileManagerService
 	 */
 	public function getDefaultDirectory(): string
 	{
-		return $this->defaultDirectory;
+		// return $this->defaultDirectory;
+		return \rtrim($this->defaultDirectory, '/');
 	}
 
 	/**
@@ -279,7 +294,8 @@ class FileManagerService
 	 */
 	public function getRelativeDirectory(): string
 	{
-		return $this->relativeDirectory;
+		// return $this->relativeDirectory;
+		return \rtrim($this->relativeDirectory, '/');
 	}
 
 	/**
@@ -303,7 +319,8 @@ class FileManagerService
 	 */
 	public function setRelativeDirectory(string $directory): static
 	{
-		$this->relativeDirectory = $directory;
+		// $this->relativeDirectory = $directory;
+		$this->relativeDirectory = \rtrim($directory, '/');
 		return $this;
 	}
 
@@ -444,21 +461,42 @@ class FileManagerService
 	 * $service->exists('/var/www/project/uploads/photo.jpg', true);
 	 * ```
 	 *
-	 * @param string $filePath Le chemin absolu ou relatif vers le fichier ou dossier.
-	 * @param bool   $absolute Indique si le chemin fourni est absolu. false par défaut.
+	 * @param ?string $filePath Le chemin absolu ou relatif vers le fichier ou dossier.
+	 * @//param bool    $absolute Indique si le chemin fourni est absolu. false par défaut.
 	 *
 	 * @return bool True si le fichier ou répertoire existe, sinon false.
 	 */
-	public function exists(string $filePath, bool $absolute = false): bool
+	// public function exists(?string $filePath = null, bool $absolute = false): bool
+	public function exists(?string $filePath = null): bool
 	{
-		if ($absolute) {
+		$filePath ??= $this->getDefaultDirectory();
+		// $absolute = str_starts_with($filePath, $this->getKernelDirectory());
+		$absolute = $this->isAbsolute($filePath);
+
+		// dump($this->getKernelDirectory());
+		// dump($absolute);
+		// dump($filePath);
+
+		/* if ($absolute) {
 			return $this->filesystem->exists($filePath);
 		} else {
-			// $exist = $this->getDefaultDirectory() . '/' . $filePath;
-			$exist = $this->getDefaultDirectory() . '/' . \ltrim($filePath, '/');
-			// $exist = "{$this->getDefaultDirectory()}/{$filePath}";
+			$filePath = \ltrim($filePath, '/');
+			// $exist = $this->getDefaultDirectory() . '/' . \ltrim($filePath, '/');
+			$exist = ($filePath !== $this->getDefaultDirectory())
+				? $this->getDefaultDirectory() . '/' . $filePath
+				: $filePath;
+
+			// dump($exist);
 			return $this->filesystem->exists($exist);
+		} */
+		if ($absolute) {
+			return $this->filesystem->exists($filePath);
 		}
+
+		$exist = $this->getDefaultDirectory() . '/' . \ltrim($filePath, '/');
+
+		// dump($exist);
+		return $this->filesystem->exists($exist);
 	}
 
 	/**
@@ -1917,7 +1955,8 @@ class FileManagerService
 		if (empty($relativePath)) {
 			$this->filesystem->remove($this->getDefaultDirectory());
 
-			if ($this->exists($this->getDefaultDirectory(), true)) {
+			// if ($this->exists($this->getDefaultDirectory(), true)) {
+			if ($this->exists($this->getDefaultDirectory())) {
 				return false;
 			} else {
 				return true;
@@ -1994,7 +2033,8 @@ class FileManagerService
 		$this->filesystem->rename("{$this->getDefaultDirectory()}/{$source}", "{$this->getDefaultDirectory()}/{$newSource}", $override);
 
 		// if (!$this->exists($origin, true)) {
-		if (!$this->exists("{$this->getDefaultDirectory()}/{$source}", true)) {
+		// if (!$this->exists("{$this->getDefaultDirectory()}/{$source}", true)) {
+		if (!$this->exists("{$this->getDefaultDirectory()}/{$source}")) {
 			return true;
 		} else {
 			return false;
@@ -2188,9 +2228,4 @@ if($files){
 
 </body>
 </html> */
-
-
-
-
-
 
