@@ -38,7 +38,7 @@ use Symfony\Component\String\Slugger\AsciiSlugger;
  *
  * public createSlug(string $string): string
  * public createFile(string $filename, string $content = '<!DOCTYPE html><html lang="en"><body style="background: #ffffff;"></body></html>'): void
- * public createDir(string $directory, bool $returnDetails = false): array
+ * public createDir(?string $directory = null, bool $returnDetails = false): array
  *
  * static categorizeFiles(array $files, bool $basename = false, bool $path = false): array
  * static getExtractedFolder(string $folder): string
@@ -555,72 +555,88 @@ class FileManagerService
 	 * @return array Un tableau des répertoires créés avec leurs chemins absolus, relatifs et noms.
 	 */
 	// public function createDir(string $directory, bool $return = false): array
-	public function createDir(string $directory, bool $returnDetails = false): array
+	public function createDir(?string $directory = null, bool $returnDetails = false): array|bool
 	{
-		$outputDirectories = [];
+		if ($directory) {
+			$outputDirectories = [];
 
-		if (\str_contains($directory, '+')) {
-			$directories = \explode('+', $directory);
+			if (\str_contains($directory, '+')) {
+				$directories = \explode('+', $directory);
 
-			foreach ($directories as $dir) {
-				$dirs = $this->createSlug($dir);
-				$this->filesystem->mkdir($this->getDefaultDirectory() . '/' . $dirs);
-				// $this->filesystem->mkdir("{$this->getDefaultDirectory()}/{$dirs}");
+				foreach ($directories as $dir) {
+					$dirs = $this->createSlug($dir);
+					// $this->filesystem->mkdir($this->getDefaultDirectory() . '/' . $dirs);
+					$this->filesystem->mkdir("{$this->getDefaultDirectory()}/{$dirs}");
 
-				$relative = \substr($this->getDefaultDirectory() . '/' . $dirs, \strlen($this->getKernelDirectory() . $this->getRelativeDirectory()));
-				// $relative = \substr("{$this->getDefaultDirectory()}/{$dirs}", \strlen("{$this->getKernelDirectory()}{$this->getRelativeDirectory()}"));
+					// $relative = \substr($this->getDefaultDirectory() . '/' . $dirs, \strlen($this->getKernelDirectory() . $this->getRelativeDirectory()));
+					$relative = \substr("{$this->getDefaultDirectory()}/{$dirs}", \strlen("{$this->getKernelDirectory()}{$this->getRelativeDirectory()}"));
+					$outputDirectories[] = [
+						// 'absolute' => $this->getDefaultDirectory() . '/' . $dirs,
+						'absolute' => "{$this->getDefaultDirectory()}/{$dirs}",
+						'relative' => $relative,
+						// 'ltrimed_relative' => \ltrim($relative, '/'),
+						'ltrimmed_relative' => \ltrim($relative, '/'),
+						'foldername' => $dirs
+					];
+				}
+			} elseif (\str_contains($directory, '/')) {
+				$nestedDirectories = "";
+				$directories = \explode('/', $directory);
+				$firstDir = $this->createSlug($directories[0]);
+
+				foreach ($directories as $dir) {
+					// $nestedDirectories .= '/' . $this->createSlug($dir);
+					$nestedDirectories .= "/{$this->createSlug($dir)}";
+				}
+
+				if (!empty($nestedDirectories)) {
+					// $this->filesystem->mkdir($this->getDefaultDirectory() . $nestedDirectories);
+					$this->filesystem->mkdir("{$this->getDefaultDirectory()}{$nestedDirectories}");
+
+					// $relative = \substr($this->getDefaultDirectory() . '/' . $firstDir, \strlen($this->getKernelDirectory() . $this->getRelativeDirectory()));
+					$relative = \substr("{$this->getDefaultDirectory()}/{$firstDir}", \strlen("{$this->getKernelDirectory()}{$this->getRelativeDirectory()}"));
+					$outputDirectories[] = [
+						// 'absolute' => $this->getDefaultDirectory() . '/' . $firstDir,
+						'absolute' => "{$this->getDefaultDirectory()}/{$firstDir}",
+						'relative' => $relative,
+						// 'ltrimed_relative' => \ltrim($relative, '/'),
+						'ltrimmed_relative' => \ltrim($relative, '/'),
+						'foldername' => $firstDir
+					];
+				}
+			} else {
+				$dir = $this->createSlug($directory);
+				// $this->filesystem->mkdir($this->getDefaultDirectory() . '/' . $dir);
+				$this->filesystem->mkdir("{$this->getDefaultDirectory()}/{$dir}");
+
+				// $relative = \substr($this->getDefaultDirectory() . '/' . $dir, \strlen($this->getKernelDirectory() . $this->getRelativeDirectory()));
+				$relative = \substr("{$this->getDefaultDirectory()}/{$dir}", \strlen("{$this->getKernelDirectory()}{$this->getRelativeDirectory()}"));
 				$outputDirectories[] = [
-					'absolute' => $this->getDefaultDirectory() . '/' . $dirs,
-					// 'absolute' => "{$this->getDefaultDirectory()}/{$dirs}",
+					// 'absolute' => $this->getDefaultDirectory() . '/' . $dir,
+					'absolute' => "{$this->getDefaultDirectory()}/{$dir}",
 					'relative' => $relative,
 					// 'ltrimed_relative' => \ltrim($relative, '/'),
 					'ltrimmed_relative' => \ltrim($relative, '/'),
-					'foldername' => $dirs
-				];
-			}
-		} elseif (\str_contains($directory, '/')) {
-			$nestedDirectories = "";
-			$directories = \explode('/', $directory);
-			$firstDir = $this->createSlug($directories[0]);
-
-			foreach ($directories as $dir) {
-				$nestedDirectories .= '/' . $this->createSlug($dir);
-				// $nestedDirectories .= "/{$this->createSlug($dir)}";
-			}
-
-			if (!empty($nestedDirectories)) {
-				$this->filesystem->mkdir($this->getDefaultDirectory() . $nestedDirectories);
-				// $this->filesystem->mkdir("{$this->getDefaultDirectory()}{$nestedDirectories}");
-
-				$relative = \substr($this->getDefaultDirectory() . '/' . $firstDir, \strlen($this->getKernelDirectory() . $this->getRelativeDirectory()));
-				// $relative = \substr("{$this->getDefaultDirectory()}/{$firstDir}", \strlen("{$this->getKernelDirectory()}{$this->getRelativeDirectory()}"));
-				$outputDirectories[] = [
-					'absolute' => $this->getDefaultDirectory() . '/' . $firstDir,
-					// 'absolute' => "{$this->getDefaultDirectory()}/{$firstDir}",
-					'relative' => $relative,
-					// 'ltrimed_relative' => \ltrim($relative, '/'),
-					'ltrimmed_relative' => \ltrim($relative, '/'),
-					'foldername' => $firstDir
+					'foldername' => $dir
 				];
 			}
 		} else {
-			$dir = $this->createSlug($directory);
-			$this->filesystem->mkdir($this->getDefaultDirectory() . '/' . $dir);
-			// $this->filesystem->mkdir("{$this->getDefaultDirectory()}/{$dir}");
+			$dir = basename($this->getDefaultDirectory());
 
-			$relative = \substr($this->getDefaultDirectory() . '/' . $dir, \strlen($this->getKernelDirectory() . $this->getRelativeDirectory()));
-			// $relative = \substr("{$this->getDefaultDirectory()}/{$dir}", \strlen("{$this->getKernelDirectory()}{$this->getRelativeDirectory()}"));
+			if (!$this->filesystem->exists($this->getDefaultDirectory())) {
+				$this->filesystem->mkdir($this->getDefaultDirectory());
+			}
+
 			$outputDirectories[] = [
-				'absolute' => $this->getDefaultDirectory() . '/' . $dir,
-				// 'absolute' => "{$this->getDefaultDirectory()}/{$dir}",
-				'relative' => $relative,
-				// 'ltrimed_relative' => \ltrim($relative, '/'),
-				'ltrimmed_relative' => \ltrim($relative, '/'),
+				'absolute' => $this->getDefaultDirectory(),
+				'relative' => "/{$dir}",
+				'ltrimmed_relative' => $dir,
 				'foldername' => $dir
 			];
 		}
 
-		return $outputDirectories;
+		// return $outputDirectories;
+		return ($returnDetails) ? $outputDirectories : true;
 	}
 	/* public function createDir(string $directory): void
 	{
@@ -2172,6 +2188,7 @@ if($files){
 
 </body>
 </html> */
+
 
 
 
