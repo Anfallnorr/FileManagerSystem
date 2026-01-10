@@ -362,6 +362,21 @@ final class FileManagerController extends AbstractController
 	{
 		// dd(vars: 'toto');
 		// $fmService = $this->fmService;
+		// $phpConfigMaxFilesize = ini_get(option: 'upload_max_filesize');
+		// $phpConfigFileUploads = (int) ini_get(option: 'max_file_uploads');
+		$phpConfigs = [
+			'upload_max_filesize' => ['value' => ini_get('upload_max_filesize')],
+			'max_file_uploads' => ['value' => ini_get('max_file_uploads')]
+		];
+
+		foreach ($phpConfigs as $key => $phpConfig) {
+			if (\preg_match('/(\d+)([KMG]?)/i', $phpConfig['value'], $matches)) {
+				$value = (int) $matches[1];
+				$phpConfigs[$key]['int_value'] = $value;
+			}
+		}
+
+		// dd($phpConfigs);
 
 		// dd($this->fmService->getRelativeDirectory());
 		// dd($breadcrumb);
@@ -448,8 +463,12 @@ final class FileManagerController extends AbstractController
 
 		// File upload
 		$uploadFileForm = $this->createForm(type: UploadFileType::class, data: null, options: [
-			'user' => null, // $user->getId(),
-			'route' => $uploadUrl,
+			'user' => null, // (required) $user->getId(),
+			'route' => $uploadUrl,                                             // (required)
+			'max_filesize' => $phpConfigs['upload_max_filesize']['int_value'], // (optional)
+			'max_files' => $phpConfigs['max_file_uploads']['int_value'],       // (optional)
+			'auto_process' => true,                                            // (optional)
+			'multiple' => true,                                                // (optional)
 			'current_folder' => $folder
 		]);
 		$uploadFileForm->handleRequest(request: $request);
@@ -589,4 +608,3 @@ final class FileManagerController extends AbstractController
 		]);
 	}
 }
-
