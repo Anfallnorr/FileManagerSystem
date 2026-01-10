@@ -1502,7 +1502,7 @@ class FileManagerService
 					: \pathinfo($filename, PATHINFO_EXTENSION),
 				// 'mime' => \mime_content_type($file->getPathname())
 				// 'mime' => $this->getMimeContent($file->getPathname(), true)
-				'mime' => $this->getMimeContent($file->getPathname())
+				// 'mime' => $this->getMimeContent($file->getPathname())
 			];
 
 			// Upload file
@@ -1517,6 +1517,7 @@ class FileManagerService
 				'height' => $imageSize[1] ?? null
 			]; */
 			// $output['dimensions'] = $this->getDimensionsFileInfo($folder . '/' . $filename);
+			$output['mime'] = $this->getMimeContent("{$folder}/{$filename}");
 			$output['dimensions'] = $this->getDimensionsFileInfo("{$folder}/{$filename}");
 
 			$uploadedFiles[] = $output;
