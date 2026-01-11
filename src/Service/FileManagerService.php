@@ -1481,7 +1481,7 @@ class FileManagerService
 			$fileInfo = (!empty($newName))
 				? $fileInfo = [
 					'filename' => ($multiple)
-						? "{$newName}-{($key + 1)}"
+						? "{$newName}-" . ($key + 1)
 						: $newName,
 					'extension' => $file->getClientOriginalExtension()
 				]
@@ -2236,3 +2236,4 @@ if($files){
 
 </body>
 </html> */
+
