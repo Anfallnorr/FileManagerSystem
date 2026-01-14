@@ -936,11 +936,24 @@ class FileManagerService
 			}
 
 			$relative = \str_replace($this->getDefaultDirectory(), '', $dirPath);
-			// $relative = \str_replace($this->getKernelDirectory(), '', $dirPath);
 
+			$files = $this->getFiles(\basename($dirPath));
+			$filesize = ($files)
+				? $this->getSize($files)
+				: null;
+			// $relative = \str_replace($this->getKernelDirectory(), '', $dirPath);
+// dd($dirPath);
+// dd($this->getFiles(\basename($dirPath)));
 			$directories[] = [
 				'absolute' => $dirPath,
 				'relative' => $relative,
+				'absolute_dir' => $this->getDefaultDirectory(),
+				'relative_dir' => $this->getRelativeDirectory(),
+				'dirname' => \basename(\dirname($dirPath)),
+				'filemtime' => \filemtime($dirPath),
+				'filesize' => ($filesize) ? $this->getSizeName($filesize) : null,
+				// 'nb_file' => ($files) ? \count($files) : 0,
+				'files' => $files ?: null,
 				// 'ltrimed_relative' => \ltrim($relative, '/'),
 				'ltrimmed_relative' => \ltrim($relative, '/'),
 				'foldername' => $dir->getFilename(),
@@ -1024,6 +1037,7 @@ class FileManagerService
 				'foldername' => $dir->getFilename(),
 				// appel récursif pour sous-dossiers
 				'children' => $children,
+				'files' => $files,
 				'dirs_length' => \count($children),
 				'files_length' => \count($files),
 			];
@@ -1151,7 +1165,7 @@ class FileManagerService
 		// $trimedPath = \trim($path, '/');
 		// $realPath = \realpath(\rtrim($this->getDefaultDirectory(), '/') . '/' . $trimedPath);
 		$realPath = \realpath(\rtrim($this->getDefaultDirectory(), '/') . '/' . \trim($path, '/'));
-
+// dd($realPath);
 		if (!$realPath || !is_dir($realPath)) {
 			return false;
 		}
@@ -1353,13 +1367,18 @@ class FileManagerService
 	 */
 	public static function getSize(string|array $files, int $totalFileSize = 0): int|float
 	{
-		/* if (is_string($files)) {
+		if (\is_string($files)) {
 			$totalFileSize = $totalFileSize + filesize($files);
 		} else {
 			foreach ($files as $size) {
-				$totalFileSize = $totalFileSize + filesize($size);
+				if (\is_array($size) && $size['absolute']) {
+					// dd($size);
+					$totalFileSize = $totalFileSize + filesize($size['absolute']);
+				} else {
+					$totalFileSize = $totalFileSize + filesize($size);
+				}
 			}
-		} */
+		}
 
 		return $totalFileSize;
 	}
@@ -1481,6 +1500,7 @@ class FileManagerService
 			$fileInfo = (!empty($newName))
 				? $fileInfo = [
 					'filename' => ($multiple)
+						// ? "{$newName}-{($key + 1)}"
 						? "{$newName}-" . ($key + 1)
 						: $newName,
 					'extension' => $file->getClientOriginalExtension()
@@ -2236,4 +2256,3 @@ if($files){
 
 </body>
 </html> */
-
