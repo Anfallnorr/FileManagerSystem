@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Update 20251221
+ * Update 20260114
  * Gestionnaire de fichiers pour récupérer les informations des fichiers et dossiers.
  * 
  */
@@ -2256,3 +2256,4 @@ if($files){
 
 </body>
 </html> */
+
