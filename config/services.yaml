@@ -13,6 +13,9 @@ services:
         # arguments:
         #     $fmService: '@Anfallnorr\FileManagerSystem\Service\FileManagerService'
         #     $translator: '@Symfony\Contracts\Translation\TranslatorInterface'
+    
+    Anfallnorr\FileManagerSystem\Twig\AppExtension:
+        tags: ['twig.extension']
 
     Anfallnorr\FileManagerSystem\Service\FileManagerService:
         arguments:
