@@ -4,10 +4,12 @@
 namespace Anfallnorr\FileManagerSystem;
 
 use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
+// use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 // use Symfony\Component\DependencyInjection\Extension\Extension;
 // use Symfony\Component\DependencyInjection\Extension\ExtensionInterface;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
+// use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
 use Symfony\Component\HttpKernel\Bundle\AbstractBundle;
 // use Symfony\Component\Routing\Loader\Configurator\RoutingConfigurator;
 
@@ -39,6 +41,17 @@ final class FileManagerSystem extends AbstractBundle
 			->end()
 		;
 	}
+
+	/* public function load(array $configs, ContainerBuilder $container): void
+	{
+		$loader = new YamlFileLoader(
+			$container,
+			// new FileLocator(__DIR__ . '/../Resources/config')
+			new FileLocator($this->getPath() . '/config')
+		);
+
+		$loader->load('services.yaml');
+	} */
 
 	public function loadExtension(array $config, ContainerConfigurator $container, ContainerBuilder $builder): void
 	{
