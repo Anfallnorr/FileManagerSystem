@@ -2227,6 +2227,42 @@ class FileManagerService
 		return true;
 	}
 
+	/**
+	 * Renomme un fichier ou un répertoire dans le répertoire par défaut.
+	 *
+	 * Cette méthode renomme un fichier ou un répertoire en appliquant 
+	 * automatiquement un slug au nouveau nom (transformation en format URL-safe).
+	 * L'extension du fichier source est préservée automatiquement.
+	 *
+	 * Le fichier/répertoire source et la destination sont relatifs au 
+	 * répertoire par défaut (defaultDirectory).
+	 *
+	 * Exemple :
+	 * ```php
+	 * // Renommer un fichier (l'extension est préservée automatiquement)
+	 * $service->setDefaultDirectory('/uploads/images');
+	 * $service->rename('Photo Vacances.jpg', 'nouvelle photo');
+	 * // Résultat : photo-vacances.jpg → nouvelle-photo.jpg
+	 *
+	 * // Renommer avec des caractères spéciaux (slugification automatique)
+	 * $service->rename('image 2024.png', 'Mon Été à Paris');
+	 * // Résultat : image-2024.png → mon-ete-a-paris.png
+	 *
+	 * // Renommer un répertoire
+	 * $service->rename('old folder', 'new folder');
+	 * // Résultat : old-folder → new-folder
+	 *
+	 * // Renommer avec écrasement
+	 * $service->rename('temp.jpg', 'final', true);
+	 * // Écrasera final.jpg s'il existe déjà
+	 * ```
+	 *
+	 * @param string $source Nom du fichier/répertoire source (relatif au defaultDirectory)
+	 * @param string $destination Nouveau nom (sera slugifié, sans extension)
+	 * @param bool $override Si true, écrase le fichier de destination s'il existe (par défaut: false)
+	 *
+	 * @return bool True si le renommage a réussi, false sinon
+	 */
 	public function rename(string $source, string $destination, bool $override = false): bool
 	{
 		$ext = \pathinfo($source, PATHINFO_EXTENSION);
@@ -2237,6 +2273,7 @@ class FileManagerService
 			? $slug
 			: "{$slug}.{$ext}";
 
+		// $path = $this->getDefaultDirectory();
 		/* $origin = "{$this->getDefaultDirectory()}/{$source}";
 		$target = "{$this->getDefaultDirectory()}/{$slugDestination}.{$ext}"; */
 		// dump($origin);
@@ -2247,7 +2284,11 @@ class FileManagerService
 		// renames a directory
 		$filesystem->rename('/tmp/files', '/path/to/store/files', false); */
 		// $this->filesystem->rename($origin, $target, $override);
-		$this->filesystem->rename("{$this->getDefaultDirectory()}/{$source}", "{$this->getDefaultDirectory()}/{$newSource}", $override);
+		$this->filesystem->rename(
+			"{$this->getDefaultDirectory()}/{$source}",
+			"{$this->getDefaultDirectory()}/{$newSource}",
+			$override
+		);
 
 		// if (!$this->exists($origin, true)) {
 		// if (!$this->exists("{$this->getDefaultDirectory()}/{$source}", true)) {
@@ -2258,11 +2299,76 @@ class FileManagerService
 		}
 	}
 
+	/**
+	 * Déplace ou renomme un fichier ou un répertoire.
+	 *
+	 * Cette méthode utilise le composant Filesystem de Symfony pour déplacer ou 
+	 * renommer un fichier ou un répertoire. Elle supporte également l'écrasement 
+	 * de la cible si celle-ci existe déjà.
+	 *
+	 * Les chemins fournis sont relatifs à la racine du projet (kernel directory).
+	 * Ils seront automatiquement convertis en chemins absolus.
+	 *
+	 * Exemple :
+	 * ```php
+	 * // Déplacer un fichier
+	 * $service->move(
+	 *     '/uploads/temp/image.jpg',
+	 *     '/uploads/user/1/image/image.jpg'
+	 * );
+	 *
+	 * // Renommer un fichier
+	 * $service->move(
+	 *     '/uploads/image.jpg',
+	 *     '/uploads/image-renamed.jpg'
+	 * );
+	 *
+	 * // Déplacer un répertoire
+	 * $service->move(
+	 *     '/uploads/temp',
+	 *     '/uploads/permanent'
+	 * );
+	 *
+	 * // Déplacer avec écrasement
+	 * $service->move(
+	 *     '/uploads/new.jpg',
+	 *     '/uploads/old.jpg',
+	 *     true  // Écrasera old.jpg s'il existe
+	 * );
+	 * ```
+	 *
+	 * @param string $origine Chemin relatif du fichier/répertoire source
+	 * @param string $target Chemin relatif du fichier/répertoire de destination
+	 * @param bool $overwrite Si true, écrase la cible si elle existe déjà (par défaut: false)
+	 *
+	 * @return bool True si le déplacement a réussi, false sinon
+	 */
 	public function move(string $origine, string $target, bool $overwrite = false): bool
 	{
-		dump($origine);
-		dump($target);
-		dd($overwrite);
+		// $absoluteOrigine = $this->getDefaultDirectory() . '/' . \ltrim($origine, '/');
+		$absoluteOrigine = $this->getKernelDirectory() . '/' . \ltrim($origine, '/');
+		$absoluteTarget = $this->getKernelDirectory() . '/' . \ltrim($target, '/');
+
+		// dump($this->getRelativeDirectory()); // {filename (ex: img.jpg)} or {directory name (ex: folder)}
+		// dump($absoluteOrigine);
+		// dump($absoluteTarget);
+		// dump($origine); // {filename (ex: img.jpg)} or {directory name (ex: folder)}
+		// dump($target); // relative path to the project (ex: /relative/to/the/project/{filename|directory})
+		// dd($overwrite);
+
+		$this->filesystem->rename(
+			$absoluteOrigine,
+			$absoluteTarget,
+			$overwrite
+		);
+
+		if (!$this->exists($absoluteOrigine) && $this->exists($absoluteTarget)) {
+			return true;
+		} else {
+			return false;
+		}
+		// $this->rename($origine, $target, $overwrite);
+		// return $this->rename($origine, $target, $overwrite);
 
 		/* $origineFile = "/tmp/processed_video.ogg";
 		$targetFile = "/path/to/store/video_647.ogg";
@@ -2272,20 +2378,20 @@ class FileManagerService
 
 		$overwrite = true; */
 
-		// renames a file
+		/* // renames a file
 		$this->filesystem->rename('/tmp/processed_video.ogg', '/path/to/store/video_647.ogg');
 		// renames a directory
 		$this->filesystem->rename('/tmp/files', '/path/to/store/files');
 		// if the target already exists, a third boolean argument is available to overwrite.
 		$this->filesystem->rename('/tmp/processed_video2.ogg', '/path/to/store/video_647.ogg', true);
 
-		/* $origine = "";
-		$target = "";
-		$iterator = null;
-		$options = [];
-		$this->filesystem->mirror($origine, $target, $iterator, $options); */
+		// $origine = "";
+		// $target = "";
+		// $iterator = null;
+		// $options = [];
+		// $this->filesystem->mirror($origine, $target, $iterator, $options);
 
-		return true;
+		return true; */
 	}
 }
 
