@@ -1553,20 +1553,26 @@ class FileManagerService
 	 * @param string $sourceDir Répertoire source contenant les images à redimensionner.
 	 * @param string $targetDir Répertoire cible où les images redimensionnées seront enregistrées.
 	 * @param int $width Largeur souhaitée pour les images redimensionnées.
-	 * @param int $quality Qualité de l'image redimensionnée (uniquement pour JPEG/PNG).
+	 * @param int $quality Qualité de l'image redimensionnée (uniquement pour JPEG/PNG/WEBP).
+	 * @param string|null $suffix Suffixe optionnel à ajouter au nom du fichier (ex: 'fhd', '4k').
 	 *
 	 * @throws \Exception En cas d'erreur lors du traitement des images.
 	 *
-	 * @return bool Indique si le redimensionnement s'est effectué avec succès.
+	 * @return array Tableau contenant les informations détaillées des images redimensionnées et les erreurs.
 	 */
-	public static function resizeImages(array $files, string $sourceDir, string $targetDir, int $width, int $quality = 100): array|bool
+	public function resizeImages(array $files, string $sourceDir, string $targetDir, int $width, int $quality = 100, ?string $suffix = null): array
 	{
-		/* if ($width <= 0 || $quality <= 0 || $quality > 100) {
+		if ($width <= 0 || $quality <= 0 || $quality > 100) {
 			throw new \InvalidArgumentException("Les valeurs de largeur et de qualité doivent être valides.");
 		}
 
 		$errors = [];
 		$processed = [];
+
+		// Créer le répertoire cible s'il n'existe pas
+		if (!$this->filesystem->exists($targetDir)) {
+			$this->filesystem->mkdir($targetDir);
+		}
 
 		foreach ($files as $file) {
 			try {
@@ -1584,13 +1590,17 @@ class FileManagerService
 				$mime = $info['mime'];
 				$type = strtolower(substr($mime, strpos($mime, '/') + 1));
 
-				// if (!in_array($type, ['jpeg', 'jpg', 'png'])) {
 				if (!in_array($type, ['jpeg', 'jpg', 'png', 'webp'])) {
 					throw new \Exception("Le format de fichier image n'est pas supporté : " . $file);
 				}
 
 				$old_width = $info[0];
 				$old_height = $info[1];
+
+				// Ne pas redimensionner si la largeur cible est >= à la largeur originale
+				if ($width >= $old_width) {
+					continue;
+				}
 
 				$ratio = $width / $old_width;
 				$new_width = $width;
@@ -1621,40 +1631,219 @@ class FileManagerService
 					imagesavealpha($output_image, true);
 				}
 
-				if (imagecopyresampled($output_image, $source, 0, 0, 0, 0, $new_width, $new_height, $old_width, $old_height)) {
-					// if (!is_dir($targetDir)) {
-					// 	mkdir($targetDir, 0777, true);
-					// }
-
-					switch ($type) {
-						case 'jpg':
-						case 'jpeg':
-							imagejpeg($output_image, $targetDir . '/' . $file, $quality);
-							break;
-						case 'webp':
-							imagewebp($output_image, $targetDir . '/' . $file, $quality);
-							break;
-						case 'png':
-							imagepng($output_image, $targetDir . '/' . $file, (int)((9 - ($quality / 100) * 9)));
-							break;
-					}
-				} else {
+				if (!imagecopyresampled($output_image, $source, 0, 0, 0, 0, $new_width, $new_height, $old_width, $old_height)) {
 					throw new \Exception("Impossible de redimensionner l'image : " . $file);
+				}
+
+				// Générer le nouveau nom de fichier avec suffixe
+				$fileInfo = pathinfo($file);
+				$newFilename = $suffix 
+					? $fileInfo['filename'] . '-' . $suffix . '.' . $fileInfo['extension']
+					: $file;
+
+				$targetPath = $targetDir . '/' . $newFilename;
+
+				switch ($type) {
+					case 'jpg':
+					case 'jpeg':
+						imagejpeg($output_image, $targetPath, $quality);
+						break;
+					case 'webp':
+						imagewebp($output_image, $targetPath, $quality);
+						break;
+					case 'png':
+						imagepng($output_image, $targetPath, (int)((9 - ($quality / 100) * 9)));
+						break;
 				}
 
 				imagedestroy($source);
 				imagedestroy($output_image);
 
-				$processed[] = $file;
+				// Récupérer les informations complètes du fichier redimensionné
+				$fileDetails = [
+					'absolute' => $targetPath,
+					'relative' => substr($targetPath, strlen($this->getKernelDirectory() . $this->getRelativeDirectory())),
+					'filename' => $newFilename,
+					'filesize' => $this->getSizeName(filesize($targetPath)),
+					'filemtime' => filemtime($targetPath),
+					'extension' => $fileInfo['extension'],
+					'mime' => $this->getMimeContent($targetPath),
+					'dimensions' => [
+						'width' => $new_width,
+						'height' => $new_height
+					],
+					'suffix' => $suffix
+				];
+
+				$processed[] = $fileDetails;
 			} catch (\Exception $e) {
 				$errors[] = $e->getMessage();
 			}
 		}
 
-		// return ['success' => $processed, 'errors' => $errors];
-		return true; */
-		return ['resizeImages'];
+		return ['success' => $processed, 'errors' => $errors];
 	}
+	// public static function resizeImages(array $file, string $sourceDir, string $targetDir, int $width, int $quality = 100): array|bool
+	// {
+	// 	/* if ($width <= 0 || $quality <= 0 || $quality > 100) {
+	// 		throw new \InvalidArgumentException("Les valeurs de largeur et de qualité doivent être valides.");
+	// 	}
+
+	// 	$errors = [];
+	// 	$processed = [];
+
+	// 	foreach ($files as $file) {
+	// 		try {
+	// 			$image_path = $sourceDir . '/' . $file;
+
+	// 			if (!file_exists($image_path)) {
+	// 				throw new \Exception("Le fichier image n'existe pas : " . $file);
+	// 			}
+
+	// 			$info = getimagesize($image_path);
+	// 			if (!$info) {
+	// 				throw new \Exception("Le fichier image est corrompu ou n'est pas une image : " . $file);
+	// 			}
+
+	// 			$mime = $info['mime'];
+	// 			$type = strtolower(substr($mime, strpos($mime, '/') + 1));
+
+	// 			// if (!in_array($type, ['jpeg', 'jpg', 'png'])) {
+	// 			if (!in_array($type, ['jpeg', 'jpg', 'png', 'webp'])) {
+	// 				throw new \Exception("Le format de fichier image n'est pas supporté : " . $file);
+	// 			}
+
+	// 			$old_width = $info[0];
+	// 			$old_height = $info[1];
+
+	// 			$ratio = $width / $old_width;
+	// 			$new_width = $width;
+	// 			$new_height = intval($ratio * $old_height);
+
+	// 			if ($old_width > 9000 || $old_height > 9000) {
+	// 				throw new \Exception("Le fichier image est trop grand : " . $old_width . "x" . $old_height);
+	// 			}
+
+	// 			switch ($type) {
+	// 				case 'jpg':
+	// 				case 'jpeg':
+	// 					$source = imagecreatefromjpeg($image_path);
+	// 					break;
+	// 				case 'webp':
+	// 					$source = imagecreatefromwebp($image_path);
+	// 					break;
+	// 				case 'png':
+	// 					$source = imagecreatefrompng($image_path);
+	// 					imagealphablending($source, false);
+	// 					imagesavealpha($source, true);
+	// 					break;
+	// 			}
+
+	// 			$output_image = imagecreatetruecolor($new_width, $new_height);
+	// 			if ($type === 'png') {
+	// 				imagealphablending($output_image, false);
+	// 				imagesavealpha($output_image, true);
+	// 			}
+
+	// 			if (imagecopyresampled($output_image, $source, 0, 0, 0, 0, $new_width, $new_height, $old_width, $old_height)) {
+	// 				// if (!is_dir($targetDir)) {
+	// 				// 	mkdir($targetDir, 0777, true);
+	// 				// }
+
+	// 				switch ($type) {
+	// 					case 'jpg':
+	// 					case 'jpeg':
+	// 						imagejpeg($output_image, $targetDir . '/' . $file, $quality);
+	// 						break;
+	// 					case 'webp':
+	// 						imagewebp($output_image, $targetDir . '/' . $file, $quality);
+	// 						break;
+	// 					case 'png':
+	// 						imagepng($output_image, $targetDir . '/' . $file, (int)((9 - ($quality / 100) * 9)));
+	// 						break;
+	// 				}
+	// 			} else {
+	// 				throw new \Exception("Impossible de redimensionner l'image : " . $file);
+	// 			}
+
+	// 			imagedestroy($source);
+	// 			imagedestroy($output_image);
+
+	// 			$processed[] = $file;
+	// 		} catch (\Exception $e) {
+	// 			$errors[] = $e->getMessage();
+	// 		}
+	// 	}
+
+	// 	// return ['success' => $processed, 'errors' => $errors];
+	// 	return true; */
+	// 	return ['resizeImages'];
+	// 	if ($width <= 0 || $quality <= 0 || $quality > 100) {
+	// 		throw new \InvalidArgumentException("Les valeurs de largeur et de qualité doivent être valides.");
+	// 	}
+
+	// 	$errors = [];
+	// 	$processed = [];
+
+	// 	// foreach ($files as $file) {
+	// 		[$originalWidth, $originalHeight] = getimagesize($file);
+	// 		$newHeight = (int) round(($width / $originalWidth) * $originalHeight);
+
+	// 		$canvas = imagecreatetruecolor($width, $newHeight);
+
+	// 		switch ($imageType) {
+	// 			case IMAGETYPE_PNG:
+	// 				$source = imagecreatefrompng($file);
+	// 				break;
+	// 			case IMAGETYPE_JPEG:
+	// 				$source = imagecreatefromjpeg($file);
+	// 				break;
+	// 			case IMAGETYPE_WEBP:
+	// 				$source = imagecreatefromwebp($file);
+	// 				break;
+	// 			default:
+	// 				return null;
+	// 		}
+
+	// 		imagecopyresampled(
+	// 			$canvas,
+	// 			$source,
+	// 			0, 0, 0, 0,
+	// 			$width,
+	// 			$newHeight,
+	// 			$originalWidth,
+	// 			$originalHeight
+	// 		);
+
+	// 		$filename = pathinfo($file, PATHINFO_FILENAME);
+	// 		$newPath = $targetDir.'/'.$filename.'-'.$label;
+
+	// 		switch ($imageType) {
+	// 			case IMAGETYPE_PNG:
+	// 				$newPath .= '.png';
+	// 				$compression = 9 - round(($quality / 100) * 9);
+	// 				imagepng($canvas, $newPath, $compression);
+	// 				break;
+
+	// 			case IMAGETYPE_JPEG:
+	// 				$newPath .= '.jpg';
+	// 				imagejpeg($canvas, $newPath, $quality);
+	// 				break;
+
+	// 			case IMAGETYPE_WEBP:
+	// 				$newPath .= '.webp';
+	// 				imagewebp($canvas, $newPath, $quality);
+	// 				break;
+	// 		}
+
+	// 		imagedestroy($canvas);
+	// 		imagedestroy($source);
+
+	// 		// $processed[] = $file;
+	// 	// }
+
+	// 	return $newPath;
+	// }
 
 	/**
 	 * Vérifie si le répertoire par défaut contient au moins un sous-dossier.
@@ -2256,4 +2445,3 @@ if($files){
 
 </body>
 </html> */
-
