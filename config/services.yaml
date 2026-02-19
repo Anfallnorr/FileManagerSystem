@@ -34,3 +34,55 @@ services:
     Symfony\Component\Mime\MimeTypes: ~
     Symfony\Component\Filesystem\Filesystem: ~
     Symfony\Component\String\Slugger\AsciiSlugger: ~
+
+## V2
+# services:
+#     _defaults:
+#         autowire: true      # Automatically injects dependencies in your services.
+#         autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+#         # public: false
+
+#     Anfallnorr\FileManagerSystem\Controller\:
+#         # resource: '../src/Controller/*'
+#         resource: '../src/Controller'
+#         tags: ['controller.service_arguments']
+#         public: true # temporaire pour debug
+#         # arguments:
+#         #     $fmService: '@Anfallnorr\FileManagerSystem\Service\FileManagerService'
+#         #     $translator: '@Symfony\Contracts\Translation\TranslatorInterface'
+    
+#     Anfallnorr\FileManagerSystem\Twig\AppExtension:
+#         tags: ['twig.extension']
+
+#     Anfallnorr\FileManagerSystem\Service\Manager\:
+#         resource: '../src/Service/Manager/'
+#         autowire: true
+#         autoconfigure: true
+#         public: false
+
+#     Anfallnorr\FileManagerSystem\Service\Manager\PathManager:
+#         arguments:
+#             $kernelDirectory: '%fms.kernel_directory%'
+#             $defaultDirectory: '%fms.default_directory%'
+#             $relativeDirectory: '%fms.relative_directory%'
+#         public: true
+
+#     Anfallnorr\FileManagerSystem\Service\FileManagerService:
+#         arguments:
+#             $pathManager: '@Anfallnorr\FileManagerSystem\Service\Manager\PathManager'
+#             $mimeManager: '@Anfallnorr\FileManagerSystem\Service\Manager\MimeManager'
+#             $directoryManager: '@Anfallnorr\FileManagerSystem\Service\Manager\DirectoryManager'
+#             $fileManager: '@Anfallnorr\FileManagerSystem\Service\Manager\FileManager'
+#             $imageManager: '@Anfallnorr\FileManagerSystem\Service\Manager\ImageManager'
+#             $archiveManager: '@Anfallnorr\FileManagerSystem\Service\Manager\ArchiveManager'
+#         public: true
+
+#     Anfallnorr\FileManagerSystem\Form\UploadFileType:
+#         arguments:
+#             $translator: '@translator'
+
+#     Symfony\Component\Mime\MimeTypes: ~
+#     Symfony\Component\Filesystem\Filesystem: ~
+#     Symfony\Component\String\Slugger\AsciiSlugger: ~
+#     Symfony\Component\String\Slugger\SluggerInterface:
+#         alias: 'Symfony\Component\String\Slugger\AsciiSlugger'
