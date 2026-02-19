@@ -17,6 +17,8 @@ use Symfony\Component\Mime\MimeTypes;
 use Symfony\Component\String\Slugger\AsciiSlugger;
 // use Symfony\Contracts\Translation\TranslatorInterface;
 
+// use function Symfony\Component\Deprecation\trigger_deprecation;
+
 /**
  * ============================================================================
  * METHODS INDEX (for navigation & quick search)
@@ -48,7 +50,8 @@ use Symfony\Component\String\Slugger\AsciiSlugger;
  * public getDirsTree(string $path = '/', string $excludeDir = ""): array
  * static getSliceDirs(string|array $dirs, int $slice, bool $implode = false): string|array
  *
- * public cleanDir(string $dir = ''): void
+ * public cleanDir(?string $dir = null): void
+ * // public cleanDir(string $dir = ''): void
  * public getFiles(string $path = '/', string|array|null $depth = '== 0', ?string $folder = null, ?string $ext = null): array|bool
  *
  * public getImageSize(string $filePath): ?array
@@ -74,8 +77,28 @@ use Symfony\Component\String\Slugger\AsciiSlugger;
  * public move(string $origine, string $target, bool $overwrite = false): bool
  *
  * ============================================================================
+ *
+ * @todo
+ * if (!$finder->hasResults()) { <- getFiles
+ *		return false;
+ *		// return []; // pourquoi false ? Ça, c’est le truc qui va faire chier un jour.
+ * }
+ *
+ * @todo
+ * public function getDirsTree(string $path = '/', string $excludeDir = ""): array <- $excludeDir = null par défaut
+ *
+ * @todo
+ * public function cleanDir(?string $dir = null): void <- A surveiller
+ *
+ * @todo
+ * Dédoublonner `getDimensionsFileInfo` et `getImageSize`
+ *
+ * @todo
+ * public function upload(UploadedFile|array $files, string $folder, string $newName = "", bool $return = false): array|bool <- $return -> $returnDetails
+ *
+ * @todo
+ * public function remove(string $relativePath = ''): bool <- ?string $relativePath = null
  */
-
 class FileManagerService
 {
 	final protected const array EXTENSIONS = [
@@ -315,6 +338,9 @@ class FileManagerService
 	 *
 	 * @return static L'instance du service pour le chaînage de méthodes.
 	 *
+	 * @deprecated since 1.0.44, will be removed in 1.1.*
+	 *             Use setDefaultDirectory() instead.
+	 *
 	 * @example
 	 * ```php
 	 * $service->setRelativeDirectory('uploads/images')
@@ -322,8 +348,17 @@ class FileManagerService
 	 * // Définit le répertoire relatif à 'uploads/images'
 	 * ```
 	 */
+	/* #[\Deprecated(
+		message: 'The "%class%::setRelativeDirectory()" method is deprecated, use "setDefaultDirectory()" instead.',
+		since: '1.0.44',
+	)] */
 	public function setRelativeDirectory(string $directory): static
 	{
+		trigger_deprecation(
+			'anfallnorr/file-manager-system',
+			'1.0.44',
+			'The "%class%::setRelativeDirectory()" method is deprecated, use "setDefaultDirectory()" instead. It will be removed in 1.1.*'
+		);
 		// $this->relativeDirectory = $directory;
 		$this->relativeDirectory = \rtrim($directory, '/');
 		return $this;
@@ -1101,9 +1136,15 @@ class FileManagerService
 	 * // ses parents si eux aussi sont vides.
 	 * ```
 	 */
-	public function cleanDir(string $dir = ''): void
+	public function cleanDir(?string $dir = null): void
+	// public function cleanDir(string $dir = ''): void
 	{
-		if (empty($dir)) {
+		/* // 🔥 sauvegarde de l'état
+		$originalDefault = $this->getDefaultDirectory();
+		$originalRelative = $this->getRelativeDirectory(); */
+
+		if (\is_null($dir)/*  || empty($dir) */ || $dir === '') {
+		// if (empty($dir)) {
 			$dir = $this->getRelativeDirectory();
 		}
 
@@ -1113,6 +1154,9 @@ class FileManagerService
 		// Récupère les sous-dossiers et fichiers
 		$dirs = $this->getDirs();
 		$files = $this->getFiles();
+
+		// $dirs = $this->getDirs($dir);
+		// $files = $this->getFiles($dir);
 
 		// Si aucun fichier et aucun sous-dossier trouvé, supprime le répertoire
 		if (empty($files) && empty($dirs)) {
@@ -1124,6 +1168,10 @@ class FileManagerService
 				$this->cleanDir($parentDir);
 			}
 		}
+
+		/* // 🔥 restauration de l'état
+		$this->defaultDirectory = $originalDefault;
+		$this->relativeDirectory = $originalRelative; */
 	}
 
 	/**
@@ -1151,7 +1199,7 @@ class FileManagerService
 		// $trimedPath = \trim($path, '/');
 		// $realPath = \realpath(\rtrim($this->getDefaultDirectory(), '/') . '/' . $trimedPath);
 		$realPath = \realpath(\rtrim($this->getDefaultDirectory(), '/') . '/' . \trim($path, '/'));
-// dd($realPath);
+		// dd($realPath);
 		if (!$realPath || !is_dir($realPath)) {
 			return false;
 		}
@@ -1183,6 +1231,7 @@ class FileManagerService
 
 		if (!$finder->hasResults()) {
 			return false;
+			// return []; // pourquoi false ? Ça, c’est le truc qui va faire chier un jour.
 		}
 
 		$fileList = [];
@@ -1234,6 +1283,10 @@ class FileManagerService
 			];
 		} else {
 			return null;
+			/* return [
+				'width' => null,
+				'height' => null
+			]; */
 		}
 	}
 
@@ -2334,6 +2387,17 @@ class FileManagerService
 		// $this->filesystem->mirror($origine, $target, $iterator, $options);
 
 		return true; */
+	}
+
+	/**
+	 * $this->remindDirectoryInitialization();
+	 */
+	private function remindDirectoryInitialization(): void
+	{
+		trigger_error(
+			"⚠️ Rappel : pensez à initialiser correctement le répertoire cible avec setDefaultDirectory() avant toute opération sur les fichiers.",
+			E_USER_NOTICE
+		);
 	}
 }
 
