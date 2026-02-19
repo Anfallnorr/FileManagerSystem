@@ -26,6 +26,7 @@ services:
             $filesystem: '@Symfony\Component\Filesystem\Filesystem'
             $slugger: '@Symfony\Component\String\Slugger\AsciiSlugger'
         public: true
+        shared: false # `true` par défaut. Evite le Multi-utilisateur pour le file manager, car ce Bundle est Stateful
 
     Anfallnorr\FileManagerSystem\Form\UploadFileType:
         arguments:
