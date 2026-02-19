@@ -40,8 +40,8 @@ final class FileManagerController extends AbstractController
 	) {
 		// $fmService
 		$this->fmService
-			->setDefaultDirectory('/var/uploads')
-			->setRelativeDirectory('/var/uploads');
+			->setDefaultDirectory('/var/uploads')/*
+			->setRelativeDirectory('/var/uploads') */;
 		// $fmService->setDefaultDirectory('/var/uploads');
 		// $fmService->setRelativeDirectory('/var/uploads');
 		/* if (!is_dir($fmService->getDefaultDirectory())) {
@@ -407,8 +407,8 @@ final class FileManagerController extends AbstractController
 			// $this->fmService->setDefaultDirectory($this->fmService->getRelativeDirectory() . '/' . $folder); // Example for personnal folder space: '/var/uploads/' . $his->getUser()->getId()
 			// $this->fmService->setDefaultDirectory($folder); // Example for personnal folder space: '/var/uploads/' . $his->getUser()->getId()
 			$this->fmService
-				->setDefaultDirectory($this->fmService->getRelativeDirectory() . '/' . $folder)
-				->setRelativeDirectory($this->fmService->getRelativeDirectory() . '/' . $folder);
+				->setDefaultDirectory($this->fmService->getRelativeDirectory() . '/' . $folder)/*
+				->setRelativeDirectory($this->fmService->getRelativeDirectory() . '/' . $folder) */;
 		}
 		// dump($folder);
 		// dump($this->fmService->getDefaultDirectory());
@@ -622,3 +622,4 @@ final class FileManagerController extends AbstractController
 		]);
 	}
 }
+
