@@ -274,7 +274,7 @@ class FileManagerService
 		// $this->relativeDirectory = $directory;
 		// $this->defaultDirectory = $this->getKernelDirectory() . $directory;
 		$this->defaultDirectory = $this->abs($directory);
-		// $this->relativeDirectory = \rtrim($directory, '/');
+		$this->relativeDirectory = \rtrim($directory, '/');
 		return $this;
 	}
 
@@ -2552,4 +2552,5 @@ if($files){
 
 </body>
 </html> */
+
 
