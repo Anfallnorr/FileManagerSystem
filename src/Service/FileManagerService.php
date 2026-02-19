@@ -1,14 +1,13 @@
 <?php
 
 /**
- * Update 20260114
+ * Update 20260219
  * Gestionnaire de fichiers pour récupérer les informations des fichiers et dossiers.
- * 
  */
 
 namespace Anfallnorr\FileManagerSystem\Service;
 
-use SplFileInfo;
+// use SplFileInfo;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -28,18 +27,18 @@ use Symfony\Component\String\Slugger\AsciiSlugger;
  * private getKernelDirectory(): string
  * public getDefaultDirectory(): string
  * public setDefaultDirectory(string $directory): static
- * public getRelativeDirectory(string $directory): string
+ * public getRelativeDirectory(): string
  * public setRelativeDirectory(string $directory): static
  *
  * public getMimeTypes(): array
  * public getMimeType(string $key): string|array|null
- * public getMimeContent(string $filename): string
+ * public getMimeContent(string $filename): ?string
  * public getFileContent(string $relativeFile): string
- * public exists(string $filePath): bool
+ * public exists(?string $filePath = null): bool
  *
  * public createSlug(string $string): string
- * public createFile(string $filename, string $content = '<!DOCTYPE html><html lang="en"><body style="background: #ffffff;"></body></html>'): void
- * public createDir(?string $directory = null, bool $returnDetails = false): array
+ * public createFile(string $filename, string $content = '...'): void
+ * public createDir(?string $directory = null, bool $returnDetails = false): array|bool
  *
  * static categorizeFiles(array $files, bool $basename = false, bool $path = false): array
  * static getExtractedFolder(string $folder): string
@@ -53,14 +52,14 @@ use Symfony\Component\String\Slugger\AsciiSlugger;
  * public getFiles(string $path = '/', string|array|null $depth = '== 0', ?string $folder = null, ?string $ext = null): array|bool
  *
  * public getImageSize(string $filePath): ?array
- * private getFileInfo(SplFileInfo $file): array
+ * private getFileInfo(\SplFileInfo $file): array
  * private getDimensionsFileInfo(string $filePath): array
  *
  * static getSize(string|array $files, int $totalFileSize = 0): int|float
  * public getSizeName(int|float $size): string
  *
- * public upload(UploadedFile|array $files, string $folder, bool $return = false): array|bool
- * static resizeImages(array $files, string $sourceDir, string $targetDir, int $width, int $quality = 100): array|bool
+ * public upload(UploadedFile|array $files, string $folder, string $newName = "", bool $return = false): array|bool
+ * public resizeImages(array $files, string $sourceDir, string $targetDir, int $width, int $quality = 100, ?string $suffix = null): array
  *
  * public hasDir(): bool
  *
@@ -164,19 +163,18 @@ class FileManagerService
 	/**
 	 * Génère un chemin absolu à partir d'un chemin relatif.
 	 *
-	 * Cette méthode combine le répertoire du kernel de Symfony avec le chemin relatif
-	 * fourni, en s'assurant que les séparateurs de dossier sont correctement ajoutés
-	 * ou supprimés pour éviter les doublons de slash.
-	 *
-	 * Exemple :
-	 * ```php
-	 * $absolutePath = $this->abs('uploads/images'); 
-	 * // Retourne quelque chose comme '/var/www/project/uploads/images'
-	 * ```
+	 * Cette méthode combine le répertoire racine du projet (kernel) avec le chemin relatif
+	 * fourni, en normalisant les séparateurs de dossier.
 	 *
 	 * @param string $relative Le chemin relatif à convertir en chemin absolu.
 	 *
 	 * @return string Le chemin absolu résultant.
+	 *
+	 * @example
+	 * ```php
+	 * $absolutePath = $this->abs('uploads/images'); 
+	 * // Retourne quelque chose comme '/var/www/project/uploads/images'
+	 * ```
 	 */
 	private function abs(string $relative): string
 	{
@@ -209,20 +207,29 @@ class FileManagerService
 	}
 
 	/**
-	 * Un chemin est considéré comme "absolu" uniquement s'il se situe
-	 * sous la racine du projet (kernel directory).
+	 * Vérifie si un chemin est absolu au sein du projet.
 	 * 
-	 * Les chemins système externes (/tmp, /var/log, etc.) sont volontairement rejetés.
+	 * Un chemin est considéré comme "absolu" s'il se situe explicitement
+	 * sous la racine du projet (kernel directory). Les chemins système externes
+	 * sont rejetés.
+	 *
+	 * @param string $path Le chemin à vérifier.
+	 *
+	 * @return bool True si le chemin est absolu (dans le projet).
 	 */
 	private function isAbsolute(string $path): bool
 	{
-		return str_starts_with($path, $this->getKernelDirectory());
+		// return str_starts_with($path, $this->getKernelDirectory());
+		return \str_starts_with(
+			\ltrim($path, '/'),
+			\ltrim($this->getKernelDirectory(), '/')
+		);
 	}
 
 	/**
-	 * Retourne le répertoire principal (kernel) de l'application Symfony.
+	 * Retourne le chemin absolu du répertoire racine du projet (kernel).
 	 *
-	 * @return string Le chemin absolu du répertoire du kernel.
+	 * @return string Le chemin absolu du kernel projet.
 	 */
 	private function getKernelDirectory(): string
 	{
@@ -231,19 +238,18 @@ class FileManagerService
 	}
 
 	/**
-	 * Retourne le répertoire par défaut utilisé par le service.
+	 * Retourne le répertoire de travail par défaut utilisé par le service.
 	 *
-	 * Cette méthode fournit le chemin vers le répertoire par défaut
-	 * configuré dans le service, qui peut servir pour stocker ou récupérer
-	 * des fichiers lorsque aucun autre chemin n'est spécifié.
-	 *
-	 * Exemple :
-	 * ```php
-	 * $defaultDir = $this->getDefaultDirectory();
-	 * // Retourne quelque chose comme '/var/www/project/uploads'
-	 * ```
+	 * Cette méthode fournit le chemin absolu vers le répertoire configuré 
+	 * comme cible prioritaire pour les opérations sur les fichiers.
 	 *
 	 * @return string Le chemin du répertoire par défaut.
+	 *
+	 * @example
+	 * ```php
+	 * $defaultDir = $service->getDefaultDirectory();
+	 * // Retourne quelque chose comme '/var/www/project/uploads/images'
+	 * ```
 	 */
 	public function getDefaultDirectory(): string
 	{
@@ -252,22 +258,22 @@ class FileManagerService
 	}
 
 	/**
-	 * Définit le répertoire par défaut utilisé par le service.
+	 * Définit le répertoire de travail par défaut utilisé par le service.
 	 *
-	 * Cette méthode permet de configurer le chemin du répertoire par défaut.
-	 * Le chemin fourni est converti en chemin absolu via la méthode `abs()`.
-	 * Elle retourne l'instance courante pour permettre le chaînage de méthodes (fluent interface).
+	 * Cette méthode configure le chemin absolu cible. Le chemin fourni est 
+	 * automatiquement converti en format absolu via la méthode `abs()`.
+	 * Elle permet le chaînage des méthodes (fluent interface).
 	 *
-	 * Exemple :
+	 * @param string $directory Le chemin relatif ou absolu à définir comme répertoire par défaut.
+	 *
+	 * @return static L'instance du service pour le chaînage de méthodes.
+	 *
+	 * @example
 	 * ```php
 	 * $service->setDefaultDirectory('uploads/images')
 	 *         ->createFile('test.html');
 	 * // Définit le répertoire par défaut à '/var/www/project/uploads/images'
 	 * ```
-	 *
-	 * @param string $directory Le chemin relatif ou absolu à définir comme répertoire par défaut.
-	 *
-	 * @return static L'instance du service pour le chaînage de méthodes.
 	 */
 	public function setDefaultDirectory(string $directory): static
 	{
@@ -279,19 +285,18 @@ class FileManagerService
 	}
 
 	/**
-	 * Retourne le répertoire relatif configuré dans le service.
+	 * Retourne le chemin relatif du répertoire de travail.
 	 *
-	 * Cette méthode fournit le chemin relatif actuellement défini,
-	 * qui peut être utilisé pour construire des chemins de fichiers
-	 * ou des URLs relatives à la racine du projet.
-	 *
-	 * Exemple :
-	 * ```php
-	 * $relativeDir = $this->getRelativeDirectory();
-	 * // Retourne quelque chose comme 'uploads/images'
-	 * ```
+	 * Cette méthode fournit le chemin relatif actuellement défini par rapport
+	 * à la racine du projet, utile pour construire des URLs ou des chemins logiques.
 	 *
 	 * @return string Le chemin relatif du répertoire.
+	 *
+	 * @example
+	 * ```php
+	 * $relativeDir = $service->getRelativeDirectory();
+	 * // Retourne quelque chose comme 'uploads/images'
+	 * ```
 	 */
 	public function getRelativeDirectory(): string
 	{
@@ -300,23 +305,22 @@ class FileManagerService
 	}
 
 	/**
-	 * Définit le répertoire relatif utilisé par le service.
+	 * Définit le chemin relatif du répertoire de travail.
 	 *
-	 * Cette méthode permet de configurer le chemin relatif qui sera utilisé
-	 * pour les opérations sur les fichiers et dossiers. Contrairement à 
-	 * `setDefaultDirectory()`, le chemin n'est pas transformé en absolu.
-	 * Elle retourne l'instance courante pour permettre le chaînage de méthodes.
+	 * Cette méthode configure la valeur du chemin relatif utilisé pour
+	 * les opérations logiques, sans le transformer en chemin physique absolu.
+	 * Elle permet le chaînage des méthodes.
 	 *
-	 * Exemple :
+	 * @param string $directory Le chemin relatif à définir pour le service.
+	 *
+	 * @return static L'instance du service pour le chaînage de méthodes.
+	 *
+	 * @example
 	 * ```php
 	 * $service->setRelativeDirectory('uploads/images')
 	 *         ->createFile('test.html');
 	 * // Définit le répertoire relatif à 'uploads/images'
 	 * ```
-	 *
-	 * @param string $directory Le chemin relatif à définir pour le service.
-	 *
-	 * @return static L'instance du service pour le chaînage de méthodes.
 	 */
 	public function setRelativeDirectory(string $directory): static
 	{
@@ -326,19 +330,18 @@ class FileManagerService
 	}
 
 	/**
-	 * Retourne la liste complète des types MIME supportés par le service.
+	 * Liste les types MIME supportés par le service.
 	 *
-	 * Cette méthode fournit un tableau associatif contenant les extensions de fichiers
-	 * et leurs types MIME correspondants. Utile pour valider les fichiers avant
-	 * un upload ou déterminer le type d’un fichier donné.
+	 * Cette méthode fournit un tableau associatif complet mappant les 
+	 * extensions de fichiers à leurs types MIME respectifs.
 	 *
-	 * Exemple :
+	 * @return array Un tableau associatif des extensions et de leurs types MIME.
+	 *
+	 * @example
 	 * ```php
 	 * $mimeTypes = $service->getMimeTypes();
 	 * // Retourne quelque chose comme ['jpg' => 'image/jpeg', 'png' => 'image/png', ...]
 	 * ```
-	 *
-	 * @return array Un tableau associatif des extensions et de leurs types MIME.
 	 */
 	public function getMimeTypes(): array
 	{
@@ -347,15 +350,18 @@ class FileManagerService
 	}
 
 	/**
-	 * Retourne le type MIME associé à une extension donnée.
+	 * Récupère le type MIME associé à une extension donnée.
 	 *
-	 * Cette méthode permet de récupérer le type MIME correspondant à une extension
-	 * de fichier, à partir de la constante `MIME_TYPES`. Certaines extensions peuvent
-	 * être associées à plusieurs types MIME, auquel cas un tableau est retourné.
+	 * Cette méthode recherche dans la configuration interne le type MIME 
+	 * correspondant à une extension. Certaines extensions peuvent retourner un tableau.
 	 *
 	 * Si l’extension demandée n'existe pas dans la liste, la méthode renvoie `null`.
 	 *
-	 * Exemple :
+	 * @param string $key L’extension du fichier (ex : 'jpg', 'png', 'pdf').
+	 *
+	 * @return string|array|null Le type MIME associé, un tableau de types MIME, ou null si non trouvé.
+	 *
+	 * @example
 	 * ```php
 	 * $mime = $service->getMimeType('jpg'); 
 	 * // Retourne 'image/jpeg'
@@ -366,10 +372,6 @@ class FileManagerService
 	 * $mime = $service->getMimeType('unknown');
 	 * // Retourne null
 	 * ```
-	 *
-	 * @param string $key L’extension du fichier (ex : 'jpg', 'png', 'pdf').
-	 *
-	 * @return string|array|null Le type MIME associé, un tableau de types MIME, ou null si non trouvé.
 	 */
 	public function getMimeType(string $key): string|array|null
 	{
@@ -378,33 +380,31 @@ class FileManagerService
 	}
 
 	/**
-	 * Détermine et retourne le type MIME d’un fichier.
+	 * Détecte le type MIME réel d’un fichier physique à partir de son contenu.
 	 *
-	 * Cette méthode utilise le composant Symfony `MimeTypes` (ou similaire injecté
-	 * dans `$this->mime`) pour deviner le type MIME réel d’un fichier à partir de
-	 * son contenu.  
+	 * Cette méthode utilise le composant Symfony `MimeTypes` pour analyser 
+	 * le contenu du fichier et en déduire son type MIME exact.
 	 *
 	 * Si `$absolute` est défini à `false`, le chemin fourni est considéré comme relatif
 	 * et converti en chemin absolu via la méthode `abs()`.  
 	 * S'il est défini à `true`, le chemin est directement utilisé tel quel.
 	 *
-	 * Exemple :
+	 * @param string $filename Le chemin du fichier.
+	 *
+	 * @return string|null Le type MIME détecté pour le fichier, ou null en cas d'échec.
+	 *
+	 * @example
 	 * ```php
 	 * // Fichier dans le répertoire par défaut
 	 * $mime = $service->getMimeContent('uploads/photo.jpg');
 	 * // Retourne par exemple 'image/jpeg'
 	 *
-	 * // Chemin absolu
-	 * $mime = $service->getMimeContent('/var/www/project/uploads/photo.jpg', true);
+	 * // Chemin absolu (détection automatique via isAbsolute)
+	 * $mime = $service->getMimeContent('/var/www/project/uploads/photo.jpg');
 	 * ```
-	 *
-	 * @param string $filename Le chemin du fichier (relatif ou absolu selon $absolute).
-	 * @//param bool   $absolute Indique si le chemin fourni est absolu. false par défaut.
-	 *
-	 * @return string Le type MIME détecté pour le fichier.
 	 */
 	// public function getMimeContent(string $filename, bool $absolute = false): string
-	public function getMimeContent(string $filename): string
+	public function getMimeContent(string $filename): ?string
 	{
 		// return \mime_content_type($this->getKernelDirectory() . $relativeFile);
 		// return \mime_content_type($this->abs($relativeFile));
@@ -416,25 +416,20 @@ class FileManagerService
 	}
 
 	/**
-	 * Lit et retourne le contenu d’un fichier à partir d’un chemin relatif.
+	 * Lit et retourne le contenu complet d'un fichier.
 	 *
-	 * Cette méthode récupère le contenu complet d’un fichier situé dans le projet,
-	 * en convertissant d’abord le chemin relatif en chemin absolu via la méthode `abs()`.
-	 * Elle utilise ensuite `file_get_contents()` pour lire son contenu.
-	 *
-	 * ⚠️ Si le fichier n'existe pas ou n’est pas lisible, `file_get_contents()` retournera `false`
-	 * et générera un warning. Il peut être utile de vérifier l'existence du fichier via
-	 * la méthode `exists()` avant d'appeler celle-ci.
-	 *
-	 * Exemple :
-	 * ```php
-	 * $content = $service->getFileContent('storage/data.json');
-	 * // Retourne le contenu du fichier sous forme de chaîne
-	 * ```
+	 * Cette méthode récupère la chaîne de caractères brute d'un fichier 
+	 * situé via un chemin relatif converti en absolu.
 	 *
 	 * @param string $relativeFile Le chemin relatif du fichier à lire.
 	 *
 	 * @return string Le contenu du fichier.
+	 *
+	 * @example
+	 * ```php
+	 * $content = $service->getFileContent('storage/data.json');
+	 * // Retourne le contenu du fichier sous forme de chaîne
+	 * ```
 	 */
 	public function getFileContent(string $relativeFile): string
 	{
@@ -444,30 +439,26 @@ class FileManagerService
 	}
 
 	/**
-	 * Vérifie si un fichier ou un dossier existe.
+	 * Vérifie la présence physique d'un fichier ou d'un dossier.
 	 *
-	 * Cette méthode utilise le composant `Filesystem` de Symfony pour vérifier
-	 * l’existence d’un fichier ou d’un dossier.  
+	 * Cette méthode contrôle l'existence d'un élément sur le disque en 
+	 * gérant automatiquement les chemins relatifs (via defaultDirectory) ou absolus.
 	 *
-	 * - Si `$absolute` est à `true`, le chemin fourni est considéré comme absolu.  
-	 * - Si `$absolute` est à `false`, le chemin est automatiquement préfixé par
-	 *   le répertoire par défaut du service (`getDefaultDirectory()`).
+	 * @param ?string $filePath Le chemin absolu ou relatif vers le fichier ou dossier. 
+	 *                          Si null, utilise le répertoire par défaut.
 	 *
-	 * Exemple :
+	 * @return bool True si le fichier ou répertoire existe, sinon false.
+	 *
+	 * @example
 	 * ```php
 	 * // Chemin relatif (dans le répertoire par défaut)
 	 * if ($service->exists('images/photo.jpg')) {
 	 *     // Le fichier existe
 	 * }
 	 *
-	 * // Chemin absolu
-	 * $service->exists('/var/www/project/uploads/photo.jpg', true);
+	 * // Chemin absolu (détection automatique via isAbsolute)
+	 * $service->exists('/var/www/project/uploads/photo.jpg');
 	 * ```
-	 *
-	 * @param ?string $filePath Le chemin absolu ou relatif vers le fichier ou dossier.
-	 * @//param bool    $absolute Indique si le chemin fourni est absolu. false par défaut.
-	 *
-	 * @return bool True si le fichier ou répertoire existe, sinon false.
 	 */
 	// public function exists(?string $filePath = null, bool $absolute = false): bool
 	public function exists(?string $filePath = null): bool
@@ -504,22 +495,20 @@ class FileManagerService
 	}
 
 	/**
-	 * Génère un slug à partir d’une chaîne de caractères.
+	 * Génère un slug URL-safe à partir d’une chaîne de caractères.
 	 *
-	 * Cette méthode utilise le service `SluggerInterface` de Symfony pour convertir
-	 * une chaîne en un slug URL-safe.  
-	 * Le slug généré est ensuite forcé en minuscules pour garantir une cohérence
-	 * dans les formats utilisés.
-	 *
-	 * Exemple :
-	 * ```php
-	 * $slug = $service->createSlug('Mon Super Fichier.JPG');
-	 * // Retourne : 'mon-super-fichier-jpg'
-	 * ```
+	 * Cette méthode transforme un texte en format nettoyé (minuscules, sans caractères spéciaux),
+	 * idéal pour les noms de fichiers et URLs.
 	 *
 	 * @param string $string La chaîne à convertir en slug.
 	 *
 	 * @return string Le slug généré en minuscules.
+	 *
+	 * @example
+	 * ```php
+	 * $slug = $service->createSlug('Mon Super Fichier.JPG');
+	 * // Retourne : 'mon-super-fichier-jpg'
+	 * ```
 	 */
 	public function createSlug(string $string): string
 	{
@@ -527,27 +516,22 @@ class FileManagerService
 	}
 
 	/**
-	 * Crée un fichier avec un contenu donné dans le répertoire par défaut.
+	 * Crée un nouveau fichier avec un contenu spécifique.
 	 *
-	 * Cette méthode :
-	 * 1. Extrait le nom et l’extension du fichier fourni.
-	 * 2. Transforme le nom en slug pour garantir un nom de fichier sûr.
-	 * 3. Utilise le composant `Filesystem` de Symfony pour créer le fichier
-	 *    avec le contenu spécifié.
-	 *
-	 * Si le fichier existe déjà, il sera écrasé.
-	 *
-	 * Exemple :
-	 * ```php
-	 * // Crée un fichier 'mon-fichier.html' dans le répertoire par défaut
-	 * $service->createFile('Mon Fichier.html', '<h1>Bonjour</h1>');
-	 * ```
+	 * Cette méthode génère un fichier dans le répertoire par défaut. Elle slugifie
+	 * le nom fourni tout en préservant son extension. Si le fichier existe, il est écrasé.
 	 *
 	 * @param string $filename Le nom du fichier à créer (peut inclure un chemin relatif).
 	 * @param string $content  Le contenu à écrire dans le fichier. Par défaut, un
 	 *                         template HTML minimal est utilisé.
 	 *
 	 * @return void
+	 *
+	 * @example
+	 * ```php
+	 * // Crée un fichier 'mon-fichier.html' dans le répertoire par défaut
+	 * $service->createFile('Mon Fichier.html', '<h1>Bonjour</h1>');
+	 * ```
 	 */
 	public function createFile(string $filename, string $content = '<!DOCTYPE html><html lang="en"><body style="background: #ffffff;"></body></html>'): void
 	{
@@ -562,39 +546,27 @@ class FileManagerService
 	}
 
 	/**
-	 * Crée un ou plusieurs répertoires dans le répertoire par défaut.
+	 * Crée un ou plusieurs répertoires physiquement sur le disque.
 	 *
-	 * Cette méthode supporte plusieurs syntaxes pour le paramètre `$directory` :
-	 * 1. Si `$directory` contient des `+`, chaque segment est considéré comme un répertoire
-	 *    distinct à créer.
-	 * 2. Si `$directory` contient des `/`, il s'agit de sous-répertoires imbriqués.
-	 * 3. Sinon, `$directory` est considéré comme un répertoire simple.
+	 * Cette méthode supporte la création simple, multiple (via '+') ou imbriquée (via '/')
+	 * de dossiers. Les noms sont automatiquement slugifiés pour la sécurité du système de fichiers.
 	 *
-	 * Pour chaque répertoire créé, un tableau est retourné avec les informations suivantes :
-	 * - `absolute` : chemin absolu du répertoire.
-	 * - `relative` : chemin relatif calculé depuis la racine du service.
-	 * - `ltrimmed_relative` : version du chemin relatif sans le slash initial.
-	 * - `foldername` : nom final du répertoire créé (slugifié).
+	 * @param string|null $directory Le ou les répertoires à créer (supporte `+` pour plusieurs et `/` pour imbriqués).
+	 * @param bool        $returnDetails Indique si la méthode doit retourner les informations des répertoires créés.
 	 *
-	 * Les noms de répertoire sont transformés en slugs pour garantir des noms sûrs
-	 * pour le système de fichiers.
+	 * @return array|bool Un tableau des répertoires créés avec leurs détails si $returnDetails est true, sinon un booléen.
 	 *
-	 * Exemple :
+	 * @example
 	 * ```php
 	 * // Création de plusieurs répertoires séparés par '+'
-	 * $dirs = $service->createDir('images+docs+temp');
+	 * $dirs = $service->createDir('images+docs+temp', true);
 	 *
 	 * // Création d'un chemin imbriqué
-	 * $dirs = $service->createDir('uploads/photos/2025');
+	 * $dirs = $service->createDir('uploads/photos/2025', true);
 	 *
-	 * // Création d'un répertoire simple
-	 * $dirs = $service->createDir('temp');
+	 * // Création d'un répertoire simple (sans détails en retour)
+	 * $success = $service->createDir('temp');
 	 * ```
-	 *
-	 * @param string $directory Le ou les répertoires à créer (supporte `+` pour plusieurs et `/` pour imbriqués).
-	 * @param bool   $return    Indique si la méthode doit retourner les informations des répertoires créés. (Pas utilisé dans cette version mais prévu pour future extension.)
-	 *
-	 * @return array Un tableau des répertoires créés avec leurs chemins absolus, relatifs et noms.
 	 */
 	// public function createDir(string $directory, bool $return = false): array
 	public function createDir(?string $directory = null, bool $returnDetails = false): array|bool
@@ -707,15 +679,21 @@ class FileManagerService
 	} */
 
 	/**
-	 * Cette fonction prend un tableau de fichiers en entrée et les catégorise selon leur extension.
-	 * Elle retourne un tableau associatif avec les catégories de fichiers, qui contiennent chacune 
-	 * trois tableaux avec les chemins d'accès (src), les noms de fichiers (basename) et les dossiers 
-	 * parent (path).
+	 * Regroupe une liste de fichiers par catégories d'extensions.
 	 *
-	 * @param array $files Le tableau des fichiers à catégoriser
-	 * @param bool $basename Un booléen pour spécifier si le tableau doit contenir les noms de fichiers (true) ou non (false)
-	 * @param bool $path Un booléen pour spécifier si le tableau doit contenir les dossiers parent (true) ou non (false)
-	 * @return array Le tableau des catégories de fichiers
+	 * Cette méthode trie les fichiers (documents, images, etc.) et extrait 
+	 * optionnellement leurs noms de base (basename) et dossiers parents.
+	 *
+	 * @param array $files    Le tableau des fichiers à catégoriser.
+	 * @param bool  $basename Un booléen pour spécifier si le tableau doit contenir les noms de fichiers (true) ou non (false).
+	 * @param bool  $path     Un booléen pour spécifier si le tableau doit contenir les dossiers parent (true) ou non (false).
+	 *
+	 * @return array Le tableau des catégories de fichiers.
+	 *
+	 * @example
+	 * ```php
+	 * $categories = FileManagerService::categorizeFiles(['photo.jpg', 'doc.pdf'], true);
+	 * ```
 	 */
 	public static function categorizeFiles(array $files, bool $basename = false, bool $path = false): array
 	{
@@ -835,16 +813,19 @@ class FileManagerService
 	}
 
 	/**
-	 * Extrait le dossier parent du fichier à partir d'un chemin complet de fichier.
+	 * Extrait le dossier parent logique d'un chemin de fichier.
 	 *
-	 * Cette fonction prend en entrée un chemin complet de fichier et retourne le dossier parent du fichier.
-	 * Elle cherche d'abord le dossier personnel de l'utilisateur, qui se trouve immédiatement après le répertoire "uploads/datas/".
-	 * Ensuite, elle extrait tous les dossiers jusqu'à ce qu'elle trouve un nom de fichier (qui contient un point ".").
-	 * Elle retourne ensuite tous les dossiers précédant ce fichier.
-	 * Si aucun fichier n'est trouvé dans le chemin, la fonction retourne une chaîne vide.
+	 * Cette méthode analyse la structure du chemin pour isoler les dossiers 
+	 * précédant le nom du fichier, en tenant compte de la structure du projet.
 	 * 
 	 * @param string $folder Le chemin complet du fichier.
+	 *
 	 * @return string Le dossier parent du fichier.
+	 *
+	 * @example
+	 * ```php
+	 * $folder = FileManagerService::getExtractedFolder('/var/www/uploads/datas/user/folder/file.jpg');
+	 * ```
 	 */
 	public static function getExtractedFolder(string $folder): string
 	{
@@ -872,10 +853,19 @@ class FileManagerService
 	}
 
 	/**
-	 * Récupère les extensions de fichier associées à un type donné.
+	 * Liste les extensions associées à une catégorie de fichiers.
+	 * 
+	 * Cette méthode retourne les extensions (ex: jpg, pdf) correspondant à un type
+	 * général de média (ex: images, documents) défini en configuration.
 	 * 
 	 * @param string $type Le type de fichier pour lequel récupérer les extensions.
+	 *
 	 * @return array Les extensions de fichier associées au type spécifié, ou un tableau vide si le type n'existe pas.
+	 *
+	 * @example
+	 * ```php
+	 * $extensions = FileManagerService::getExtByType('images');
+	 * ```
 	 */
 	public static function getExtByType(string $type): array
 	{
@@ -889,10 +879,8 @@ class FileManagerService
 	/**
 	 * Récupère les dossiers d’un chemin donné dans le répertoire par défaut.
 	 *
-	 * Cette méthode utilise le composant `Finder` de Symfony pour lister les
-	 * dossiers situés sous un chemin relatif donné, avec la possibilité de :
-	 * - exclure certains dossiers dont le nom contient `$excludeDir`,
-	 * - limiter la profondeur de recherche avec `$depth`.
+	 * Cette méthode liste les dossiers situés sous un chemin relatif, avec options
+	 * d'exclusion et de limitation de profondeur. Elle fournit des métadonnées détaillées.
 	 *
 	 * Chaque dossier retourné est représenté par un tableau associatif contenant :
 	 * - `absolute` : chemin absolu du dossier,
@@ -900,17 +888,17 @@ class FileManagerService
 	 * - `ltrimmed_relative` : chemin relatif sans le slash initial,
 	 * - `foldername` : nom du dossier.
 	 *
-	 * Exemple :
+	 * @param string            $path       Chemin relatif à partir du répertoire par défaut. '/' par défaut.
+	 * @param string            $excludeDir Nom ou motif des dossiers à exclure. Chaîne vide par défaut.
+	 * @param string|array|null $depth      Profondeur des dossiers à récupérer. '== 0' par défaut.
+	 *
+	 * @return array Tableau des dossiers trouvés avec informations détaillées.
+	 *
+	 * @example
 	 * ```php
 	 * $dirs = $service->getDirs('uploads', 'temp', '== 1');
 	 * // Récupère tous les dossiers à profondeur 1 sous 'uploads', sauf ceux contenant 'temp'
 	 * ```
-	 *
-	 * @param string      $path       Chemin relatif à partir du répertoire par défaut. '/' par défaut.
-	 * @param string      $excludeDir Nom ou motif des dossiers à exclure. Chaîne vide par défaut.
-	 * @param string|null $depth      Profondeur des dossiers à récupérer. '== 0' par défaut.
-	 *
-	 * @return array Tableau des dossiers trouvés avec informations absolues et relatives.
 	 */
 	// public function getDirs(string $path = '/', string $excludeDir = "", string|null $depth = '== 0'): array
 	public function getDirs(string $path = '/', string $excludeDir = "", string|array|null $depth = '== 0'): array
@@ -965,12 +953,10 @@ class FileManagerService
 	}
 
 	/**
-	 * Récupère les dossiers d’un chemin donné sous forme d’arborescence récursive.
+	 * Récupère les dossiers sous forme d’arborescence récursive.
 	 *
-	 * Cette méthode utilise le composant `Finder` de Symfony pour lister les dossiers
-	 * et leurs sous-dossiers à partir d’un chemin relatif donné.  
-	 * Chaque dossier retourné contient un tableau `children` qui représente ses sous-dossiers,
-	 * générant ainsi une structure arborescente complète.
+	 * Cette méthode génère une structure hiérarchique complète incluant les 
+	 * sous-dossiers et les métadonnées de fichiers pour chaque nœud.
 	 *
 	 * Fonctionnalités :
 	 * - Exclut les dossiers dont le nom contient `$excludeDir`.
@@ -983,17 +969,16 @@ class FileManagerService
 	 * - `foldername` : nom du dossier,
 	 * - `children` : tableau des sous-dossiers sous le même format (récursif).
 	 *
-	 * Exemple :
+	 * @param string      $path       Chemin relatif à partir du répertoire par défaut. '/' par défaut.
+	 * @param string      $excludeDir Nom ou motif des dossiers à exclure. Chaîne vide par défaut.
+	 *
+	 * @return array Tableau arborescent des dossiers avec informations détaillées et enfants.
+	 *
+	 * @example
 	 * ```php
 	 * $tree = $service->getDirsTree('uploads', 'temp');
 	 * // Récupère tous les dossiers sous 'uploads' sauf ceux contenant 'temp', avec leurs sous-dossiers.
 	 * ```
-	 *
-	 * @param string      $path       Chemin relatif à partir du répertoire par défaut. '/' par défaut.
-	 * @param string      $excludeDir Nom ou motif des dossiers à exclure. Chaîne vide par défaut.
-	 * @param string|null $depth      Profondeur des dossiers à récupérer. '== 0' par défaut.
-	 *
-	 * @return array Tableau arborescent des dossiers avec informations absolues, relatives et enfants.
 	 */
 	// public function getDirsTree(string $path = '/', string $excludeDir = "", string|null $depth = '== 0'): array
 	// public function getDirsTree(string $path = '/', string $excludeDir = "", string|array|null $depth = '== 0'): array
@@ -1048,13 +1033,22 @@ class FileManagerService
 	}
 
 	/**
-	 * Récupère des parties spécifiques des répertoires fournis et les concatène si nécessaire.
+	 * Extrait des segments de chemins de répertoires.
 	 *
-	 * @param string|array $dirs Les répertoires en tant que chaîne unique ou tableau de chaînes.
-	 * @param int $slice Le point de départ pour extraire les parties du répertoire.
-	 * @param bool $implode Détermine si les parties extraites doivent être concaténées en une chaîne.
+	 * Cette méthode découpe les chemins selon le séparateur '/' et extrait les parties
+	 * à partir d'un index donné, avec option de concaténation.
+	 *
+	 * @param string|array $dirs    Les répertoires en tant que chaîne unique ou tableau de chaînes.
+	 * @param int          $slice   Le point de départ pour extraire les parties du répertoire.
+	 * @param bool         $implode Détermine si les parties extraites doivent être concaténées en une chaîne.
 	 *
 	 * @return string|array Les parties extraites des répertoires ou leur concaténation si demandée, ou false si vide.
+	 *
+	 * @example
+	 * ```php
+	 * $slice = FileManagerService::getSliceDirs('uploads/images/photo.jpg', 1, true);
+	 * // "images/photo.jpg"
+	 * ```
 	 */
 	public static function getSliceDirs(string|array $dirs, int $slice, bool $implode = false): string|array
 	{
@@ -1090,28 +1084,22 @@ class FileManagerService
 	}
 
 	/**
-	 * Nettoie un répertoire en supprimant les dossiers vides récursivement.
+	 * Nettoie un répertoire en supprimant les dossiers vides de manière récursive.
 	 *
-	 * Cette méthode :
-	 * 1. Définit le répertoire cible (`$dir`). Si aucun répertoire n’est fourni,
-	 *    elle utilise le répertoire relatif courant.
-	 * 2. Récupère les sous-dossiers et fichiers présents dans ce répertoire.
-	 * 3. Si le répertoire est vide (pas de fichiers ni de sous-dossiers),
-	 *    il est supprimé.
-	 * 4. Appelle la méthode récursivement sur le dossier parent pour
-	 *    supprimer également les répertoires vides jusqu’à la racine.
-	 *
-	 * Exemple :
-	 * ```php
-	 * $service->cleanDir('uploads/temp');
-	 * // Supprime 'uploads/temp' s’il est vide, puis remonte et supprime
-	 * // ses parents si eux aussi sont vides.
-	 * ```
+	 * Cette méthode remonte l'arborescence à partir d'un dossier cible et supprime
+	 * chaque répertoire parent s'il ne contient plus aucun fichier ou sous-dossier.
 	 *
 	 * @param string $dir Chemin relatif du répertoire à nettoyer. Par défaut,
 	 *                    le répertoire relatif courant est utilisé.
 	 *
 	 * @return void
+	 *
+	 * @example
+	 * ```php
+	 * $service->cleanDir('uploads/temp');
+	 * // Supprime 'uploads/temp' s’il est vide, puis remonte et supprime
+	 * // ses parents si eux aussi sont vides.
+	 * ```
 	 */
 	public function cleanDir(string $dir = ''): void
 	{
@@ -1139,26 +1127,23 @@ class FileManagerService
 	}
 
 	/**
-	 * Récupère les fichiers d’un répertoire donné avec possibilité de profondeur.
+	 * Récupère les fichiers d’un répertoire avec des filtres optionnels.
 	 *
-	 * Cette méthode utilise le composant `Finder` de Symfony pour lister les fichiers
-	 * dans le répertoire par défaut ou dans un sous-répertoire spécifié.
-	 * Chaque fichier est transformé en tableau d’informations via la méthode `getFileInfo()`.
+	 * Cette méthode liste les fichiers situés sous un chemin donné, permettant de filtrer
+	 * par profondeur, par nom de dossier ou par extension. Elle retourne des métadonnées détaillées.
 	 *
-	 * Fonctionnalités :
-	 * - Permet de limiter la profondeur de recherche avec `$depth`.
-	 * - Retourne `false` si le répertoire n’existe pas ou s’il n’y a aucun fichier.
+	 * @param string            $path  Chemin relatif à partir du répertoire par défaut. '/' par défaut.
+	 * @param string|array|null $depth Profondeur des fichiers à récupérer. '== 0' par défaut.
+	 * @param string|null       $folder Filtre optionnel sur le chemin des fichiers.
+	 * @param string|null       $ext    Filtre optionnel sur l'extension des fichiers.
 	 *
-	 * Exemple :
+	 * @return array|bool Tableau des fichiers avec informations détaillées, ou false si aucun fichier trouvé.
+	 *
+	 * @example
 	 * ```php
 	 * $files = $service->getFiles('uploads', '== 1');
 	 * // Récupère tous les fichiers situés à profondeur 1 sous 'uploads'
 	 * ```
-	 *
-	 * @param string      $path  Chemin relatif à partir du répertoire par défaut. '/' par défaut.
-	 * @param string|null $depth Profondeur des fichiers à récupérer. '== 0' par défaut.
-	 *
-	 * @return array|bool Tableau des fichiers avec informations détaillées, ou false si aucun fichier trouvé.
 	 */
 	// public function getFiles(string $path = '/', ?string $depth = '== 0', ?string $folder = null, ?string $ext = null): array|bool
 	public function getFiles(string $path = '/', string|array|null $depth = '== 0', ?string $folder = null, ?string $ext = null): array|bool
@@ -1210,25 +1195,23 @@ class FileManagerService
 	}
 
 	/**
-	 * Récupère les dimensions (largeur et hauteur) d’une image.
+	 * Récupère les dimensions (largeur et hauteur) d’un fichier image.
 	 *
-	 * Cette méthode utilise la fonction PHP `getimagesize()` pour obtenir les dimensions
-	 * d’un fichier image spécifié.  
-	 * Elle peut travailler soit avec un chemin absolu, soit avec un chemin relatif
-	 * au répertoire par défaut du service.
+	 * Cette méthode extrait la résolution d'une image stockée localement,
+	 * en gérant la résolution automatique des chemins absolus ou relatifs.
 	 *
-	 * Exemple :
+	 * @param string $filePath Chemin du fichier image (relatif ou absolu).
+	 *
+	 * @return array|null Tableau associatif ['width' => int, 'height' => int] si l’image existe, ou null sinon.
+	 *
+	 * @example
 	 * ```php
 	 * $size = $service->getImageSize('uploads/photo.jpg');
 	 * // $size = ['width' => 800, 'height' => 600]
 	 *
-	 * $sizeAbsolute = $service->getImageSize('/var/www/images/photo.jpg', true);
+	 * // Le chemin absolu est détecté automatiquement
+	 * $sizeAbsolute = $service->getImageSize('/var/www/images/photo.jpg');
 	 * ```
-	 *
-	 * @param string $filePath Chemin du fichier image.
-	 * @//param bool   $absolute Si true, `$filePath` est considéré comme absolu. Sinon, relatif au répertoire par défaut.
-	 *
-	 * @return array|null Tableau associatif ['width' => int, 'height' => int] si l’image existe, ou null sinon.
 	 */
 	// public function getImageSize(string $filePath, bool $absolute = false): ?array
 	public function getImageSize(string $filePath): ?array
@@ -1255,23 +1238,18 @@ class FileManagerService
 	}
 
 	/**
-	 * Récupère les informations détaillées d’un fichier.
+	 * Compile des informations détaillées pour un fichier donné.
 	 *
-	 * Cette méthode prend un objet `SplFileInfo` et retourne un tableau
-	 * contenant des informations utiles sur le fichier :
-	 * - Chemin absolu et relatif,
-	 * - Nom du fichier,
-	 * - Taille formatée en lecture humaine,
-	 * - Date de dernière modification,
-	 * - Dimensions si c’est une image,
-	 * - Extension et type MIME.
+	 * Cette méthode extrait les métadonnées techniques (taille, modification, dimensions image,
+	 * type MIME, etc.) à partir d'un objet `SplFileInfo`.
 	 *
-	 * Les chemins relatifs sont calculés par rapport au `kernelDirectory` et
-	 * au `relativeDirectory` du service.
+	 * @param \SplFileInfo $file Objet représentant le fichier.
 	 *
-	 * Exemple :
+	 * @return array Tableau associatif contenant les informations détaillées du fichier.
+	 *
+	 * @example
 	 * ```php
-	 * $fileInfo = $this->getFileInfo($file);
+	 * $fileInfo = $service->getFileInfo($file);
 	 * // [
 	 * //   'absolute' => '/var/www/project/uploads/photo.jpg',
 	 * //   'relative' => 'uploads/photo.jpg',
@@ -1283,12 +1261,8 @@ class FileManagerService
 	 * //   'mime' => 'image/jpeg'
 	 * // ]
 	 * ```
-	 *
-	 * @param SplFileInfo $file Objet représentant le fichier.
-	 *
-	 * @return array Tableau associatif contenant les informations détaillées du fichier.
 	 */
-	private function getFileInfo(SplFileInfo $file): array
+	private function getFileInfo(\SplFileInfo $file): array
 	{
 		$filePath = $file->getRealPath();
 		// $imageSize = @getimagesize($filePath); // Avoid error if it is not an image
@@ -1328,24 +1302,22 @@ class FileManagerService
 	}
 
 	/**
-	 * Récupère les dimensions d’un fichier image.
+	 * Récupère les dimensions brutes d'un fichier image.
 	 *
-	 * Cette méthode utilise la fonction PHP `getimagesize()` pour obtenir
-	 * la largeur et la hauteur d’une image.  
-	 * Si le fichier n’est pas une image ou si la récupération échoue,
-	 * les valeurs retournées seront `null`.
-	 *
-	 * Exemple :
-	 * ```php
-	 * $dimensions = $this->getDimensionsFileInfo('/var/www/uploads/photo.jpg');
-	 * // ['width' => 800, 'height' => 600]
-	 * ```
+	 * Cette méthode fournit la largeur et la hauteur en pixels. Les valeurs 
+	 * sont retournées comme `null` si le fichier n'est pas une image valide.
 	 *
 	 * @param string $filePath Chemin absolu vers le fichier image.
 	 *
 	 * @return array Tableau associatif avec les clés :
 	 *               - 'width'  => int|null Largeur de l’image en pixels
 	 *               - 'height' => int|null Hauteur de l’image en pixels
+	 *
+	 * @example
+	 * ```php
+	 * $dimensions = $service->getDimensionsFileInfo('/var/www/uploads/photo.jpg');
+	 * // ['width' => 800, 'height' => 600]
+	 * ```
 	 */
 	private function getDimensionsFileInfo(string $filePath): array
 	{
@@ -1359,12 +1331,12 @@ class FileManagerService
 	}
 
 	/**
-	 * Récupère la taille d'un tableau de fichiers ou d'un seul fichier en octets.
+	 * Calcule la taille totale d'un ou plusieurs fichiers en octets.
 	 *
-	 * @param string|array $files chemin absolu
-	 * @param int $totalFileSize compteur incrémental
+	 * @param string|array $files          Un chemin absolu ou un tableau de chemins/métadonnées.
+	 * @param int          $totalFileSize  Compteur incrémental initial.
 	 *
-	 * @return int|float
+	 * @return int|float La taille totale en octets.
 	 */
 	public static function getSize(string|array $files, int $totalFileSize = 0): int|float
 	{
@@ -1385,27 +1357,22 @@ class FileManagerService
 	}
 
 	/**
-	 * Convertit une taille en octets en une chaîne lisible avec unité.
+	 * Convertit une taille en octets en un format lisible (o, Ko, Mo, Go).
 	 *
-	 * Cette méthode prend une taille en octets et renvoie une chaîne formatée
-	 * avec l’unité appropriée : octets (o), kilo-octets (Ko), méga-octets (Mo), giga-octets (Go).
-	 * La conversion utilise des seuils standards :
-	 * - < 1 Ko : octets
-	 * - < 10 Mo : Ko avec 2 décimales
-	 * - < 1 Go : Mo avec 2 décimales
-	 * - >= 1 Go : Go avec 2 décimales
+	 * Cette méthode formate une valeur numérique en chaîne de caractères avec 
+	 * l'unité de mesure la plus appropriée et deux décimales.
 	 *
-	 * Exemple :
+	 * @param int|float $size Taille en octets.
+	 *
+	 * @return string Taille formatée avec l’unité appropriée.
+	 *
+	 * @example
 	 * ```php
 	 * echo $service->getSizeName(500);         // "500 o"
 	 * echo $service->getSizeName(2048);        // "2.00 Ko"
 	 * echo $service->getSizeName(10485760);    // "10.00 Mo"
 	 * echo $service->getSizeName(2147483648);  // "2.00 Go"
 	 * ```
-	 *
-	 * @param int|float $size Taille en octets.
-	 *
-	 * @return string Taille formatée avec l’unité appropriée.
 	 */
 	public function getSizeName(int|float $size): string
 	{
@@ -1428,23 +1395,21 @@ class FileManagerService
 	}
 
 	/**
-	 * Upload un ou plusieurs fichiers dans un dossier spécifique.
+	 * Transfère un ou plusieurs fichiers vers un répertoire spécifique.
 	 *
-	 * Cette méthode gère le téléchargement d’un fichier unique ou d’un tableau
-	 * de fichiers (`UploadedFile`). Elle permet également de renommer les fichiers
-	 * téléchargés et retourne soit un tableau détaillé des fichiers uploadés,
-	 * soit un booléen `true` si le téléchargement a réussi et `$return` est `false`.
+	 * Cette méthode gère l'upload, le renommage slugifié, et la génération 
+	 * de métadonnées pour les fichiers envoyés via une requête HTTP.
 	 *
-	 * Fonctionnalités :
-	 * - Prise en charge de plusieurs fichiers en entrée.
-	 * - Renommage automatique si `$newName` est fourni. Pour plusieurs fichiers,
-	 *   les noms seront suffixés avec un index (ex: fichier-1.jpg, fichier-2.jpg).
-	 * - Conversion du nom en slug pour sécuriser le nom de fichier.
-	 * - Stockage du chemin absolu et relatif.
-	 * - Récupération de la taille formatée, date de modification, extension, MIME et dimensions.
-	 * - Lève une exception si le téléchargement échoue.
+	 * @param UploadedFile|UploadedFile[] $files   Fichier unique ou tableau de fichiers à uploader.
+	 * @param string                      $folder  Dossier cible où les fichiers seront uploadés (chemin absolu recommandé).
+	 * @param string                      $newName Nouveau nom de fichier optionnel (pour plusieurs fichiers, un suffixe sera ajouté).
+	 * @param bool                        $return  Si `true`, retourne un tableau détaillé des fichiers uploadés ; sinon retourne `true`.
 	 *
-	 * Exemple :
+	 * @return array|bool Tableau d’informations des fichiers uploadés si `$return` est `true`, sinon `true`.
+	 *
+	 * @throws \Exception Si un fichier n’a pas pu être déplacé dans le dossier cible.
+	 *
+	 * @example
 	 * ```php
 	 * $uploaded = $service->upload($file, '/var/www/uploads', 'nouveau-nom', true);
 	 * // [
@@ -1460,15 +1425,6 @@ class FileManagerService
 	 * //   ]
 	 * // ]
 	 * ```
-	 *
-	 * @param UploadedFile|UploadedFile[] $files Fichier unique ou tableau de fichiers à uploader.
-	 * @param string $folder Dossier cible où les fichiers seront uploadés (chemin absolu recommandé).
-	 * @param string $newName Nouveau nom de fichier optionnel (pour plusieurs fichiers, un suffixe sera ajouté).
-	 * @param bool $return Si `true`, retourne un tableau détaillé des fichiers uploadés ; sinon retourne `true`.
-	 *
-	 * @return array|bool Tableau d’informations des fichiers uploadés si `$return` est `true`, sinon `true`.
-	 *
-	 * @throws \Exception Si un fichier n’a pas pu être déplacé dans le dossier cible.
 	 */
 	public function upload(UploadedFile|array $files, string $folder, string $newName = "", bool $return = false): array|bool
 	{
@@ -1548,18 +1504,26 @@ class FileManagerService
 	}
 
 	/**
-	 * Redimensionne des images spécifiées dans le répertoire source et les enregistre dans le répertoire cible.
+	 * Redimensionne une liste d'images et les enregistre dans une destination.
 	 *
-	 * @param array $files Liste des noms de fichiers image à redimensionner.
-	 * @param string $sourceDir Répertoire source contenant les images à redimensionner.
-	 * @param string $targetDir Répertoire cible où les images redimensionnées seront enregistrées.
-	 * @param int $width Largeur souhaitée pour les images redimensionnées.
-	 * @param int $quality Qualité de l'image redimensionnée (uniquement pour JPEG/PNG/WEBP).
-	 * @param string|null $suffix Suffixe optionnel à ajouter au nom du fichier (ex: 'fhd', '4k').
+	 * Cette méthode traite les images sources pour ajuster leur largeur tout en 
+	 * conservant le ratio, gère la qualité et peut ajouter un suffixe aux noms créés.
+	 *
+	 * @param array       $files    Liste des noms de fichiers image à redimensionner.
+	 * @param string      $sourceDir Répertoire source contenant les images à redimensionner.
+	 * @param string      $targetDir Répertoire cible où les images redimensionnées seront enregistrées.
+	 * @param int         $width     Largeur souhaitée pour les images redimensionnées.
+	 * @param int         $quality   Qualité de l'image redimensionnée (uniquement pour JPEG/PNG/WEBP).
+	 * @param string|null $suffix    Suffixe optionnel à ajouter au nom du fichier (ex: 'fhd', '4k').
 	 *
 	 * @throws \Exception En cas d'erreur lors du traitement des images.
 	 *
-	 * @return array Tableau contenant les informations détaillées des images redimensionnées et les erreurs.
+	 * @return array Tableau contenant les clés 'success' (détails des images traitées) et 'errors' (messages d'erreur).
+	 *
+	 * @example
+	 * ```php
+	 * $result = $service->resizeImages(['img1.jpg', 'img2.png'], '/source', '/target', 800, 90, 'thumb');
+	 * ```
 	 */
 	public function resizeImages(array $files, string $sourceDir, string $targetDir, int $width, int $quality = 100, ?string $suffix = null): array
 	{
@@ -1849,11 +1813,12 @@ class FileManagerService
 	/**
 	 * Vérifie si le répertoire par défaut contient au moins un sous-dossier.
 	 *
-	 * Cette méthode utilise `getDirs()` pour récupérer les sous-dossiers du
-	 * répertoire par défaut. Elle retourne `true` si au moins un sous-dossier
-	 * est présent, sinon `false`.
+	 * Cette méthode contrôle la présence de dossiers enfants au sein du 
+	 * répertoire de travail actuel.
 	 *
-	 * Exemple :
+	 * @return bool `true` si au moins un sous-dossier existe, sinon `false`.
+	 *
+	 * @example
 	 * ```php
 	 * if ($service->hasDir()) {
 	 *     echo "Il y a des sous-dossiers dans le répertoire par défaut.";
@@ -1861,8 +1826,6 @@ class FileManagerService
 	 *     echo "Aucun sous-dossier trouvé.";
 	 * }
 	 * ```
-	 *
-	 * @return bool `true` si au moins un sous-dossier existe, sinon `false`.
 	 */
 	public function hasDir(): bool
 	{
@@ -1880,22 +1843,11 @@ class FileManagerService
 
 	/* **************************************************************************************************************************************************************** */
 	/**
-	 * Télécharge un fichier ou délègue vers un téléchargement groupé si nécessaire.
+	 * Initialise le téléchargement d'un fichier unique ou délégué.
 	 *
-	 * Cette méthode permet de télécharger un fichier unique situé dans le répertoire
-	 * par défaut ou dans un sous-répertoire donné. Si le nom fourni ne correspond pas
-	 * directement à un fichier, la méthode délègue automatiquement au mécanisme de
-	 * téléchargement groupé (`downloadBulk`) afin de gérer les dossiers ou une logique
-	 * d’extension future (multi-sélection).
-	 *
-	 * Exemple d'utilisation :
-	 * ```php
-	 * // Téléchargement d'un fichier unique
-	 * return $service->download('document.pdf');
-	 *
-	 * // Téléchargement d'un fichier dans un sous-dossier
-	 * return $service->download('image.png', 'uploads/images');
-	 * ```
+	 * Cette méthode prépare une réponse Symfony `BinaryFileResponse` pour forcer 
+	 * le téléchargement d'un élément. Si l'élément n'est pas un fichier simple,
+	 * elle bascule automatiquement sur un téléchargement groupé.
 	 *
 	 * @param string      $name       Nom du fichier à télécharger.
 	 * @param string|null $directory  Sous-répertoire optionnel dans lequel se trouve le fichier.
@@ -1903,6 +1855,15 @@ class FileManagerService
 	 * @return BinaryFileResponse     Réponse Symfony configurée pour forcer le téléchargement.
 	 *
 	 * @throws \RuntimeException      Si le fichier est introuvable.
+	 *
+	 * @example
+	 * ```php
+	 * // Téléchargement d'un fichier unique
+	 * return $service->download('document.pdf');
+	 *
+	 * // Téléchargement d'un fichier dans un sous-dossier
+	 * return $service->download('image.png', 'uploads/images');
+	 * ```
 	 */
 	public function download(string $name, ?string $directory = null): BinaryFileResponse
 	{
@@ -1990,24 +1951,10 @@ class FileManagerService
 	}
 
 	/**
-	 * Télécharge plusieurs fichiers et/ou dossiers regroupés dans une archive ZIP.
+	 * Regroupe et télécharge plusieurs fichiers sous forme d'archive ZIP.
 	 *
-	 * Cette méthode construit une archive ZIP temporaire contenant un ou plusieurs
-	 * fichiers et dossiers situés dans le répertoire par défaut ou dans un sous-répertoire
-	 * spécifique. Chaque élément est vérifié avant traitement afin de garantir son
-	 * existence. Une fois l’archive générée, une réponse HTTP de type
-	 * `BinaryFileResponse` est renvoyée pour déclencher le téléchargement.
-	 *
-	 * Le fichier ZIP temporaire est automatiquement supprimé après l’envoi de la réponse.
-	 *
-	 * Exemple d'utilisation :
-	 * ```php
-	 * // Téléchargement de plusieurs fichiers
-	 * return $service->downloadBulk(
-	 *     ['document.pdf', 'image.png'],
-	 *     'uploads/documents'
-	 * );
-	 * ```
+	 * Cette méthode crée une archive temporaire contenant l'ensemble des fichiers 
+	 * et dossiers demandés, puis génère une réponse de téléchargement groupé.
 	 *
 	 * @param array       $names      Liste des noms de fichiers ou dossiers à inclure.
 	 * @param string|null $directory  Sous-répertoire optionnel contenant les éléments.
@@ -2016,6 +1963,15 @@ class FileManagerService
 	 *
 	 * @throws \RuntimeException      Si un élément est introuvable ou si l’archive ZIP
 	 *                                ne peut pas être créée.
+	 *
+	 * @example
+	 * ```php
+	 * // Téléchargement de plusieurs fichiers
+	 * return $service->downloadBulk(
+	 *     ['document.pdf', 'image.png'],
+	 *     'uploads/documents'
+	 * );
+	 * ```
 	 */
 	public function downloadBulk(array $names, ?string $directory = null): BinaryFileResponse
 	{
@@ -2053,15 +2009,10 @@ class FileManagerService
 	}
 
 	/**
-	 * Prépare le téléchargement final à partir d’un ensemble de chemins.
+	 * Prépare la liste des chemins pour une mise en archive ou un envoi direct.
 	 *
-	 * Cette méthode centralise la logique de décision entre un téléchargement direct
-	 * d’un fichier unique et la création d’une archive ZIP lorsque plusieurs éléments
-	 * (fichiers et/ou dossiers) sont fournis. Elle retourne les informations nécessaires
-	 * à la construction de la réponse HTTP finale.
-	 *
-	 * - Si un seul fichier est présent, celui-ci est retourné tel quel.
-	 * - Sinon, une archive ZIP temporaire est créée.
+	 * cette méthode résout les destinations finales et organise la création 
+	 * d'un fichier ZIP si plusieurs éléments sont impliqués.
 	 *
 	 * @param array  $paths    Liste des chemins absolus des fichiers ou dossiers à traiter.
 	 * @param string $baseDir  Répertoire de base utilisé pour la résolution des chemins.
@@ -2113,11 +2064,10 @@ class FileManagerService
 	}
 
 	/**
-	 * Ajoute récursivement le contenu d’un dossier dans une archive ZIP.
+	 * Ajoute récursivement le contenu d'un dossier dans une archive ZIP.
 	 *
-	 * Cette méthode parcourt l’arborescence complète d’un dossier et ajoute
-	 * chaque sous-dossier et fichier dans l’archive ZIP fournie, tout en
-	 * conservant la structure relative du dossier d’origine.
+	 * Cette méthode parcourt l'arborescence complète d'un dossier pour inclure 
+	 * tous ses fichiers et sous-dossiers au sein du fichier compressé.
 	 *
 	 * @param \ZipArchive $zip       Instance de l’archive ZIP cible.
 	 * @param string      $dir       Chemin absolu du dossier à ajouter.
@@ -2147,14 +2097,10 @@ class FileManagerService
 	/* **************************************************************************************************************************************************************** */
 
 	/**
-	 * Supprime un fichier ou un répertoire.
+	 * Supprime définitivement un fichier ou un répertoire.
 	 *
-	 * Cette méthode supprime soit le répertoire par défaut entier, soit un fichier
-	 * ou sous-répertoire spécifique situé dans le répertoire par défaut. Elle utilise
-	 * le composant `Filesystem` de Symfony pour effectuer la suppression.
-	 *
-	 * Après suppression, elle vérifie si l’élément existe encore et renvoie `true` si
-	 * la suppression a réussi, ou `false` si l’élément est toujours présent.
+	 * Cette méthode efface l'élément ciblé du système de fichiers. Pour un 
+	 * dossier, la suppression porte sur l'ensemble de son contenu.
 	 *
 	 * @param string $relativePath Chemin relatif du fichier ou du sous-répertoire à supprimer.
 	 *                             Si vide, le répertoire par défaut entier sera supprimé.
@@ -2162,11 +2108,13 @@ class FileManagerService
 	 * @return bool `true` si la suppression a réussi, `false` sinon.
 	 *
 	 * @example
+	 * ```php
 	 * // Supprimer un fichier spécifique
 	 * $success = $service->remove('uploads/documents/file.txt');
 	 *
 	 * // Supprimer tout le répertoire par défaut
 	 * $success = $service->remove();
+	 * ```
 	 */
 	public function remove(string $relativePath = ''): bool
 	{
@@ -2201,11 +2149,10 @@ class FileManagerService
 	}
 
 	/**
-	 * Copie un fichier vers un nouvel emplacement.
+	 * Copie un fichier ou un répertoire vers une nouvelle destination.
 	 *
-	 * Cette méthode copie un fichier source vers une destination spécifiée. 
-	 * Le chemin source est considéré comme relatif au répertoire kernel, tandis que
-	 * la destination est relative au répertoire par défaut du service.
+	 * Cette méthode duplique l'élément source vers la cible spécifiée, avec 
+	 * une option pour écraser le fichier de destination s'il existe déjà.
 	 *
 	 * @param string $source      Chemin relatif du fichier source à copier.
 	 * @param string $destination Chemin relatif de destination pour le fichier copié.
@@ -2214,11 +2161,13 @@ class FileManagerService
 	 * @return bool `true` si la copie est effectuée avec succès.
 	 *
 	 * @example
+	 * ```php
 	 * // Copier un fichier existant dans le répertoire 'uploads' vers 'backup'
 	 * $service->copy('uploads/file.txt', 'backup/file.txt');
 	 *
 	 * // Copier et écraser si le fichier existe déjà
 	 * $service->copy('uploads/file.txt', 'backup/file.txt', true);
+	 * ```
 	 */
 	public function copy(string $source, string $destination, bool $override = false): bool
 	{
@@ -2229,16 +2178,18 @@ class FileManagerService
 	}
 
 	/**
-	 * Renomme un fichier ou un répertoire dans le répertoire par défaut.
+	 * Renomme un fichier ou un répertoire au sein du répertoire par défaut.
 	 *
-	 * Cette méthode renomme un fichier ou un répertoire en appliquant 
-	 * automatiquement un slug au nouveau nom (transformation en format URL-safe).
-	 * L'extension du fichier source est préservée automatiquement.
+	 * Cette méthode modifie le nom d'un élément sur le disque en appliquant 
+	 * automatiquement une slugification pour garantir un nom URL-safe.
 	 *
-	 * Le fichier/répertoire source et la destination sont relatifs au 
-	 * répertoire par défaut (defaultDirectory).
+	 * @param string $source      Nom du fichier/répertoire source (relatif au defaultDirectory).
+	 * @param string $destination Nouveau nom (sera slugifié, sans extension).
+	 * @param bool   $override    Si true, écrase le fichier de destination s'il existe (par défaut: false).
 	 *
-	 * Exemple :
+	 * @return bool True si le renommage a réussi, false sinon.
+	 *
+	 * @example
 	 * ```php
 	 * // Renommer un fichier (l'extension est préservée automatiquement)
 	 * $service->setDefaultDirectory('/uploads/images');
@@ -2257,12 +2208,6 @@ class FileManagerService
 	 * $service->rename('temp.jpg', 'final', true);
 	 * // Écrasera final.jpg s'il existe déjà
 	 * ```
-	 *
-	 * @param string $source Nom du fichier/répertoire source (relatif au defaultDirectory)
-	 * @param string $destination Nouveau nom (sera slugifié, sans extension)
-	 * @param bool $override Si true, écrase le fichier de destination s'il existe (par défaut: false)
-	 *
-	 * @return bool True si le renommage a réussi, false sinon
 	 */
 	public function rename(string $source, string $destination, bool $override = false): bool
 	{
@@ -2301,16 +2246,18 @@ class FileManagerService
 	}
 
 	/**
-	 * Déplace ou renomme un fichier ou un répertoire.
+	 * Déplace un fichier ou un répertoire vers un nouvel emplacement.
 	 *
-	 * Cette méthode utilise le composant Filesystem de Symfony pour déplacer ou 
-	 * renommer un fichier ou un répertoire. Elle supporte également l'écrasement 
-	 * de la cible si celle-ci existe déjà.
+	 * Cette méthode transfère physiquement l'élément de sa source vers sa cible 
+	 * avec option d'écrasement, en résolvant les chemins par rapport à la racine.
 	 *
-	 * Les chemins fournis sont relatifs à la racine du projet (kernel directory).
-	 * Ils seront automatiquement convertis en chemins absolus.
+	 * @param string $origine   Chemin relatif du fichier/répertoire source.
+	 * @param string $target    Chemin relatif du fichier/répertoire de destination.
+	 * @param bool   $overwrite Si true, écrase la cible si elle existe déjà (par défaut: false).
 	 *
-	 * Exemple :
+	 * @return bool True si le déplacement a réussi, false sinon.
+	 *
+	 * @example
 	 * ```php
 	 * // Déplacer un fichier
 	 * $service->move(
@@ -2337,12 +2284,6 @@ class FileManagerService
 	 *     true  // Écrasera old.jpg s'il existe
 	 * );
 	 * ```
-	 *
-	 * @param string $origine Chemin relatif du fichier/répertoire source
-	 * @param string $target Chemin relatif du fichier/répertoire de destination
-	 * @param bool $overwrite Si true, écrase la cible si elle existe déjà (par défaut: false)
-	 *
-	 * @return bool True si le déplacement a réussi, false sinon
 	 */
 	public function move(string $origine, string $target, bool $overwrite = false): bool
 	{
@@ -2395,6 +2336,268 @@ class FileManagerService
 		return true; */
 	}
 }
+
+
+/* namespace Anfallnorr\FileManagerSystem\Service;
+
+use Anfallnorr\FileManagerSystem\Service\Manager\ArchiveManager;
+use Anfallnorr\FileManagerSystem\Service\Manager\DirectoryManager;
+use Anfallnorr\FileManagerSystem\Service\Manager\FileManager;
+use Anfallnorr\FileManagerSystem\Service\Manager\ImageManager;
+use Anfallnorr\FileManagerSystem\Service\Manager\MimeManager;
+use Anfallnorr\FileManagerSystem\Service\Manager\PathManager;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
+
+class FileManagerService
+{
+	public function __construct(
+		private PathManager $pathManager,
+		private MimeManager $mimeManager,
+		private DirectoryManager $directoryManager,
+		private FileManager $fileManager,
+		private ImageManager $imageManager,
+		private ArchiveManager $archiveManager,
+	) {
+		$this->directoryManager->setFileManager($this->fileManager);
+		$this->directoryManager->setImageManager($this->imageManager);
+	}
+
+	// --- Path Management ---
+
+	public function getKernelDirectory(): string
+	{
+		return $this->pathManager->getKernelDirectory();
+	}
+
+	public function getDefaultDirectory(): string
+	{
+		return $this->pathManager->getDefaultDirectory();
+	}
+
+	public function setDefaultDirectory(string $directory): static
+	{
+		$this->pathManager->setDefaultDirectory($directory);
+		return $this;
+	}
+
+	public function getRelativeDirectory(): string
+	{
+		return $this->pathManager->getRelativeDirectory();
+	}
+
+	public function setRelativeDirectory(string $directory): static
+	{
+		$this->pathManager->setRelativeDirectory($directory);
+		return $this;
+	}
+
+	private function abs(string $relative): string
+	{
+		return $this->pathManager->abs($relative);
+	}
+
+	private function isAbsolute(string $path): bool
+	{
+		return $this->pathManager->isAbsolute($path);
+	}
+
+	// --- Mime Management ---
+
+	public function getMimeTypes(): array
+	{
+		return $this->mimeManager->getMimeTypes();
+	}
+
+	public function getMimeType(string $key): string|array|null
+	{
+		return $this->mimeManager->getMimeType($key);
+	}
+
+	public function getMimeContent(string $filename): string
+	{
+		return $this->mimeManager->getMimeContent($filename);
+	}
+
+	public static function getExtByType(string $type): array
+	{
+		return MimeManager::getExtByType($type);
+	}
+
+	// --- File Management ---
+
+	public function exists(?string $filePath = null): bool
+	{
+		return $this->fileManager->exists($filePath);
+	}
+
+	public function getFileContent(string $relativeFile): string
+	{
+		return $this->fileManager->getFileContent($relativeFile);
+	}
+
+	public function createFile(string $filename, string $content = '<!DOCTYPE html><html lang="en"><body style="background: #ffffff;"></body></html>'): void
+	{
+		$this->fileManager->createFile($filename, $content);
+	}
+
+	public function getFiles(string $path = '/', string|array|null $depth = '== 0', ?string $folder = null, ?string $ext = null): array|bool
+	{
+		return $this->fileManager->getFiles($path, $depth, $folder, $ext);
+	}
+
+	public function getFileInfo(\SplFileInfo $file): array
+	{
+		return $this->fileManager->getFileInfo($file);
+	}
+
+	public function createSlug(string $string): string
+	{
+		return $this->fileManager->createSlug($string);
+	}
+
+	public function upload(UploadedFile|array $files, string $folder, string $newName = "", bool $return = false): array|bool
+	{
+		return $this->fileManager->upload($files, $folder, $newName, $return);
+	}
+
+	public static function categorizeFiles(array $files, bool $basename = false, bool $path = false): array
+	{
+		// This is a bit tricky for static methods needing services, 
+		// but since categorizeFiles was static and didn't really need services in the original (besides other static methods),
+		// we can keep the logic or instantiate a manager if really needed.
+		// Actually the original was using self::getExtByType and self::getExtractedFolder.
+		
+		$categories = [
+			'documents' => ['src' => [], 'basename' => [], 'path' => []],
+			'images'    => ['src' => [], 'basename' => [], 'path' => []],
+			'audios'    => ['src' => [], 'basename' => [], 'path' => []],
+			'videos'    => ['src' => [], 'basename' => [], 'path' => []],
+			'other'     => ['src' => [], 'basename' => [], 'path' => []],
+		];
+
+		foreach ($files as $file) {
+			$extension = \strtolower((string) \pathinfo($file, PATHINFO_EXTENSION));
+			$categorized = false;
+
+			foreach (['documents', 'images', 'audios', 'videos'] as $type) {
+				if (\in_array($extension, MimeManager::getExtByType($type), true)) {
+					$categories[$type]['src'][] = $file;
+					if ($basename) $categories[$type]['basename'][] = \basename($file);
+					if ($path) $categories[$type]['path'][] = self::getExtractedFolder($file);
+					$categorized = true;
+					break;
+				}
+			}
+
+			if (!$categorized) {
+				$categories['other']['src'][] = $file;
+				if ($basename) $categories['other']['basename'][] = \basename($file);
+				if ($path) $categories['other']['path'][] = self::getExtractedFolder($file);
+			}
+		}
+
+		return $categories;
+	}
+
+	public static function getExtractedFolder(string $folder): string
+	{
+		return 'getExtractedFolder'; 
+	}
+
+	// --- Directory Management ---
+
+	public function createDir(?string $directory = null, bool $returnDetails = false): array|bool
+	{
+		return $this->directoryManager->createDir($directory, $returnDetails);
+	}
+
+	public function getDirs(string $path = '/', string $excludeDir = "", string|array|null $depth = '== 0'): array
+	{
+		return $this->directoryManager->getDirs($path, $excludeDir, $depth);
+	}
+
+	public function getDirsTree(string $path = '/', string $excludeDir = ""): array
+	{
+		return $this->directoryManager->getDirsTree($path, $excludeDir);
+	}
+
+	public function cleanDir(string $dir = ''): void
+	{
+		$this->directoryManager->cleanDir($dir);
+	}
+
+	public function hasDir(): bool
+	{
+		return $this->directoryManager->hasDir();
+	}
+
+	public static function getSliceDirs(string|array $dirs, int $slice, bool $implode = false): string|array|bool
+	{
+		return DirectoryManager::getSliceDirs($dirs, $slice, $implode);
+	}
+
+	// --- Image Management ---
+
+	public function getImageSize(string $filePath): ?array
+	{
+		return $this->imageManager->getImageSize($filePath);
+	}
+
+	public function getDimensionsFileInfo(string $filePath): array
+	{
+		return $this->imageManager->getDimensionsFileInfo($filePath);
+	}
+
+	public static function getSize(string|array $files, int $totalFileSize = 0): int|float
+	{
+		return ImageManager::getSize($files, $totalFileSize);
+	}
+
+	public function getSizeName(int|float $size): string
+	{
+		return $this->imageManager->getSizeName($size);
+	}
+
+	public function resizeImages(array $files, string $sourceDir, string $targetDir, int $width, int $quality = 100, ?string $suffix = null): array
+	{
+		return $this->imageManager->resizeImages($files, $sourceDir, $targetDir, $width, $quality, $suffix);
+	}
+
+	// --- Archive & Download Management ---
+
+	public function download(string $name, ?string $directory = null): BinaryFileResponse
+	{
+		return $this->archiveManager->download($name, $directory);
+	}
+
+	public function downloadBulk(array $names, ?string $directory = null): BinaryFileResponse
+	{
+		return $this->archiveManager->downloadBulk($names, $directory);
+	}
+
+	// --- Compound Operations ---
+
+	public function remove(string $relativePath = ''): bool
+	{
+		return $this->fileManager->remove($relativePath);
+	}
+
+	public function copy(string $source, string $destination, bool $override = false): bool
+	{
+		return $this->fileManager->copy($source, $destination, $override);
+	}
+
+	public function rename(string $source, string $destination, bool $override = false): bool
+	{
+		return $this->fileManager->rename($source, $destination, $override);
+	}
+
+	public function move(string $origine, string $target, bool $overwrite = false): bool
+	{
+		return $this->fileManager->move($origine, $target, $overwrite);
+	}
+} */
 
 /* <!DOCTYPE html>
 <html lang="fr">
@@ -2552,5 +2755,3 @@ if($files){
 
 </body>
 </html> */
-
-
