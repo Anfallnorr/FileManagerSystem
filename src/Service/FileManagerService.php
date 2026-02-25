@@ -338,8 +338,8 @@ class FileManagerService
 	 *
 	 * @return static L'instance du service pour le chaînage de méthodes.
 	 *
-	 * @deprecated since 1.0.44, will be removed in 1.1.*
-	 *             Use setDefaultDirectory() instead.
+	 * @deprecated Depuis la version 1.0.45, cette fonction sera supprimée dans la version 1.0.46
+	 *             Utilisez plutôt `setDefaultDirectory()`.
 	 *
 	 * @example
 	 * ```php
@@ -349,15 +349,16 @@ class FileManagerService
 	 * ```
 	 */
 	/* #[\Deprecated(
-		message: 'The "%class%::setRelativeDirectory()" method is deprecated, use "setDefaultDirectory()" instead.',
+		message: 'La méthode `%class%::setRelativeDirectory()` est obsolète, utilisez plutôt `setDefaultDirectory()`.',
 		since: '1.0.44',
 	)] */
 	public function setRelativeDirectory(string $directory): static
 	{
 		trigger_deprecation(
 			'anfallnorr/file-manager-system',
-			'1.0.44',
-			'The "%class%::setRelativeDirectory()" method is deprecated, use "setDefaultDirectory()" instead. It will be removed in 1.1.*'
+			'1.0.45',
+			// 'The `%class%::setRelativeDirectory()` method is deprecated, use `setDefaultDirectory()` instead. It will be removed in 1.0.46'
+			'La méthode `%class%::setRelativeDirectory()` est obsolète ; utilisez plutôt `setDefaultDirectory()`. Elle sera supprimée dans la version 1.0.46'
 		);
 		// $this->relativeDirectory = $directory;
 		$this->relativeDirectory = \rtrim($directory, '/');
@@ -2819,3 +2820,4 @@ if($files){
 
 </body>
 </html> */
+
