@@ -64,9 +64,7 @@ Inject the `FileManagerService` into your controller or service:
 public function __construct(
     private FileManagerService $fmService
 ) {
-    $this->fmService
-        ->setDefaultDirectory('/var/uploads')
-        ->setRelativeDirectory('/var/uploads');
+    $this->fmService->setDefaultDirectory('/var/uploads');
 }
 ```
 
