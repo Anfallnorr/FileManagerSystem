@@ -324,6 +324,65 @@ $fmService->createFile(filename: 'welcome.html');
 // Creates file with default HTML content
 ```
 
+### 📄 2.3. Uploading Files
+
+The `upload()` method allows you to upload one or multiple files to a specific directory. 
+It handles filename slugification, optional renaming, and automatically generates useful metadata (size, MIME type, dimensions, etc.).
+
+**Method Signature:**
+
+```php
+upload(
+	UploadedFile|array $files,
+	string $folder,
+	string $newName = '',
+	bool $returnDetails = false
+): array|bool
+```
+
+**Parameters:**
+- `$files` — A single UploadedFile instance or an array of files
+- `$folder` — Target directory (absolute path recommended)
+- `$newName` — Optional new filename (for multiple files, a numeric suffix will be added)
+- `$returnDetails` — If true, returns detailed information about uploaded files
+
+**Return Value:**
+- `array` — Detailed information about uploaded files (if $returnDetails is true)
+- `true` — If upload succeeds and $returnDetails is false
+
+#### Examples
+
+**Upload a single file:**
+
+```php
+$fmService->upload($file, '/var/www/uploads');
+```
+
+**Upload a file with a custom name and get details:**
+
+```php
+$uploaded = $fmService->upload(
+	$file,
+	'/var/www/uploads',
+	'my-file',
+	true
+);
+
+// Example result:
+[
+	[
+		'absolute' => '/var/www/uploads/my-file.jpg',
+		'relative' => 'uploads/my-file.jpg',
+		'filename' => 'my-file.jpg',
+		'filesize' => '1.2 MB',
+		'filemtime' => 1698200000,
+		'extension' => 'jpg',
+		'mime' => 'image/jpeg',
+		'dimensions' => ['width' => 800, 'height' => 600]
+	]
+]
+```
+
 ---
 
 ## 🔧 3. Utilities
