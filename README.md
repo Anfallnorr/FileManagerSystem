@@ -4,6 +4,12 @@ FileManagerSystem is a Symfony bundle that provides easy and intuitive managemen
 
 It is designed to simplify file management within any Symfony application.
 
+## ⚠️ State Management
+
+This bundle is **stateful**: it maintains a navigation context (e.g. current directory, browsing state) across requests.
+
+The state is securely isolated per user session, ensuring that each user interacts with their own file system context without interference.
+
 ---
 
 ## 🚀 Installation
@@ -13,12 +19,6 @@ Install the bundle via Composer:
 ```sh
 composer require anfallnorr/file-manager-system
 ```
-
-## ⚠️ State Management
-
-This bundle is **stateful**: it maintains a navigation context (e.g. current directory, browsing state) across requests.
-
-The state is securely isolated per user session, ensuring that each user interacts with their own file system context without interference.
 
 ---
 
