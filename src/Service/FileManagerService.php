@@ -61,7 +61,7 @@ use Symfony\Component\String\Slugger\AsciiSlugger;
  * static getSize(string|array $files, int $totalFileSize = 0): int|float
  * public getSizeName(int|float $size): string
  *
- * public upload(UploadedFile|array $files, string $folder, string $newName = "", bool $return = false): array|bool
+ * public upload(UploadedFile|array $files, string $folder, string $newName = "", bool $returnDetails = false): array|bool
  * public resizeImages(array $files, string $sourceDir, string $targetDir, int $width, int $quality = 100, ?string $suffix = null): array
  *
  * public hasDir(): bool
@@ -92,9 +92,6 @@ use Symfony\Component\String\Slugger\AsciiSlugger;
  *
  * @todo
  * Dédoublonner `getDimensionsFileInfo` et `getImageSize`
- *
- * @todo
- * public function upload(UploadedFile|array $files, string $folder, string $newName = "", bool $return = false): array|bool <- $return -> $returnDetails
  *
  * @todo
  * public function remove(string $relativePath = ''): bool <- ?string $relativePath = null
@@ -1457,9 +1454,9 @@ class FileManagerService
 	 * @param UploadedFile|UploadedFile[] $files   Fichier unique ou tableau de fichiers à uploader.
 	 * @param string                      $folder  Dossier cible où les fichiers seront uploadés (chemin absolu recommandé).
 	 * @param string                      $newName Nouveau nom de fichier optionnel (pour plusieurs fichiers, un suffixe sera ajouté).
-	 * @param bool                        $return  Si `true`, retourne un tableau détaillé des fichiers uploadés ; sinon retourne `true`.
+	 * @param bool                        $returnDetails  Si `true`, retourne un tableau détaillé des fichiers uploadés ; sinon retourne `true`.
 	 *
-	 * @return array|bool Tableau d’informations des fichiers uploadés si `$return` est `true`, sinon `true`.
+	 * @return array|bool Tableau d’informations des fichiers uploadés si `$returnDetails` est `true`, sinon `true`.
 	 *
 	 * @throws \Exception Si un fichier n’a pas pu être déplacé dans le dossier cible.
 	 *
@@ -1480,7 +1477,7 @@ class FileManagerService
 	 * // ]
 	 * ```
 	 */
-	public function upload(UploadedFile|array $files, string $folder, string $newName = "", bool $return = false): array|bool
+	public function upload(UploadedFile|array $files, string $folder, string $newName = "", bool $returnDetails = false): array|bool
 	{
 		$uploadedFiles = [];
 		$multiple = null;
@@ -1554,7 +1551,7 @@ class FileManagerService
 			$uploadedFiles[] = $output;
 		}
 		// dd($uploadedFiles);
-		return ($return) ? $uploadedFiles : true;
+		return ($returnDetails) ? $uploadedFiles : true;
 	}
 
 	/**
