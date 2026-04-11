@@ -358,7 +358,8 @@ final class FileManagerController extends AbstractController
 	}
 
 	// #[Route(path: '/{folder}', name: self::FILE_MANAGER, defaults: ['folder' => ''], methods: ['POST', 'GET'], requirements: ['folder' => '.+'])]
-	#[Route(path: '/{folder}', name: self::FILE_MANAGER, defaults: ['folder' => ''], methods: ['POST', 'GET'], requirements: ['folder' => Requirement::CATCH_ALL])]
+	// #[Route(path: '/{folder}', name: self::FILE_MANAGER, defaults: ['folder' => ''], methods: ['POST', 'GET'], requirements: ['folder' => Requirement::CATCH_ALL])]
+	#[Route(path: '/manager/{folder}', name: self::FILE_MANAGER, defaults: ['folder' => ''], methods: ['POST', 'GET'], requirements: ['folder' => Requirement::CATCH_ALL])]
 	public function appFileManager(Request $request, string $folder): Response
 	{
 		// dd(vars: 'toto');
