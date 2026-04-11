@@ -226,6 +226,82 @@ class FileManagerService
 		return $fullPath; */
 	}
 
+	/* ******************************************** 20260411 ******************************************** */
+	// public function path(string $path): string
+	// {
+	// 	return $this->resolvePath($path);
+	// }
+	// private function resolvePath(string $path, bool $mustExist = false): string
+	// {
+	// 	$path = str_replace('\\', '/', $path);
+
+	// 	// Chemin absolu système
+	// 	if ($this->isSystemAbsolute($path)) {
+	// 		$fullPath = $path;
+	// 	}
+	// 	// Chemin relatif au projet (/uploads/...)
+	// 	elseif (str_starts_with($path, '/')) {
+	// 		$fullPath = $this->getKernelDirectory() . $path;
+	// 	}
+	// 	// Relatif au dossier par défaut
+	// 	else {
+	// 		$fullPath = $this->getDefaultDirectory() . '/' . $path;
+	// 	}
+
+	// 	// 🔥 IMPORTANT : normalisation SANS realpath
+	// 	$fullPath = $this->normalizePath($fullPath);
+
+	// 	// 🔒 sécurité (sans exiger existence)
+	// 	$this->assertInsideProject($fullPath);
+
+	// 	// Optionnel : vérifier existence
+	// 	if ($mustExist && !file_exists($fullPath)) {
+	// 		throw new \RuntimeException("Chemin introuvable");
+	// 	}
+
+	// 	return $fullPath;
+	// }
+	// private function assertInsideProject(string $path): string
+	// {
+	// 	$realBase = realpath($this->getKernelDirectory());
+	// 	$realPath = realpath($path);
+	// 	// dd($realPath);
+
+	// 	if ($realBase === false || $realPath === false) {
+	// 		throw new \RuntimeException("Chemin invalide");
+	// 	}
+
+	// 	if (!str_starts_with($realPath, $realBase)) {
+	// 		throw new \RuntimeException("Tentative d'accès hors projet");
+	// 	}
+
+	// 	return $realPath;
+	// }
+	// private function normalizePath(string $path): string
+	// {
+	// 	$parts = [];
+	// 	$segments = explode('/', $path);
+
+	// 	foreach ($segments as $segment) {
+	// 		if ($segment === '' || $segment === '.') {
+	// 			continue;
+	// 		}
+
+	// 		if ($segment === '..') {
+	// 			array_pop($parts);
+	// 		} else {
+	// 			$parts[] = $segment;
+	// 		}
+	// 	}
+
+	// 	return '/' . implode('/', $parts);
+	// }
+	// private function isSystemAbsolute(string $path): bool
+	// {
+	// 	return str_starts_with($path, '/') || preg_match('#^[A-Z]:#i', $path); // Windows
+	// }
+	/* ******************************************** /20260411 ******************************************** */
+
 	/**
 	 * Vérifie si un chemin est absolu au sein du projet.
 	 * 
@@ -300,6 +376,8 @@ class FileManagerService
 		// $this->relativeDirectory = $directory;
 		// $this->defaultDirectory = $this->getKernelDirectory() . $directory;
 		$this->defaultDirectory = $this->abs($directory);
+		// $this->defaultDirectory = $this->resolvePath($directory);
+		// $this->defaultDirectory = $this->getKernelDirectory() . '/' . \trim($directory, '/');
 		$this->relativeDirectory = \rtrim($directory, '/');
 		return $this;
 	}
@@ -444,6 +522,7 @@ class FileManagerService
 		// return $this->mime->guessMimeType((!$absolute)
 		return $this->mime->guessMimeType((!$this->isAbsolute($filename))
 			? $this->abs($filename)
+			// ? $this->resolvePath($filename)
 			: $filename
 		);
 	}
@@ -469,6 +548,7 @@ class FileManagerService
 		// return $this->filesystem->readFile($this->getKernelDirectory() . $relativeFile);
 		// return \file_get_contents($this->getKernelDirectory() . $relativeFile);
 		return \file_get_contents($this->abs($relativeFile));
+		// return \file_get_contents($this->resolvePath($relativeFile));
 	}
 
 	/**
@@ -1273,6 +1353,7 @@ class FileManagerService
 		$imageSize = ($this->isAbsolute($filePath))
 			? @\getimagesize($filePath)
 			: @\getimagesize($this->abs($filePath));
+			// : @\getimagesize($this->resolvePath($filePath));
 
 		if ($imageSize) {
 			return [
@@ -2225,6 +2306,7 @@ class FileManagerService
 		// $this->filesystem->copy($this->getKernelDirectory() . $source, $this->getKernelDirectory() . $destination, $override);
 		// $this->filesystem->copy("{$this->getKernelDirectory()}{$source}", "{$this->getKernelDirectory()}{$destination}", $override);
 		$this->filesystem->copy("{$this->getKernelDirectory()}{$source}", $this->abs($destination), $override);
+		// $this->filesystem->copy("{$this->getKernelDirectory()}{$source}", $this->resolvePath($destination), $override);
 		return true;
 	}
 
