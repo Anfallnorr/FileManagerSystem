@@ -197,6 +197,7 @@ class FileManagerService
 	 * ```
 	 */
 	private function abs(string $relative): string
+	// private function abs(string $path, bool $mustExist = false): string
 	{
 		/* $return = (!$absolute)
 			? \rtrim($this->kernelDirectory, '/') . '/' . \ltrim($path, '/')
@@ -211,22 +212,75 @@ class FileManagerService
 			throw new \RuntimeException("Kernel directory introuvable");
 		}
 
-		$fullPath = \realpath(
-			$basePath . DIRECTORY_SEPARATOR . \ltrim($relative, '/')
-		);
+		// $fullPath = \realpath(
+		// 	$basePath . DIRECTORY_SEPARATOR . \ltrim($relative, '/')
+		// );
 
-		if ($fullPath === false) {
-			throw new \RuntimeException("Chemin introuvable");
-		}
+		// if ($fullPath === false) {
+		// 	throw new \RuntimeException("Chemin introuvable");
+		// }
+
+		$fullPath = $basePath . DIRECTORY_SEPARATOR . \ltrim($relative, '/');
 
 		if (!\str_starts_with($fullPath, $basePath)) {
 			throw new \RuntimeException("Accès interdit");
+		}
+		dd($fullPath);
+
+		return $fullPath; */
+		/* // Déjà absolu système
+		if ($this->isSystemAbsolute($path)) {
+			$fullPath = $path;
+		}
+		// Relatif au projet (/uploads/...)
+		elseif (str_starts_with($path, '/')) {
+			$fullPath = $this->getKernelDirectory() . $path;
+		}
+		// Relatif au defaultDirectory
+		else {
+			$fullPath = $this->getDefaultDirectory() . '/' . $path;
+		}
+
+		// Normalisation safe (sans realpath)
+		$fullPath = $this->normalizePath($fullPath);
+
+		// Sécurité (sans exiger existence)
+		$this->assertInsideProject($fullPath);
+
+		// OPTIONNEL : uniquement si nécessaire
+		if ($mustExist && !file_exists($fullPath)) {
+			throw new \RuntimeException("Chemin introuvable");
 		}
 
 		return $fullPath; */
 	}
 
 	/* ******************************************** 20260411 ******************************************** */
+	// private function normalizePath(string $path): string
+	// {
+	// 	$parts = [];
+
+	// 	foreach (explode('/', str_replace('\\', '/', $path)) as $segment) {
+	// 		if ($segment === '' || $segment === '.') continue;
+
+	// 		if ($segment === '..') {
+	// 			array_pop($parts);
+	// 		} else {
+	// 			$parts[] = $segment;
+	// 		}
+	// 	}
+
+	// 	return '/' . implode('/', $parts);
+	// }
+	// private function assertInsideProject(string $path): void
+	// {
+	// 	$base = $this->normalizePath($this->getKernelDirectory());
+	// 	$path = $this->normalizePath($path);
+
+	// 	if (!str_starts_with($path, $base)) {
+	// 		throw new \RuntimeException("Accès interdit");
+	// 	}
+	// }
 	// public function path(string $path): string
 	// {
 	// 	return $this->resolvePath($path);
