@@ -11,7 +11,7 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 // use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
 use Symfony\Component\HttpKernel\Bundle\AbstractBundle;
-// use Symfony\Component\Routing\Loader\Configurator\RoutingConfigurator;
+use Symfony\Component\Routing\Loader\Configurator\RoutingConfigurator;
 
 final class FileManagerSystem extends AbstractBundle
 {
@@ -87,12 +87,14 @@ final class FileManagerSystem extends AbstractBundle
 		// $builder->register(AsciiSlugger::class)->setAutowired(true)->setPublic(true);
 	}
 
-	/* public function configureRoutes(RoutingConfigurator $routes, array $config): void
+	public function configureRoutes(RoutingConfigurator $routes, array $config): void
 	{
 		// Charger les routes depuis les controllers avec attributs
-		$routes->import(resource: $this->getPath() . '/src/Controller/', type: 'attribute')
-			->prefix(prefix: '/files-manager');
-	} */
+		$routes->import(
+			resource: $this->getPath() . '/src/Controller/',
+			type: 'attribute'
+		)->prefix(prefix: '/files-manager');
+	}
 
 	/* public function getContainerExtension(): ?ExtensionInterface
 	{
