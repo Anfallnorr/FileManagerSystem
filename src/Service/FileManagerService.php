@@ -205,7 +205,8 @@ class FileManagerService
 
 		return $return; */
 		// return \rtrim($this->kernelDirectory, '/') . '/' . \ltrim($relative, '/');
-		return $this->getKernelDirectory() . '/' . \ltrim($relative, '/');
+		// return $this->getKernelDirectory() . '/' . \ltrim($relative, '/');
+		return $this->getKernelDirectory() . DIRECTORY_SEPARATOR . \ltrim($relative, '/');
 		/* $basePath = \realpath($this->kernelDirectory);
 
 		if ($basePath === false) {
