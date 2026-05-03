@@ -30,7 +30,8 @@ class MoveFileType extends AbstractType
 			])
 			// ->add(child: 'newPath', type: TextType::class, options: [
 			->add(child: 'newPath', type: ChoiceType::class, options: [
-				'label' => new TranslatableMessage(message: 'file_manager.new_path'),
+				// 'label' => new TranslatableMessage(message: 'file_manager.new_path'),
+				'label' => $this->translator->trans(id: 'file_manager.new_path'),
 				'choices' => $options['folder_list'],
 				'translation_domain' => false
 			])
