@@ -2,6 +2,7 @@
 
 namespace Anfallnorr\FileManagerSystem\Form;
 
+// use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\HiddenType;
@@ -10,9 +11,15 @@ use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Translation\TranslatableMessage;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 class MoveFileType extends AbstractType
 {
+	public function __construct(
+		// #[Autowire]
+		private TranslatorInterface $translator
+	) {}
+
 	public function buildForm(FormBuilderInterface $builder, array $options): void
 	{
 		// dd($options);
@@ -24,11 +31,12 @@ class MoveFileType extends AbstractType
 			// ->add(child: 'newPath', type: TextType::class, options: [
 			->add(child: 'newPath', type: ChoiceType::class, options: [
 				'label' => new TranslatableMessage(message: 'file_manager.new_path'),
-				'choices' => $options['folder_list']
+				'choices' => $options['folder_list'],
+				'translation_domain' => false
 			])
-			->add(child: 'submit', type: SubmitType::class, options: [
+			/* ->add(child: 'submit', type: SubmitType::class, options: [
 				'label' => new TranslatableMessage(message: 'file_manager.move')
-			])
+			]) */
 		;
 
 		$submitOptions = [
