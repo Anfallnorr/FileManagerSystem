@@ -526,8 +526,11 @@ final class FileManagerController extends AbstractController
 
 		// Move File
 		// dd($folder);
+		$directoriesMap = $this->fmService->buildDirectoriesMap($allFolders, buildDirectoryChoices: true);
 		$moveFileForm = $this->createForm(type: MoveFileType::class, data: null, options: [
-			'current_folder' => $folder
+			'current_folder' => $folder,
+			'folder_list' => $directoriesMap['choicesBuilder'],
+			// 'submit_icon' => '<i class="bi bi-arrows-move me-2"></i>' // <- Surcharge de Twig obligatoire
 		]);
 		$moveFileForm->handleRequest(request: $request);
 
