@@ -3,11 +3,11 @@
 namespace Anfallnorr\FileManagerSystem\Form;
 
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\HiddenType;
+use Symfony\Component\Form\Extension\Core\Type\SubmitType;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
-use Symfony\Component\Form\Extension\Core\Type\TextType;
-use Symfony\Component\Form\Extension\Core\Type\SubmitType;
-use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Translation\TranslatableMessage;
 
 class RenameFileType extends AbstractType
@@ -32,15 +32,33 @@ class RenameFileType extends AbstractType
 					'data-fmmodal-rename-target' => "newFileInput"
 				]
 			])
-			->add(child: 'submit', type: SubmitType::class, options: [
+			/* ->add(child: 'submit', type: SubmitType::class, options: [
 				'label' => new TranslatableMessage(message: 'file_manager.rename') // 'Renommer'
-			]);
+			]) */
+		;
+
+		$submitOptions = [
+			'label' => new TranslatableMessage(message: 'file_manager.rename'), // 'Renommer'
+			'attr' => ['class' => $options['submit_class']]
+		];
+
+		if (!empty($options['submit_icon'])) {
+			$submitOptions['icon_before'] = $options['submit_icon'];
+		}
+
+		$builder->add(
+			child: 'submit',
+			type: SubmitType::class,
+			options: $submitOptions
+		);
 	}
 
 	public function configureOptions(OptionsResolver $resolver): void
 	{
 		$resolver->setDefaults(defaults: [
-			'current_folder' => null
+			'current_folder' => null,
+			'submit_class' => 'btn-primary rounded-pill px-4',
+			'submit_icon' => null
 		]);
 	}
 }
