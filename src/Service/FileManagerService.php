@@ -48,6 +48,8 @@ use Symfony\Component\String\Slugger\AsciiSlugger;
  *
  * public getDirs(string $path = '/', string $excludeDir = "", string|array|null $depth = '== 0'): array
  * public getDirsTree(string $path = '/', string $excludeDir = ""): array
+ * public buildDirectoriesMap(array $directories, int $depth = 1, bool $buildDirectoryChoices = false): array
+ * private buildDirectoryChoices(array $directories): array
  * static getSliceDirs(string|array $dirs, int $slice, bool $implode = false): string|array
  *
  * public cleanDir(?string $dir = null): void
@@ -1198,6 +1200,140 @@ class FileManagerService
 		}
 
 		return $directories;
+	}
+
+	/**
+	 * Transforme une arborescence de dossiers en tableau aplati exploitable.
+	 *
+	 * Cette méthode parcourt récursivement une structure de dossiers contenant
+	 * des enfants (`children`) afin de produire un tableau simplifié contenant :
+	 * - le niveau de profondeur (`depth`),
+	 * - le chemin relatif du dossier (`value`).
+	 *
+	 * Fonctionnalités :
+	 * - Parcours récursif complet des sous-dossiers.
+	 * - Calcul automatique du niveau de profondeur.
+	 * - Possibilité de générer directement un tableau compatible avec
+	 *   les `choices` Symfony (`ChoiceType`).
+	 *
+	 * Chaque entrée retournée contient :
+	 * - `depth` : niveau de profondeur dans l’arborescence,
+	 * - `value` : chemin relatif du dossier.
+	 *
+	 * Exemple de structure générée :
+	 * ```php
+	 * [
+	 *     'videos' => [
+	 *         'depth' => 1,
+	 *         'value' => '/videos',
+	 *     ],
+	 *     'ia' => [
+	 *         'depth' => 2,
+	 *         'value' => '/videos/ia',
+	 *     ],
+	 * ]
+	 * ```
+	 *
+	 * Si `$buildDirectoryChoices` vaut `true`, la méthode retourne également un tableau
+	 * formaté pour les champs Symfony `ChoiceType`.
+	 *
+	 * @param array $directories Structure arborescente des dossiers.
+	 * @param int   $depth       Niveau de profondeur actuel utilisé pour la récursion.
+	 *                           1 par défaut.
+	 * @param bool  $buildDirectoryChoices Génère également un tableau `choicesBuilder`
+	 *                                     compatible Symfony si `true`.
+	 *
+	 * @return array Tableau aplati des dossiers ou tableau contenant :
+	 *               - `flattenDir`
+	 *               - `choicesBuilder`
+	 *
+	 * @example
+	 * ```php
+	 * $flatten = $service->buildDirectoriesMap($tree);
+	 * ```
+	 *
+	 * @example
+	 * ```php
+	 * $result = $service->buildDirectoriesMap(
+	 *     directories: $tree,
+	 *     buildDirectoryChoices: true
+	 * );
+	 *
+	 * $choices = $result['choicesBuilder'];
+	 * ```
+	 */
+	public function buildDirectoriesMap(array $directories, int $depth = 1, bool $buildDirectoryChoices = false): array
+	{
+		$result = [];
+
+		foreach ($directories as $directory) {
+			$result[$directory['foldername']] = [
+				'depth' => $depth,
+				'value' => $directory['relative'],
+			];
+
+			if (!empty($directory['children'])) {
+				$result += $this->buildDirectoriesMap(
+					directories: $directory['children'],
+					depth: $depth + 1
+				);
+			}
+		}
+
+		return ($buildDirectoryChoices)
+			? [
+				'flattenDir' => $result,
+				'choicesBuilder' => $this->buildDirectoryChoices($result),
+			]
+			: $result;
+	}
+
+	/**
+	 * Génère un tableau de choix compatible avec Symfony `ChoiceType`.
+	 *
+	 * Cette méthode transforme un tableau aplati de dossiers contenant une
+	 * profondeur (`depth`) en tableau de choix hiérarchique lisible.
+	 *
+	 * Fonctionnalités :
+	 * - Ajoute automatiquement une indentation visuelle selon la profondeur.
+	 * - Génère un format directement exploitable par Symfony Forms.
+	 *
+	 * Exemple de résultat :
+	 * ```php
+	 * [
+	 *     'videos' => '/videos',
+	 *     '— ia' => '/videos/ia',
+	 *     '— — archives' => '/videos/ia/archives',
+	 * ]
+	 * ```
+	 *
+	 * Le tableau retourné suit le format attendu par Symfony :
+	 * - clé   => label affiché,
+	 * - valeur => valeur soumise.
+	 *
+	 * @param array $directories Tableau aplati des dossiers contenant :
+	 *                           - `depth`
+	 *                           - `value`
+	 *
+	 * @return array Tableau de choix compatible avec `ChoiceType`.
+	 *
+	 * @example
+	 * ```php
+	 * $choices = $service->buildDirectoryChoices($buildDirectoriesMap);
+	 * ```
+	 */
+	private function buildDirectoryChoices(array $directories): array
+	{
+		$choices = [];
+
+		foreach ($directories as $label => $directory) {
+			// $choices[$label] = $directory['value'];
+			$indentation = str_repeat('— ', $directory['depth'] - 1);
+
+			$choices[$indentation . $label] = $directory['value'];
+		}
+
+		return $choices;
 	}
 
 	/**
