@@ -2494,9 +2494,21 @@ class FileManagerService
 	 */
 	public function copy(string $source, string $destination, bool $override = false): bool
 	{
+		$normalizedSource = ($this->isAbsolute($source))
+			? $source
+			: "{$this->getKernelDirectory()}{$source}";
+		$normalizedDestination = ($this->isAbsolute($destination))
+			? $destination
+			: "{$this->getDefaultDirectory()}{$destination}";
+
+		// dump($source);
+		// dump($destination);
+		// dump($normalizedSource);
+		// dd($normalizedDestination);
+
 		// $this->filesystem->copy($this->getKernelDirectory() . $source, $this->getKernelDirectory() . $destination, $override);
 		// $this->filesystem->copy("{$this->getKernelDirectory()}{$source}", "{$this->getKernelDirectory()}{$destination}", $override);
-		$this->filesystem->copy("{$this->getKernelDirectory()}{$source}", $this->abs($destination), $override);
+		$this->filesystem->copy($normalizedSource, $normalizedDestination, $override);
 		// $this->filesystem->copy("{$this->getKernelDirectory()}{$source}", $this->resolvePath($destination), $override);
 		return true;
 	}
