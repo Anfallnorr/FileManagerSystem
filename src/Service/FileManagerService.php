@@ -2496,10 +2496,12 @@ class FileManagerService
 	{
 		$normalizedSource = ($this->isAbsolute($source))
 			? $source
-			: "{$this->getKernelDirectory()}{$source}";
+			// : "{$this->getKernelDirectory()}{$source}";
+			: $this->getKernelDirectory() . '/' . \ltrim($source, '/');
 		$normalizedDestination = ($this->isAbsolute($destination))
 			? $destination
-			: "{$this->getDefaultDirectory()}{$destination}";
+			// : "{$this->getDefaultDirectory()}{$destination}";
+			: $this->getDefaultDirectory() . '/' . \ltrim($destination, '/');
 
 		// dump($source);
 		// dump($destination);
