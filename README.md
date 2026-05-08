@@ -1,4 +1,4 @@
-# FileManagerSystem (v1.0.51)
+# FileManagerSystem (v1.0.52)
 
 FileManagerSystem is a Symfony bundle that provides easy and intuitive management of files and directories: creation, deletion, moving, MIME type handling, image resizing, and more.
 
