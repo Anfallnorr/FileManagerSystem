@@ -1463,22 +1463,25 @@ class FileManagerService
 	 * ```
 	 */
 	// public function getFiles(string $path = '/', ?string $depth = '== 0', ?string $folder = null, ?string $ext = null): array|bool
-	public function getFiles(string $path = '/', string|array|null $depth = '== 0', ?string $folder = null, ?string $ext = null): array|bool
+	// public function getFiles(string $path = '/', string|array|null $depth = '== 0', ?string $folder = null, ?string $ext = null): array|bool
+	public function getFiles(string $path = '/', string|array|null $depth = '== 0', ?string $folder = null, string|array|null $ext = null): array
 	{
 		// $trimedPath = \trim($path, '/');
 		// $realPath = \realpath(\rtrim($this->getDefaultDirectory(), '/') . '/' . $trimedPath);
 		$realPath = \realpath(\rtrim($this->getDefaultDirectory(), '/') . '/' . \trim($path, '/'));
 		// dd($realPath);
 		if (!$realPath || !is_dir($realPath)) {
-			return false;
+			// return false;
+			throw new \RuntimeException(message: "Le dossier n'existe pas !");
 		}
 
-		$finder = new Finder();
-		// if ($depth) {
+		// $finder = new Finder();
+		$finder = (new Finder())->files()->in($realPath);
+
 		if ($depth !== null) {
 			$finder->depth($depth); // $finder->depth(['== 0']);
 		}
-		$finder->files()->in($realPath); // $finder->files()->in($realPath)->depth('== 0');
+		// $finder->files()->in($realPath); // $finder->files()->in($realPath)->depth('== 0');
 
 		if ($folder) {
 			// $finder->path('data'); // matches files that contain "data" anywhere in their paths (files or directories)
@@ -1494,13 +1497,26 @@ class FileManagerService
 			// $finder->files()->name('/\.php$/');
 			// $finder->files()->name('*.php')->name('*.twig');
 			// $finder->files()->name(['*.php', '*.twig']);
-			$finder->files()->name("*.{$ext}");
+			if (\is_array($ext)) {
+				/* $exts = array_map(
+					fn(string $extension): string => "*.{$extension}",
+					$ext
+				);
+				$finder->files()->name($exts); */
+				$finder->name(\array_map(
+					fn(string $extension): string => "*.{$extension}",
+					$ext
+				));
+			} else {
+				// $finder->files()->name("*.{$ext}");
+				$finder->name("*.{$ext}");
+			}
 		}
 
 
 		if (!$finder->hasResults()) {
-			return false;
-			// return []; // pourquoi false ? Ça, c’est le truc qui va faire chier un jour.
+			// return false;
+			return []; // pourquoi false ? Ça, c’est le truc qui va faire chier un jour.
 		}
 
 		$fileList = [];
