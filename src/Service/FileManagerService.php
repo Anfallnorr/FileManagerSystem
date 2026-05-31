@@ -63,7 +63,7 @@ use Symfony\Component\String\Slugger\AsciiSlugger;
  * static getSize(string|array $files, int $totalFileSize = 0): int|float
  * public getSizeName(int|float $size): string
  *
- * public upload(UploadedFile|array $files, string $folder, string $newName = "", bool $returnDetails = false): array|bool
+ * public upload(UploadedFile|File|array $files, string $folder, string $newName = "", bool $returnDetails = false): array|bool
  * public resizeImages(array $files, string $sourceDir, string $targetDir, int $width, int $quality = 100, ?string $suffix = null): array
  *
  * public hasDir(): bool
@@ -1765,7 +1765,8 @@ class FileManagerService
 	 * // ]
 	 * ```
 	 */
-	public function upload(UploadedFile|array $files, string $folder, string $newName = "", bool $returnDetails = false): array|bool
+	// public function upload(UploadedFile|array $files, string $folder, string $newName = "", bool $returnDetails = false): array|bool
+	public function upload(UploadedFile|File|array $files, string $folder, string $newName = "", bool $returnDetails = false): array|bool
 	{
 		$uploadedFiles = [];
 		$multiple = null;
@@ -1780,28 +1781,25 @@ class FileManagerService
 		}
 
 		foreach ($files as $key => $file) {
-			/* $filename = $this->createSlug($file->getClientOriginalName());
-			$filename = str_replace('-' . $file->getClientOriginalExtension(), '.' . $file->getClientOriginalExtension(), $filename); */
-			// $fileInfo = pathinfo($file->getClientOriginalName());
-			// $filename = $this->createSlug($fileInfo['filename']) . '.' . strtolower($fileInfo['extension']);
-			/* if (!empty($newName)) {
-				$fileInfo = [
-					// 'filename' => ($multiple) ? $newName . '-' . ($key + 1) : $newName,
-					'filename' => ($multiple) ? "{$newName}-{($key + 1)}" : $newName,
-					'extension' => $file->getClientOriginalExtension()
-				];
+			if ($file instanceof UploadedFile) {
+				$originalName = $file->getClientOriginalName();
+				$extension = $file->getClientOriginalExtension();
 			} else {
-				$fileInfo = \pathinfo($file->getClientOriginalName());
-			} */
+				$originalName = $file->getFilename();
+				$extension = $file->getExtension();
+			}
+
 			$fileInfo = (!empty($newName))
 				? $fileInfo = [
 					'filename' => ($multiple)
 						// ? "{$newName}-{($key + 1)}"
 						? "{$newName}-" . ($key + 1)
 						: $newName,
-					'extension' => $file->getClientOriginalExtension()
+					// 'extension' => $file->getClientOriginalExtension()
+					'extension' => $extension
 				]
-				: \pathinfo($file->getClientOriginalName());
+				// : \pathinfo($file->getClientOriginalName());
+				: \pathinfo($originalName);
 
 			$filename = $this->createSlug($fileInfo['filename']) . '.' . \strtolower($fileInfo['extension']);
 
@@ -1823,7 +1821,6 @@ class FileManagerService
 
 			// Upload file
 			if (!$file->move($folder, $filename)) {
-				// throw new \Exception("A problem occurred while uploading this file: " . $filename);
 				throw new \Exception("A problem occurred while uploading this file: {$filename}");
 			}
 
@@ -1832,7 +1829,6 @@ class FileManagerService
 				'width' => $imageSize[0] ?? null,
 				'height' => $imageSize[1] ?? null
 			]; */
-			// $output['dimensions'] = $this->getDimensionsFileInfo($folder . '/' . $filename);
 			$output['mime'] = $this->getMimeContent("{$folder}/{$filename}");
 			$output['dimensions'] = $this->getDimensionsFileInfo("{$folder}/{$filename}");
 
