@@ -55,7 +55,7 @@ use Symfony\Component\String\Slugger\AsciiSlugger;
  *
  * public cleanDir(?string $dir = null): void
  * // public cleanDir(string $dir = ''): void
- * public getFiles(string $path = '/', string|array|null $depth = '== 0', ?string $folder = null, ?string $ext = null): array|bool
+ * public getFiles(string $path = '/', string|array|null $depth = '== 0', ?string $folder = null, string|array|null $ext = null): array
  *
  * public getImageSize(string $filePath): ?array
  * private getFileInfo(\SplFileInfo $file): array
@@ -1453,9 +1453,9 @@ class FileManagerService
 	 * @param string            $path  Chemin relatif à partir du répertoire par défaut. '/' par défaut.
 	 * @param string|array|null $depth Profondeur des fichiers à récupérer. '== 0' par défaut.
 	 * @param string|null       $folder Filtre optionnel sur le chemin des fichiers.
-	 * @param string|null       $ext    Filtre optionnel sur l'extension des fichiers.
+	 * @param string|array|null $ext    Filtre optionnel sur l'extension des fichiers.
 	 *
-	 * @return array|bool Tableau des fichiers avec informations détaillées, ou false si aucun fichier trouvé.
+	 * @return array Tableau des fichiers avec informations détaillées, ou false si aucun fichier trouvé.
 	 *
 	 * @example
 	 * ```php
@@ -1463,7 +1463,6 @@ class FileManagerService
 	 * // Récupère tous les fichiers situés à profondeur 1 sous 'uploads'
 	 * ```
 	 */
-	// public function getFiles(string $path = '/', ?string $depth = '== 0', ?string $folder = null, ?string $ext = null): array|bool
 	// public function getFiles(string $path = '/', string|array|null $depth = '== 0', ?string $folder = null, ?string $ext = null): array|bool
 	public function getFiles(string $path = '/', string|array|null $depth = '== 0', ?string $folder = null, string|array|null $ext = null): array
 	{
