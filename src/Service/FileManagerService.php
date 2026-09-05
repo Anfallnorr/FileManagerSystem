@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Update 20260219
+ * Update 20260905
  * Gestionnaire de fichiers pour récupérer les informations des fichiers et dossiers.
  */
 

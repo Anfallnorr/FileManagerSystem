@@ -70,7 +70,7 @@ Inject the `FileManagerService` into your controller or service:
 public function __construct(
     private FileManagerService $fmService
 ) {
-    $this->fmService->setDefaultDirectory('/var/uploads');
+    $this->fmService->setDefaultDirectory(directory: '/var/uploads');
 }
 ```
 
@@ -91,11 +91,18 @@ $defaultDirectory = $fmService->getDefaultDirectory();
 // Returns: /path/to/project/public/uploads
 ```
 
+### 📌 Get the Relative Upload Directory
+
+```php
+$relativeDirectory = $fmService->getRelativeDirectory();
+// Returns: /uploads
+```
+
 ### 📌 Set a New Default Upload Directory
 
 ```php
 $directory = $fmService
-    ->setDefaultDirectory('/var/uploads')
+    ->setDefaultDirectory(directory: '/var/uploads')
     ->getDefaultDirectory();
 // Returns: /path/to/project/var/uploads
 ```
@@ -104,319 +111,218 @@ $directory = $fmService
 
 ### 📁 1.1. Listing Directories
 
-The `getDirs()` method allows you to explore the file system with support for exclusions, depth control, and relative paths.
-
-**Method Signature:**
-
-```php
-getDirs(
-    string $path = '/', 
-    string $excludeDir = '', 
-    string|array|null $depth = '== 0'
-): array
-```
-
-**Parameters:**
-- `$path` — Base directory path to search within
-- `$excludeDir` — Directory name pattern to exclude from results
-- `$depth` — Depth filter using comparison operators (`==`, `>`, `<`)
-
-**Return Value:**
-- `array` — List of directories with absolute and relative paths
-
-#### Examples
-
-**Basic usage:**
-
-```php
-$dirs = $fmService->getDirs();
-// Returns directories found at depth 0 in the default directory
-```
-
-**List directories inside a specific subfolder:**
-
-```php
-$dirs = $fmService->getDirs(path: 'uploads');
-// Returns all directories inside /uploads at depth 0
-```
-
-**Control search depth:**
+**`getDirs(string $path = '/', string $excludeDir = '', string|array|null $depth = '== 0'): array`**  
+Explore the file system with support for exclusions, depth control, and relative paths.
 
 ```php
 $dirs = $fmService->getDirs(path: 'uploads', depth: '== 1');
-// Returns only directories exactly 1 level below /uploads
 ```
 
-**Exclude specific directories:**
+**`getDirsTree(string $path = '/', string $excludeDir = ""): array`**  
+Retrieve directories in a recursive tree structure, including sub-folders and files metadata.
 
 ```php
-$dirs = $fmService->getDirs(path: 'uploads', excludeDir: 'temp');
-// Returns all directories except those containing "temp" in their path
+$tree = $fmService->getDirsTree(path: 'uploads');
 ```
 
-**Combine all parameters:**
+**`hasDir(): bool`**  
+Check if the default directory contains at least one sub-directory.
 
 ```php
-$dirs = $fmService->getDirs(path: 'uploads', excludeDir: 'temp', depth: '== 1');
-// Returns directories at depth 1 under "uploads", excluding folders containing "temp"
+if ($fmService->hasDir()) {
+    // Contains sub-directories
+}
 ```
 
 ---
 
-### 📁 1.2. Creating Directories
+### 📁 1.2. Creating and Cleaning Directories
 
-Create a new directory within the default directory.
-
-**Method Signature:**
+**`createDir(string $directory, bool $returnDetails = false): array|bool`**  
+Create a new directory within the default directory (slugified automatically). Supports nested (`folder/sub`) and multiple (`folder1+folder2`) creations.
 
 ```php
-createDir(
-    string $directory, 
-    bool $returnDetails = false
-): array
+$fmService->createDir(directory: 'Hello World!'); // Creates: hello-world
 ```
 
-**Parameters:**
-- `$directory` — Directory name (will be slugified automatically)
-- `$returnDetails` — If `true`, returns detailed path information
-
-**Return Value:**
-- `array` — Directory details (if `$returnDetails` is `true`)
-
-#### Examples
-
-**Simple directory creation:**
+**`cleanDir(?string $dir = null): void`**  
+Recursively clean a directory by removing empty folders.
 
 ```php
-$fmService->createDir(directory: 'Hello World!');
-// Creates directory: /path/to/project/public/uploads/hello-world
-```
-
-**Get detailed information:**
-
-```php
-$details = $fmService->createDir(directory: 'Hello World!', returnDetails: true);
-// Returns:
-// [
-//     'absolute' => '/var/www/absolute/path/hello-world',
-//     'relative' => '/path/hello-world',
-//     'ltrimmed_relative' => 'path/hello-world',
-//     'foldername' => 'hello-world'
-// ]
+$fmService->cleanDir(dir: 'uploads/temp');
 ```
 
 ---
 
 ## 📄 2. File Management
 
-### 📄 2.1. Listing Files
+### 📄 2.1. Listing and Reading Files
 
-The `getFiles()` method offers complete control over file search: depth, extension, folder filtering, and more.
-
-**Method Signature:**
-
-```php
-getFiles(
-    string $path = '/', 
-    string|array|null $depth = '== 0', 
-    ?string $folder = null, 
-    ?string $ext = null
-): array|bool
-```
-
-**Parameters:**
-- `$path` — Base directory path to search within
-- `$depth` — Depth filter using comparison operators (`==`, `>`, `<`)
-- `$folder` — Filter files by folder name (partial match)
-- `$ext` — Filter by file extension (without dot)
-
-**Return Value:**
-- `array` — List of files with paths and metadata
-- `false` — If no files are found
-
-#### Examples
-
-**Get files from default directory:**
-
-```php
-$files = $fmService->getFiles();
-// Returns files at depth 0 from the default directory, or false if none found
-```
-
-**Get files from a subfolder:**
-
-```php
-$files = $fmService->getFiles(path: 'uploads');
-// Returns files from /uploads at depth 0
-```
-
-**Limit search by depth:**
-
-```php
-$files = $fmService->getFiles(path: 'uploads', depth: '== 1');
-// Returns files located exactly 1 level below /uploads
-```
-
-**Filter by folder name:**
-
-```php
-$files = $fmService->getFiles(path: 'uploads', folder: 'images');
-// Returns only files within folders containing "images"
-```
-
-**Filter by file extension:**
+**`getFiles(string $path = '/', string|array|null $depth = '== 0', ?string $folder = null, string|array|null $ext = null): array`**  
+Offers complete control over file search: depth, extension, folder filtering.
 
 ```php
 $files = $fmService->getFiles(path: 'uploads', ext: 'jpg');
-// Returns only .jpg files
 ```
 
-**Combine all filters:**
+**`getFileContent(string $relativeFile): string`**  
+Read and return the entire content of a file.
 
 ```php
-$files = $fmService->getFiles(
-    path: 'uploads', 
-    depth: '== 2', 
-    folder: 'products', 
-    ext: 'png'
-);
-// Returns .png files inside folders containing "products", at depth 2 under "uploads"
+$content = $fmService->getFileContent(relativeFile: 'storage/data.json');
+```
+
+**`getRemoteFileContent(string $url): string`**  
+Fetch content from a remote URL.
+
+```php
+$content = $fmService->getRemoteFileContent(url: 'https://example.com/data.json');
 ```
 
 ---
 
-### 📄 2.2. Creating Files
+### 📄 2.2. Creating and Uploading Files
 
+**`createFile(string $filename, string $content = '...'): void`**  
 Create a new file with optional content.
 
-**Method Signature:**
-
 ```php
-createFile(
-    string $filename, 
-    string $content = '<!DOCTYPE html><html lang="en"><body style="background: #ffffff;"></body></html>'
-): void
+$fmService->createFile(filename: 'welcome.html', content: '<h1>Hello</h1>');
 ```
 
-**Parameters:**
-- `$filename` — File name (will be slugified automatically)
-- `$content` — File content (defaults to basic HTML template)
-
-**Return Value:**
-- `void`
-
-#### Examples
-
-**Create an HTML file with custom content:**
+**`upload(UploadedFile|File|array $files, string $folder, string $newName = '', bool $returnDetails = false): array|bool`**  
+Upload files, handle slugification, and generate useful metadata.
 
 ```php
-$fmService->createFile(
-    filename: 'Hello World.html',
-    content: 'Hello World! I\'m Js Info'
-);
-// Creates: /path/to/project/public/uploads/hello-world.html
-```
-
-**Create a file with default HTML template:**
-
-```php
-$fmService->createFile(filename: 'welcome.html');
-// Creates file with default HTML content
-```
-
-### 📄 2.3. Uploading Files
-
-The `upload()` method allows you to upload one or multiple files to a specific directory. 
-It handles filename slugification, optional renaming, and automatically generates useful metadata (size, MIME type, dimensions, etc.).
-
-**Method Signature:**
-
-```php
-upload(
-	UploadedFile|array $files,
-	string $folder,
-	string $newName = '',
-	bool $returnDetails = false
-): array|bool
-```
-
-**Parameters:**
-- `$files` — A single UploadedFile instance or an array of files
-- `$folder` — Target directory (absolute path recommended)
-- `$newName` — Optional new filename (for multiple files, a numeric suffix will be added)
-- `$returnDetails` — If true, returns detailed information about uploaded files
-
-**Return Value:**
-- `array` — Detailed information about uploaded files (if $returnDetails is true)
-- `true` — If upload succeeds and $returnDetails is false
-
-#### Examples
-
-**Upload a single file:**
-
-```php
-$fmService->upload($file, '/var/www/uploads');
-```
-
-**Upload a file with a custom name and get details:**
-
-```php
-$uploaded = $fmService->upload(
-	$file,
-	'/var/www/uploads',
-	'my-file',
-	true
-);
-
-// Example result:
-[
-	[
-		'absolute' => '/var/www/uploads/my-file.jpg',
-		'relative' => 'uploads/my-file.jpg',
-		'filename' => 'my-file.jpg',
-		'filesize' => '1.2 MB',
-		'filemtime' => 1698200000,
-		'extension' => 'jpg',
-		'mime' => 'image/jpeg',
-		'dimensions' => ['width' => 800, 'height' => 600]
-	]
-]
+$uploaded = $fmService->upload(files: $file, folder: '/var/www/uploads', newName: 'my-file', returnDetails: true);
 ```
 
 ---
 
-## 🔧 3. Utilities
+## 🔄 3. File & Directory Operations
 
-### 🧩 Retrieve All Available MIME Types
+**`exists(?string $filePath = null): bool`**  
+Check if a file or directory physically exists.
 
+```php
+if ($fmService->exists(filePath: 'images/photo.jpg')) {
+    // File exists
+}
+```
+
+**`copy(string $source, string $destination, bool $override = false): bool`**  
+Duplicate a file or directory.
+
+```php
+$fmService->copy(source: 'uploads/file.txt', destination: 'backup/file.txt', override: true);
+```
+
+**`move(string $origine, string $target, bool $overwrite = false): bool`**  
+Move a file or directory to a new location.
+
+```php
+$fmService->move(origine: '/uploads/temp/image.jpg', target: '/uploads/final/image.jpg', overwrite: true);
+```
+
+**`rename(string $source, string $destination, bool $override = false): bool`**  
+Rename a file or directory (automatically slugifies the new name).
+
+```php
+$fmService->rename(source: 'Photo Vacances.jpg', destination: 'nouvelle photo');
+// Result: nouvelle-photo.jpg
+```
+
+**`remove(string $relativePath = ''): bool`**  
+Delete a file or a directory (and all its content).
+
+```php
+$fmService->remove(relativePath: 'uploads/documents/file.txt'); // Delete specific file
+$fmService->remove(); // Delete entire default directory
+```
+
+---
+
+## 🎨 4. Media & Utilities
+
+### 🖼️ Image Handling
+
+**`resizeImages(array $files, string $sourceDir, string $targetDir, int $width, int $quality = 100, ?string $suffix = null): array`**  
+Resize images while keeping aspect ratio and saving them to a new destination.
+
+```php
+$fmService->resizeImages(files: ['img.jpg'], sourceDir: '/source', targetDir: '/target', width: 800, quality: 90, suffix: 'thumb');
+```
+
+**`getImageSize(string $filePath): ?array`**  
+Get the dimensions of an image (`['width' => int, 'height' => int]`).
+
+```php
+$size = $fmService->getImageSize(filePath: 'uploads/photo.jpg');
+```
+
+### 📏 Size & MIME
+
+**`getSize(string|array $files, int $totalFileSize = 0): int|float`**  
+Calculate the total size in bytes of one or more files.
+
+```php
+$bytes = $fmService->getSize(files: $filesArray);
+```
+
+**`getSizeName(int|float $size): string`**  
+Convert bytes into a human-readable format (o, Ko, Mo, Go).
+
+```php
+$readable = $fmService->getSizeName(size: 10485760); // 10.00 Mo
+```
+
+**`getMimeTypes(): array`**  
 Get a complete list of supported MIME types.
 
 ```php
 $mimeTypes = $fmService->getMimeTypes();
-// Returns: ['pdf' => 'application/pdf', 'jpg' => 'image/jpeg', ...]
 ```
 
-### 🧩 Get MIME Type for Specific Extension
-
+**`getMimeType(string $key): string|array|null`**  
 Retrieve the MIME type for a given file extension.
 
 ```php
 $mimeType = $fmService->getMimeType(key: 'pdf');
-// Returns: 'application/pdf'
 ```
 
-### 🧩 Create URL-Friendly Slugs
+**`getMimeContent(string $filename): ?string`**  
+Detect the real MIME type of a physical file based on its content.
 
+```php
+$mimeContent = $fmService->getMimeContent(filename: 'uploads/photo.jpg');
+```
+
+### ⬇️ Download & Miscellaneous
+
+**`download(string $name, ?string $directory = null): BinaryFileResponse`**  
+Force the download of a single file.
+
+```php
+return $fmService->download(name: 'document.pdf');
+```
+
+**`downloadBulk(array $names, ?string $directory = null): BinaryFileResponse`**  
+Group multiple files into a ZIP archive and force its download.
+
+```php
+return $fmService->downloadBulk(names: ['doc1.pdf', 'img.png']);
+```
+
+**`createSlug(string $string): string`**  
 Convert any string into a URL-safe slug.
 
 ```php
-$slug = $fmService->createSlug('Hello World !');
-// Returns: 'hello-world'
+$slug = $fmService->createSlug(string: 'Hello World !'); // hello-world
 ```
 
 ---
 
-## 🎨 4. Optional: Twig Integration
+## 🎨 5. Optional: Twig Integration
 
 If you are using Twig and want Bootstrap-styled forms, add the following to your Twig configuration.
 
