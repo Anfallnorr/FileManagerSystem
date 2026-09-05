@@ -27,6 +27,7 @@ services:
             $kernelDirectory: '%fms.kernel_directory%'
             $defaultDirectory: '%fms.default_directory%'
             $relativeDirectory: '%fms.relative_directory%'
+            $httpClient: '@Symfony\Contracts\HttpClient\HttpClientInterface'
             $mime: '@Symfony\Component\Mime\MimeTypes'
             $filesystem: '@Symfony\Component\Filesystem\Filesystem'
             $slugger: '@Symfony\Component\String\Slugger\AsciiSlugger'

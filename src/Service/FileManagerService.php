@@ -8,6 +8,7 @@
 namespace Anfallnorr\FileManagerSystem\Service;
 
 // use SplFileInfo;
+use Symfony\Component\Dotenv\Exception\ExceptionInterface;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -16,6 +17,7 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\Mime\MimeTypes;
 use Symfony\Component\String\Slugger\AsciiSlugger;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 // use Symfony\Contracts\Translation\TranslatorInterface;
 
 // use function Symfony\Component\Deprecation\trigger_deprecation;
@@ -37,6 +39,7 @@ use Symfony\Component\String\Slugger\AsciiSlugger;
  * public getMimeType(string $key): string|array|null
  * public getMimeContent(string $filename): ?string
  * public getFileContent(string $relativeFile): string
+ * public getRemoteFileContent(string $url): string
  * public exists(?string $filePath = null): bool
  *
  * public createSlug(string $string): string
@@ -175,9 +178,10 @@ class FileManagerService
 		private string $kernelDirectory,
 		private string $defaultDirectory,
 		private string $relativeDirectory,
-		private MimeTypes $mime,
-		private Filesystem $filesystem,
-		private AsciiSlugger $slugger
+		private readonly HttpClientInterface $httpClient,
+		private readonly MimeTypes $mime,
+		private readonly Filesystem $filesystem,
+		private readonly AsciiSlugger $slugger
 	) {
 		// Unités de mesure pour la taille des fichiers
 		$this->unite = ['o' => "Octets", 'ko' => "Ko", 'mo' => "Mo", 'go' => "Go"];
@@ -607,6 +611,77 @@ class FileManagerService
 		// return \file_get_contents($this->getKernelDirectory() . $relativeFile);
 		return \file_get_contents($this->abs($relativeFile));
 		// return \file_get_contents($this->resolvePath($relativeFile));
+	}
+
+	/**
+	 * Récupère et retourne le contenu complet d'un fichier distant.
+	 *
+	 * Cette méthode télécharge le contenu brut d'une ressource accessible
+	 * via une URL HTTP(S), avec un timeout défini et une exception explicite
+	 * en cas d'URL invalide ou d'échec de récupération.
+	 *
+	 * @param string $url L'URL du fichier distant à lire.
+	 *
+	 * @return string Le contenu du fichier distant.
+	 *
+	 * @throws \InvalidArgumentException Si l'URL est invalide.
+	 * @throws \RuntimeException Si la récupération du contenu échoue.
+	 *
+	 * @example
+	 * ```php
+	 * $content = $service->getRemoteFileContent('https://example.com/data.json');
+	 * // Retourne le contenu du fichier distant sous forme de chaîne
+	 * ```
+	 */
+	public function getRemoteFileContent(string $url): string
+	{
+		if (!\filter_var(value: $url, filter: \FILTER_VALIDATE_URL)) {
+			throw new \InvalidArgumentException(message: "URL invalide : `{$url}`");
+		}
+
+		// passer par HttpClientInterface au lieu de file_get_contents
+		// use Symfony\Contracts\HttpClient\Exception\ExceptionInterface;
+		// use Symfony\Contracts\HttpClient\HttpClientInterface;
+		// __construct : private readonly HttpClientInterface $httpClient
+		try {
+			return $this->httpClient
+				->request('GET', $url, [
+					'timeout' => 10,
+					'max_redirects' => 5,
+					'headers' => [
+						// 'User-Agent' => 'PHP HTTP Client'
+						'User-Agent' => 'Symfony FileManager/1.0'
+					]
+				])->getContent();
+		} catch (ExceptionInterface $e) {
+			throw new \RuntimeException(
+				message: "Impossible de récupérer le contenu distant depuis `{$url}`.",
+				previous: $e
+			);
+		}
+
+		/* $context = \stream_context_create(options: [
+			'http' => [
+				'method' => 'GET',
+				'timeout' => 10,
+				'follow_location' => 1,
+				'max_redirects' => 5,
+				// 'header' => "User-Agent: JsInfo-FileManagerSystem/1.0\r\n"
+				'header' => "User-Agent: Symfony FileManager/1.0\r\n"
+			]
+		]);
+
+		$content = @\file_get_contents($url, false, $context);
+
+		if ($content === false) {
+			$error = \error_get_last();
+			$message = (isset($error['message']))
+				? ' : ' . $error['message']
+				: '';
+			throw new \RuntimeException(message: "Impossible de récupérer le contenu distant depuis {$url}{$message}.");
+		}
+
+		return $content; */
 	}
 
 	/**
@@ -2959,161 +3034,3 @@ class FileManagerService
 		return $this->fileManager->move($origine, $target, $overwrite);
 	}
 } */
-
-/* <!DOCTYPE html>
-<html lang="fr">
-<head>
-<meta charset="UTF-8">
-<title>Documentation Service Fichiers</title>
-<style>
-body { font-family: Arial, sans-serif; line-height: 1.6; margin: 20px; background: #f9f9f9; }
-h1 { color: #2c3e50; }
-h2 { color: #34495e; border-bottom: 1px solid #ccc; padding-bottom: 5px; }
-pre { background: #ecf0f1; padding: 10px; border-radius: 5px; overflow-x: auto; }
-code { color: #c0392b; }
-.method { margin-bottom: 30px; padding: 15px; background: #fff; border-radius: 5px; box-shadow: 0 0 5px rgba(0,0,0,0.1); }
-.params, .return, .example { margin-left: 20px; margin-top: 5px; }
-.toggle-btn { cursor: pointer; color: #2980b9; text-decoration: underline; margin-bottom: 5px; display: inline-block; }
-.hidden { display: none; }
-</style>
-<script>
-function toggleVisibility(id) {
-    const el = document.getElementById(id);
-    if(el.classList.contains('hidden')) {
-        el.classList.remove('hidden');
-    } else {
-        el.classList.add('hidden');
-    }
-}
-</script>
-</head>
-<body>
-<h1>Documentation du Service de Gestion de Fichiers</h1>
-<p>Liste complète des méthodes avec leurs paramètres, retours et exemples d'utilisation.</p>
-
-<div class="method">
-<h2>getDefaultDirectory()</h2>
-<div class="params"><strong>Paramètres:</strong> aucun</div>
-<div class="return"><strong>Retour:</strong> <code>string</code> Chemin absolu du répertoire par défaut</div>
-<div class="example">
-<pre><code>$defaultDir = $service->getDefaultDirectory();
-echo $defaultDir;
-</code></pre>
-</div>
-</div>
-
-<div class="method">
-<h2>setDefaultDirectory(string $directory)</h2>
-<div class="params"><strong>Paramètres:</strong></div>
-<ul class="params">
-<li><code>$directory</code> : Chemin relatif ou absolu à définir</li>
-</ul>
-<div class="return"><strong>Retour:</strong> <code>self</code> Instance courante</div>
-<div class="example">
-<pre><code>$service->setDefaultDirectory('/var/www/uploads');
-</code></pre>
-</div>
-</div>
-
-<div class="method">
-<h2>getDirs(string $path = '/', string $excludeDir = "", string|null $depth = '== 0')</h2>
-<div class="params"><strong>Paramètres:</strong></div>
-<ul class="params">
-<li><code>$path</code> : chemin relatif où chercher les dossiers</li>
-<li><code>$excludeDir</code> : dossier à exclure</li>
-<li><code>$depth</code> : profondeur à rechercher (ex. '== 0')</li>
-</ul>
-<div class="return"><strong>Retour:</strong> <code>array</code> Liste des dossiers trouvés</div>
-<div class="example">
-<pre><code>$dirs = $service->getDirs('/', 'tmp');
-foreach($dirs as $dir){
-    echo $dir['foldername'];
-}
-</code></pre>
-</div>
-</div>
-
-<div class="method">
-<h2>getDirsTree(string $path = '/', string $excludeDir = "", string|null $depth = '== 0')</h2>
-<div class="params"><strong>Paramètres:</strong></div>
-<ul class="params">
-<li><code>$path</code> : chemin relatif où chercher les dossiers</li>
-<li><code>$excludeDir</code> : dossier à exclure</li>
-<li><code>$depth</code> : profondeur maximale</li>
-</ul>
-<div class="return"><strong>Retour:</strong> <code>array</code> Arborescence complète</div>
-<div class="example">
-<pre><code>$tree = $service->getDirsTree('/');
-print_r($tree);
-</code></pre>
-</div>
-</div>
-
-<div class="method">
-<h2>getFiles(string $path = '/', string|null $depth = '== 0')</h2>
-<div class="params"><strong>Paramètres:</strong></div>
-<ul class="params">
-<li><code>$path</code> : chemin relatif où chercher les fichiers</li>
-<li><code>$depth</code> : profondeur à rechercher</li>
-</ul>
-<div class="return"><strong>Retour:</strong> <code>array|bool</code> Liste des fichiers ou false si aucun</div>
-<div class="example">
-<pre><code>$files = $service->getFiles('/');
-if($files){
-    foreach($files as $file){
-        echo $file['filename'];
-    }
-}
-</code></pre>
-</div>
-</div>
-
-<div class="method">
-<h2>upload(UploadedFile|array $files, string $folder, string $newName = "", bool $return = false)</h2>
-<div class="params"><strong>Paramètres:</strong></div>
-<ul class="params">
-<li><code>$files</code> : fichier ou tableau de fichiers</li>
-<li><code>$folder</code> : dossier cible</li>
-<li><code>$newName</code> : nouveau nom de fichier (optionnel)</li>
-<li><code>$return</code> : si true, retourne infos détaillées</li>
-</ul>
-<div class="return"><strong>Retour:</strong> <code>array|bool</code> Tableau d’infos ou true si succès</div>
-<div class="example">
-<pre><code>$service->upload($_FILES['file'], '/uploads', 'monfichier', true);
-</code></pre>
-</div>
-</div>
-
-<div class="method">
-<h2>download(string $filename, ?string $directory = null)</h2>
-<div class="params"><strong>Paramètres:</strong></div>
-<ul class="params">
-<li><code>$filename</code> : nom du fichier à télécharger</li>
-<li><code>$directory</code> : sous-dossier optionnel</li>
-</ul>
-<div class="return"><strong>Retour:</strong> <code>BinaryFileResponse</code> réponse HTTP</div>
-<div class="example">
-<pre><code>return $service->download('document.pdf', 'docs');
-</code></pre>
-</div>
-</div>
-
-<div class="method">
-<h2>downloadBulk(array $filenames, ?string $directory = null)</h2>
-<div class="params"><strong>Paramètres:</strong></div>
-<ul class="params">
-<li><code>$filenames</code> : liste des fichiers</li>
-<li><code>$directory</code> : sous-dossier optionnel</li>
-</ul>
-<div class="return"><strong>Retour:</strong> <code>BinaryFileResponse</code> réponse HTTP ZIP</div>
-<div class="example">
-<pre><code>return $service->downloadBulk(['file1.pdf','file2.pdf'], 'docs');
-</code></pre>
-</div>
-</div>
-
-<!-- Ajoute ici toutes les autres méthodes de la même manière -->
-
-</body>
-</html> */
-
